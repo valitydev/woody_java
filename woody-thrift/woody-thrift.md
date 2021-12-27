@@ -1,4 +1,4 @@
-# com.rbkmoney.woody.thrift
+# dev.vality.woody.thrift
 
 Реализация woody-api для Thrift, которая по возможности абстрагирует разработчика от деталей работы с Thrift библиотекой. 
 
@@ -8,9 +8,9 @@
 
 ```xml
 <dependency>
-    <groupId>com.rbkmoney.woody</groupId>
+    <groupId>dev.vality.woody</groupId>
     <artifactId>woody-thrift</artifactId>
-    <version>[1.0.0,)</version>
+    <version>[1.0.23,)</version>
 </dependency>
 ```
 
