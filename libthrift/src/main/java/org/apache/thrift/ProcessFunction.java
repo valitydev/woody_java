@@ -4,15 +4,10 @@
 package org.apache.thrift;
 
 import com.rbkmoney.woody.api.event.CallType;
-import com.rbkmoney.woody.api.trace.ContextUtils;
-import com.rbkmoney.woody.api.trace.Metadata;
 import com.rbkmoney.woody.api.trace.MetadataProperties;
-import com.rbkmoney.woody.api.trace.TraceData;
-import com.rbkmoney.woody.api.trace.context.TraceContext;
 import org.apache.thrift.protocol.TMessage;
 import org.apache.thrift.protocol.TMessageType;
 import org.apache.thrift.protocol.TProtocol;
-import org.apache.thrift.protocol.TProtocolException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,9 +32,10 @@ public abstract class ProcessFunction<I, T extends TBase> {
 
     try {
       result = getResult(iface, args);
-    } catch(TException tex) {
-      LOGGER.error("Internal error processing " + getMethodName(), tex);
-      throw tex;
+    } catch(TException ex) {
+      LOGGER.error("Internal error processing " + getMethodName(), ex);
+      if(rethrowUnhandledExceptions()) throw new RuntimeException(ex.getMessage(), ex);
+      throw ex;
     }
 
     if(!isOneway()) {
@@ -48,6 +44,10 @@ public abstract class ProcessFunction<I, T extends TBase> {
       oprot.writeMessageEnd();
       oprot.getTransport().flush();
     }
+  }
+
+  protected boolean rethrowUnhandledExceptions() {
+    return false;
   }
 
   protected abstract boolean isOneway();

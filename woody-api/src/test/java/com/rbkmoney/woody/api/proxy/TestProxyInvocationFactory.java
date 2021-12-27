@@ -11,12 +11,7 @@ import static org.junit.Assert.assertSame;
 public class TestProxyInvocationFactory {
     @Test
     public void testString() {
-        Srv directImpl = new Srv() {
-            @Override
-            public String getString() {
-                return "string";
-            }
-        };
+        Srv directImpl = () -> "string";
 
         MethodCallTracer wrappedCallTracer = new EventTracer();
 
@@ -24,10 +19,10 @@ public class TestProxyInvocationFactory {
         ProxyFactory handleProxyFactory = new ProxyFactory(new HandleMethodCallerFactory(), wrappedCallTracer, false);
 
         Srv directLambda = () -> "string";
-        Srv refDirectProxy = reflectionProxyFactory.getInstance(Srv.class, new SingleTargetProvider<Srv>(directImpl));
-        Srv refLambdaProxy = reflectionProxyFactory.getInstance(Srv.class, new SingleTargetProvider<Srv>(directLambda));
-        Srv handleDirectProxy = handleProxyFactory.getInstance(Srv.class, new SingleTargetProvider<Srv>(directImpl));
-        Srv handleLambdaProxy = handleProxyFactory.getInstance(Srv.class, new SingleTargetProvider<Srv>(directLambda));
+        Srv refDirectProxy = reflectionProxyFactory.getInstance(Srv.class, new SingleTargetProvider<>(directImpl));
+        Srv refLambdaProxy = reflectionProxyFactory.getInstance(Srv.class, new SingleTargetProvider<>(directLambda));
+        Srv handleDirectProxy = handleProxyFactory.getInstance(Srv.class, new SingleTargetProvider<>(directImpl));
+        Srv handleLambdaProxy = handleProxyFactory.getInstance(Srv.class, new SingleTargetProvider<>(directLambda));
         handleDirectProxy.getString();
         handleLambdaProxy.getString();
         for (int i = 0; i < 1000000; i++) {
