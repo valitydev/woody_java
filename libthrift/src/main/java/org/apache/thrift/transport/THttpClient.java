@@ -19,11 +19,11 @@
 
 package org.apache.thrift.transport;
 
-import com.rbkmoney.woody.api.interceptor.CommonInterceptor;
-import com.rbkmoney.woody.api.interceptor.EmptyCommonInterceptor;
-import com.rbkmoney.woody.api.trace.ContextUtils;
-import com.rbkmoney.woody.api.trace.TraceData;
-import com.rbkmoney.woody.api.trace.context.TraceContext;
+import dev.vality.woody.api.interceptor.CommonInterceptor;
+import dev.vality.woody.api.interceptor.EmptyCommonInterceptor;
+import dev.vality.woody.api.trace.ContextUtils;
+import dev.vality.woody.api.trace.TraceData;
+import dev.vality.woody.api.trace.context.TraceContext;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;

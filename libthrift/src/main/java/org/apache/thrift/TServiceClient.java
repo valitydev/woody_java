@@ -19,9 +19,9 @@
 
 package org.apache.thrift;
 
-import com.rbkmoney.woody.api.interceptor.CommonInterceptor;
-import com.rbkmoney.woody.api.trace.MetadataProperties;
-import com.rbkmoney.woody.api.trace.context.TraceContext;
+import dev.vality.woody.api.interceptor.CommonInterceptor;
+import dev.vality.woody.api.trace.MetadataProperties;
+import dev.vality.woody.api.trace.context.TraceContext;
 import org.apache.thrift.protocol.TMessage;
 import org.apache.thrift.protocol.TMessageType;
 import org.apache.thrift.protocol.TProtocol;

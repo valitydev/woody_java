@@ -3,15 +3,15 @@
  */
 package org.apache.thrift;
 
-import com.rbkmoney.woody.api.event.CallType;
-import com.rbkmoney.woody.api.trace.MetadataProperties;
+import dev.vality.woody.api.event.CallType;
+import dev.vality.woody.api.trace.MetadataProperties;
 import org.apache.thrift.protocol.TMessage;
 import org.apache.thrift.protocol.TMessageType;
 import org.apache.thrift.protocol.TProtocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.rbkmoney.woody.api.trace.context.TraceContext.getCurrentTraceData;
+import static dev.vality.woody.api.trace.context.TraceContext.getCurrentTraceData;
 
 public abstract class ProcessFunction<I, T extends TBase> {
   private final String methodName;

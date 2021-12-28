@@ -3,17 +3,13 @@ package org.apache.thrift;
 import java.util.Collections;
 import java.util.Map;
 
-import com.rbkmoney.woody.api.trace.ContextUtils;
-import com.rbkmoney.woody.api.trace.MetadataProperties;
-import com.rbkmoney.woody.api.trace.TraceData;
-import com.rbkmoney.woody.api.trace.context.TraceContext;
+import dev.vality.woody.api.trace.MetadataProperties;
 import org.apache.thrift.protocol.TMessage;
-import org.apache.thrift.protocol.TMessageType;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.protocol.TProtocolUtil;
 import org.apache.thrift.protocol.TType;
 
-import static com.rbkmoney.woody.api.trace.context.TraceContext.getCurrentTraceData;
+import static dev.vality.woody.api.trace.context.TraceContext.getCurrentTraceData;
 
 public abstract class TBaseProcessor<I> implements TProcessor {
   private final I iface;
