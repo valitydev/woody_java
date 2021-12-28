@@ -207,10 +207,10 @@ public class AbstractTest {
     }
 
     protected void writeResultMessage(ServletRequest servletRequest, ServletResponse servletResponse) throws IOException {
-        TBinaryProtocol tBinaryProtocol = new TBinaryProtocol(
-                new TIOStreamTransport(servletRequest.getInputStream(), servletResponse.getOutputStream())
-        );
         try {
+            TBinaryProtocol tBinaryProtocol = new TBinaryProtocol(
+                    new TIOStreamTransport(servletRequest.getInputStream(), servletResponse.getOutputStream())
+            );
             tBinaryProtocol.writeMessageBegin(tBinaryProtocol.readMessageBegin());
             OwnerServiceSrv.getIntValue_result intValueResult = new OwnerServiceSrv.getIntValue_result();
             intValueResult.setSuccess(42);

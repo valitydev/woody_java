@@ -19,31 +19,12 @@
 
 package org.apache.thrift.transport;
 
-import org.apache.thrift.TConfiguration;
+/**
+ * End of file, especially, the underlying socket is closed.
+ */
+public class TEOFException extends TTransportException {
 
-import java.io.IOException;
-import java.net.SocketAddress;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
-
-public abstract class TNonblockingTransport extends TEndpointTransport {
-
-  public TNonblockingTransport(TConfiguration config) throws TTransportException {
-    super(config);
+  public TEOFException(String message) {
+    super(TTransportException.END_OF_FILE, message);
   }
-
-  /**
-   * Non-blocking connection initialization.
-   * @see java.nio.channels.SocketChannel#connect(SocketAddress remote)
-   */
-  public abstract boolean startConnect() throws IOException;
-
-  /**
-   * Non-blocking connection completion.
-   * @see java.nio.channels.SocketChannel#finishConnect()
-   */
-  public abstract boolean finishConnect() throws IOException;
-
-  public abstract SelectionKey registerSelector(Selector selector, int interests) throws IOException;
-
 }
