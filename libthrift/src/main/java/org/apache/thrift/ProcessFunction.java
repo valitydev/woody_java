@@ -1,5 +1,11 @@
+/**
+ *
+ */
 package org.apache.thrift;
 
+import dev.vality.woody.api.event.CallType;
+import dev.vality.woody.api.trace.MetadataProperties;
+import dev.vality.woody.api.trace.context.TraceContext;
 import org.apache.thrift.protocol.TMessage;
 import org.apache.thrift.protocol.TMessageType;
 import org.apache.thrift.protocol.TProtocol;
@@ -18,6 +24,7 @@ public abstract class ProcessFunction<I, T extends TBase> {
   }
 
   public final void process(int seqid, TProtocol iprot, TProtocol oprot, I iface) throws TException {
+    TraceContext.getCurrentTraceData().getServiceSpan().getMetadata().putValue(MetadataProperties.CALL_TYPE, isOneway() ? CallType.CAST : CallType.CALL);
     T args = getEmptyArgsInstance();
     try {
       args.read(iprot);
@@ -32,29 +39,17 @@ public abstract class ProcessFunction<I, T extends TBase> {
     }
     iprot.readMessageEnd();
     TSerializable result = null;
-    byte msgType = TMessageType.REPLY;
 
     try {
       result = getResult(iface, args);
-    } catch (TTransportException ex) {
-      LOGGER.error("Transport error while processing " + getMethodName(), ex);
-      throw ex;
-    } catch (TApplicationException ex) {
-      LOGGER.error("Internal application error processing " + getMethodName(), ex);
-      result = ex;
-      msgType = TMessageType.EXCEPTION;
-    } catch (Exception ex) {
+    } catch(TException ex) {
       LOGGER.error("Internal error processing " + getMethodName(), ex);
       if(rethrowUnhandledExceptions()) throw new RuntimeException(ex.getMessage(), ex);
-      if(!isOneway()) {
-        result = new TApplicationException(TApplicationException.INTERNAL_ERROR,
-            "Internal error processing " + getMethodName());
-        msgType = TMessageType.EXCEPTION;
-      }
+      throw ex;
     }
 
     if(!isOneway()) {
-      oprot.writeMessageBegin(new TMessage(getMethodName(), msgType, seqid));
+      oprot.writeMessageBegin(new TMessage(getMethodName(), TMessageType.REPLY, seqid));
       result.write(oprot);
       oprot.writeMessageEnd();
       oprot.getTransport().flush();
@@ -72,7 +67,7 @@ public abstract class ProcessFunction<I, T extends TBase> {
     }
   }
 
-  protected boolean rethrowUnhandledExceptions(){
+  protected boolean rethrowUnhandledExceptions() {
     return false;
   }
 
