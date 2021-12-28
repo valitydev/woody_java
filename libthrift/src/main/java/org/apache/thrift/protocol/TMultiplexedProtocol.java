@@ -49,7 +49,7 @@ import org.apache.thrift.TException;
  * }
  * </pre>
  *
- * @see org.apache.thrift.protocol.TProtocolDecorator
+ * @see TProtocolDecorator
  */
 public class TMultiplexedProtocol extends TProtocolDecorator {
 
