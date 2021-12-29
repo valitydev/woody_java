@@ -3,6 +3,7 @@ package dev.vality.woody.thrift.impl.http.error;
 import dev.vality.woody.api.flow.error.*;
 import dev.vality.woody.api.trace.ContextSpan;
 
+@SuppressWarnings("checkstyle:AbbreviationAsWordInName")
 public class THDefaultErrorMapper implements WErrorMapper {
     @Override
     public WErrorDefinition mapToDef(Throwable t, ContextSpan contextSpan) {
@@ -16,9 +17,9 @@ public class THDefaultErrorMapper implements WErrorMapper {
     }
 
     @Override
-    public Exception mapToError(WErrorDefinition eDefinition, ContextSpan contextSpan) {
-        if (eDefinition.getErrorType() != WErrorType.BUSINESS_ERROR) {
-            return new WRuntimeException(eDefinition);
+    public Exception mapToError(WErrorDefinition errorDefinition, ContextSpan contextSpan) {
+        if (errorDefinition.getErrorType() != WErrorType.BUSINESS_ERROR) {
+            return new WRuntimeException(errorDefinition);
         }
         return null;
     }

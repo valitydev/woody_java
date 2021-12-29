@@ -51,8 +51,8 @@ public class WExecutorService implements ExecutorService, Closeable {
      * {@inheritDoc}
      */
     @Override
-    public <T> List<Future<T>> invokeAll(final Collection<? extends Callable<T>> arg0, final long arg1, final TimeUnit arg2)
-            throws InterruptedException {
+    public <T> List<Future<T>> invokeAll(final Collection<? extends Callable<T>> arg0, final long arg1,
+                                         final TimeUnit arg2) throws InterruptedException {
         return wrappedExecutor.invokeAll(buildWCollection(arg0), arg1, arg2);
     }
 
@@ -60,7 +60,8 @@ public class WExecutorService implements ExecutorService, Closeable {
      * {@inheritDoc}
      */
     @Override
-    public <T> T invokeAny(final Collection<? extends Callable<T>> arg0) throws InterruptedException, ExecutionException {
+    public <T> T invokeAny(final Collection<? extends Callable<T>> arg0)
+            throws InterruptedException, ExecutionException {
         return wrappedExecutor.invokeAny(buildWCollection(arg0));
     }
 

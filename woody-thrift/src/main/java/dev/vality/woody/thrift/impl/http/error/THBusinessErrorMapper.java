@@ -66,7 +66,7 @@ public class THBusinessErrorMapper implements WErrorMapper {
     }
 
     @Override
-    public Exception mapToError(WErrorDefinition eDefinition, ContextSpan contextSpan) {
+    public Exception mapToError(WErrorDefinition errorDefinition, ContextSpan contextSpan) {
         return null;//business error has already been thrown, no need in overriding
     }
 

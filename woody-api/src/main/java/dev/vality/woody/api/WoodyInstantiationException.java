@@ -17,7 +17,8 @@ public class WoodyInstantiationException extends RuntimeException {
         super(cause);
     }
 
-    protected WoodyInstantiationException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    protected WoodyInstantiationException(String message, Throwable cause, boolean enableSuppression,
+                                          boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }

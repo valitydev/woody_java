@@ -13,6 +13,7 @@ import java.util.Iterator;
 public class HttpServiceEventLogListener implements ServiceEventListener<THServiceEvent> {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
+    @SuppressWarnings("checkstyle:MissingSwitchDefault")
     @Override
     public void notifyEvent(THServiceEvent event) {
         try {
@@ -38,11 +39,8 @@ public class HttpServiceEventLogListener implements ServiceEventListener<THServi
 
     private String buildRequestLog(HttpServletRequest httpRequest) {
         StringBuilder sb = new StringBuilder();
-        sb.append("HttpRequest:")
-                .append(httpRequest.getMethod()).append(" ")
-                .append(httpRequest.getProtocol())
-                .append(", RemoteHost: ").append(httpRequest.getRemoteHost())
-                .append(", Headers:");
+        sb.append("HttpRequest:").append(httpRequest.getMethod()).append(" ").append(httpRequest.getProtocol())
+                .append(", RemoteHost: ").append(httpRequest.getRemoteHost()).append(", Headers:");
         Enumeration<String> headers = httpRequest.getHeaderNames();
         sb.append('[');
         for (String headerName; headers.hasMoreElements(); ) {
@@ -51,8 +49,9 @@ public class HttpServiceEventLogListener implements ServiceEventListener<THServi
             for (String val; vals.hasMoreElements(); ) {
                 val = vals.nextElement();
                 sb.append(headerName).append(": ").append(val);
-                if (vals.hasMoreElements())
+                if (vals.hasMoreElements()) {
                     sb.append(", ");
+                }
             }
             if (headers.hasMoreElements()) {
                 sb.append(", ");
@@ -66,16 +65,15 @@ public class HttpServiceEventLogListener implements ServiceEventListener<THServi
 
     private String buildResponseLog(HttpServletResponse httpResponse) {
         StringBuilder sb = new StringBuilder();
-        sb.append("HttpResponse:")
-                .append(httpResponse.getStatus())
-                .append(", Headers:");
+        sb.append("HttpResponse:").append(httpResponse.getStatus()).append(", Headers:");
         Collection<String> headers = httpResponse.getHeaderNames();
         sb.append('[');
         for (Iterator<String> it = headers.iterator(); it.hasNext(); ) {
             String header = it.next();
             sb.append(header).append(": ").append(httpResponse.getHeader(header));
-            if (it.hasNext())
+            if (it.hasNext()) {
                 sb.append(", ");
+            }
         }
         sb.append(']');
         return sb.toString();

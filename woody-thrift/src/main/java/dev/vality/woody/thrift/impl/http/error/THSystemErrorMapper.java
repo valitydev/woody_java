@@ -24,16 +24,16 @@ public class THSystemErrorMapper implements WErrorMapper {
     }
 
     @Override
-    public Exception mapToError(WErrorDefinition eDefinition, ContextSpan contextSpan) {
-        WErrorType errorType = eDefinition.getErrorType();
+    public Exception mapToError(WErrorDefinition errorDefinition, ContextSpan contextSpan) {
+        WErrorType errorType = errorDefinition.getErrorType();
         if (errorType != null) {
             switch (errorType) {
                 case UNAVAILABLE_RESULT:
-                    return new WUnavailableResultException(eDefinition);
+                    return new WUnavailableResultException(errorDefinition);
                 case UNDEFINED_RESULT:
-                    return new WUndefinedResultException(eDefinition);
+                    return new WUndefinedResultException(errorDefinition);
                 case UNEXPECTED_ERROR:
-                    return new WRuntimeException(eDefinition);
+                    return new WRuntimeException(errorDefinition);
                 default:
                     return null;
             }

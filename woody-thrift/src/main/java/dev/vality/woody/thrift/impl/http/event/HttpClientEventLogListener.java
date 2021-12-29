@@ -11,6 +11,7 @@ import java.util.Arrays;
 public class HttpClientEventLogListener implements ClientEventListener<THClientEvent> {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
+    @SuppressWarnings("checkstyle:MissingSwitchDefault")
     @Override
     public void notifyEvent(THClientEvent event) {
         try {
@@ -36,8 +37,8 @@ public class HttpClientEventLogListener implements ClientEventListener<THClientE
 
     private String buildRequestLog(HttpRequestBase requestBase) {
         StringBuilder sb = new StringBuilder();
-        sb.append("HttpRequest:")
-                .append(requestBase.toString()).append(", Headers:").append(Arrays.toString(requestBase.getAllHeaders()));
+        sb.append("HttpRequest:").append(requestBase.toString()).append(", Headers:")
+                .append(Arrays.toString(requestBase.getAllHeaders()));
 
         return sb.toString();
 
@@ -45,8 +46,8 @@ public class HttpClientEventLogListener implements ClientEventListener<THClientE
 
     private String buildResponseLog(HttpResponse httpResponse) {
         StringBuilder sb = new StringBuilder();
-        sb.append("HttpResponse:")
-                .append(httpResponse.getStatusLine().toString()).append(", Headers:").append(Arrays.toString(httpResponse.getAllHeaders()));
+        sb.append("HttpResponse:").append(httpResponse.getStatusLine().toString()).append(", Headers:")
+                .append(Arrays.toString(httpResponse.getAllHeaders()));
 
         return sb.toString();
     }

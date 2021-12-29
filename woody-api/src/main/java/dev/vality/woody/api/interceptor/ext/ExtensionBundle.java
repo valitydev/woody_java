@@ -4,6 +4,11 @@ public class ExtensionBundle {
     private final ContextBundle clientBundle;
     private final ContextBundle serviceBundle;
 
+    public ExtensionBundle(ContextBundle clientBundle, ContextBundle serviceBundle) {
+        this.clientBundle = clientBundle;
+        this.serviceBundle = serviceBundle;
+    }
+
     public static ExtensionBundle createClientExtBundle(ContextBundle clientBundle) {
         return createExtBundle(clientBundle, ContextBundle.createCtxStub());
     }
@@ -20,11 +25,6 @@ public class ExtensionBundle {
         return new ExtensionBundle(commonBundle, commonBundle);
     }
 
-    public ExtensionBundle(ContextBundle clientBundle, ContextBundle serviceBundle) {
-        this.clientBundle = clientBundle;
-        this.serviceBundle = serviceBundle;
-    }
-
     public ContextBundle getClientBundle() {
         return clientBundle;
     }
@@ -37,17 +37,18 @@ public class ExtensionBundle {
         private final InterceptorExtension requestExtension;
         private final InterceptorExtension responseExtension;
 
+        public ContextBundle(InterceptorExtension requestExtension, InterceptorExtension responseExtension) {
+            this.requestExtension = requestExtension;
+            this.responseExtension = responseExtension;
+        }
+
         public static ContextBundle createCtxStub() {
             return new ContextBundle(ctx -> {}, ctx -> {});
         }
 
-        public static ContextBundle createCtxBundle(InterceptorExtension requestExtension, InterceptorExtension responseExtension) {
+        public static ContextBundle createCtxBundle(InterceptorExtension requestExtension,
+                                                    InterceptorExtension responseExtension) {
             return new ContextBundle(requestExtension, responseExtension);
-        }
-
-        public ContextBundle(InterceptorExtension requestExtension, InterceptorExtension responseExtension) {
-            this.requestExtension = requestExtension;
-            this.responseExtension = responseExtension;
         }
 
         public InterceptorExtension getRequestExtension() {

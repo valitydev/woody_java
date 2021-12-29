@@ -14,6 +14,7 @@ public class TimestampIdGenerator implements IdGenerator {
 
     @Override
     public String generateId(String prefix, int counter) {
-        return new StringBuilder().append(prefix).append(System.currentTimeMillis()).append(':').append(counter).toString();
+        return new StringBuilder().append(prefix).append(System.currentTimeMillis()).append(':').append(counter)
+                .toString();
     }
 }

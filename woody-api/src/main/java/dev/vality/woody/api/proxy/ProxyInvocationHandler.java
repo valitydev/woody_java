@@ -12,7 +12,8 @@ public final class ProxyInvocationHandler implements InvocationHandler {
     private final Map<Method, CallerBundle> callMap;
     private final InvocationTargetProvider targetProvider;
 
-    public ProxyInvocationHandler(Class iface, InvocationTargetProvider targetProvider, MethodCallerFactory callerFactory, MethodCallInterceptor callInterceptor) {
+    public ProxyInvocationHandler(Class iface, InvocationTargetProvider targetProvider,
+                                  MethodCallerFactory callerFactory, MethodCallInterceptor callInterceptor) {
         this.targetProvider = targetProvider;
         this.callMap = createCallMap(callInterceptor, targetProvider, iface, callerFactory);
     }
@@ -27,7 +28,9 @@ public final class ProxyInvocationHandler implements InvocationHandler {
         }
     }
 
-    private Map<Method, CallerBundle> createCallMap(MethodCallInterceptor callInterceptor, InvocationTargetProvider targetProvider, Class iface, MethodCallerFactory callerFactory) {
+    private Map<Method, CallerBundle> createCallMap(MethodCallInterceptor callInterceptor,
+                                                    InvocationTargetProvider targetProvider, Class iface,
+                                                    MethodCallerFactory callerFactory) {
         Class targetType = targetProvider.getTargetType();
 
         if (!iface.isAssignableFrom(targetType)) {
@@ -37,14 +40,17 @@ public final class ProxyInvocationHandler implements InvocationHandler {
         Method[] targetIfaceMethods = MethodShadow.getShadowedMethods(targetType, iface);
 
         for (Method method : targetIfaceMethods) {
-            callerMap.put(MethodShadow.getSameMethod(method, iface), new CallerBundle(callerFactory.getInstance(targetProvider, method), callInterceptor));
+            callerMap.put(MethodShadow.getSameMethod(method, iface),
+                    new CallerBundle(callerFactory.getInstance(targetProvider, method), callInterceptor));
         }
 
         return addObjectMethods(iface, callerFactory, callerMap);
     }
 
-    private Map<Method, CallerBundle> addObjectMethods(Class iface, MethodCallerFactory callerFactory, Map<Method, CallerBundle> callerMap) {
-        SingleTargetProvider objTargetProvider = new SingleTargetProvider(Object.class, this);//ref leak on init, assume it's a trusted code
+    private Map<Method, CallerBundle> addObjectMethods(Class iface, MethodCallerFactory callerFactory,
+                                                       Map<Method, CallerBundle> callerMap) {
+        SingleTargetProvider objTargetProvider =
+                new SingleTargetProvider(Object.class, this);//ref leak on init, assume it's a trusted code
         MethodCallInterceptor directCallInterceptor = MethodCallInterceptors.directCallInterceptor();
         BiFunction<Object, Object, Object> targetExtractor = (src, stub) -> {
             InvocationHandler invocationHandler = null;
@@ -53,7 +59,8 @@ public final class ProxyInvocationHandler implements InvocationHandler {
                 if (!(invocationHandler instanceof ProxyInvocationHandler)) {
                     invocationHandler = null;
                 }
-            } catch (IllegalArgumentException e) {
+            } catch (IllegalArgumentException ignored) {
+                //ignore
             }
             return invocationHandler == null ? stub : invocationHandler;
         };
@@ -61,23 +68,19 @@ public final class ProxyInvocationHandler implements InvocationHandler {
         try {
             //it's expected that this handler is bound only for one dedicated proxy
             Method objMethod = objTargetProvider.getClass().getMethod("hashCode");
-            callerMap.put(objMethod, new CallerBundle(
-                    callerFactory.getInstance(objTargetProvider, objMethod,
-                            (src, args) -> targetExtractor.apply(src, ProxyInvocationHandler.this).hashCode()),
-                    directCallInterceptor
-            ));
+            callerMap.put(objMethod, new CallerBundle(callerFactory.getInstance(objTargetProvider, objMethod,
+                    (src, args) -> targetExtractor.apply(src, ProxyInvocationHandler.this).hashCode()),
+                    directCallInterceptor));
             objMethod = objTargetProvider.getClass().getMethod("toString");
-            callerMap.put(objMethod, new CallerBundle(
-                    callerFactory.getInstance(objTargetProvider, objMethod,
-                            (src, args) -> iface.getName() + "@" + targetExtractor.apply(src, ProxyInvocationHandler.this).hashCode()),
-                    directCallInterceptor
-            ));
+            callerMap.put(objMethod, new CallerBundle(callerFactory.getInstance(objTargetProvider, objMethod,
+                    (src, args) -> iface.getName() + "@" +
+                            targetExtractor.apply(src, ProxyInvocationHandler.this).hashCode()),
+                    directCallInterceptor));
 
             objMethod = objTargetProvider.getClass().getMethod("equals", Object.class);
             callerMap.put(objMethod, new CallerBundle(callerFactory.getInstance(objTargetProvider, objMethod,
                     (src, args) -> targetExtractor.apply(args[0], null) == ProxyInvocationHandler.this),
-                    directCallInterceptor
-            ));
+                    directCallInterceptor));
         } catch (NoSuchMethodException e) {
             throw new IllegalStateException("Object methods're not found", e);
         }

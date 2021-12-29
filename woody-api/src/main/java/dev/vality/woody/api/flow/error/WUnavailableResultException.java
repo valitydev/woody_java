@@ -2,21 +2,6 @@ package dev.vality.woody.api.flow.error;
 
 public class WUnavailableResultException extends WRuntimeException {
 
-    private static WErrorDefinition createErrDef(String reason, Throwable cause) {
-        WErrorDefinition errorDefinition = new WErrorDefinition(WErrorSource.INTERNAL);
-        errorDefinition.setErrorType(WErrorType.UNAVAILABLE_RESULT);
-        errorDefinition.setErrorSource(WErrorSource.INTERNAL);
-        errorDefinition.setErrorReason(reason);
-        if (cause != null) {
-            errorDefinition.setErrorName(cause.getClass().getSimpleName());
-            errorDefinition.setErrorMessage(cause.getMessage());
-        } else {
-            errorDefinition.setErrorName(WUnavailableResultException.class.getSimpleName());
-            errorDefinition.setErrorMessage(reason);
-        }
-        return errorDefinition;
-    }
-
     public WUnavailableResultException() {
         this(WErrorType.UNAVAILABLE_RESULT.getKey());
     }
@@ -33,7 +18,8 @@ public class WUnavailableResultException extends WRuntimeException {
         super(cause, createErrDef(WErrorType.UNAVAILABLE_RESULT.getKey(), null));
     }
 
-    public WUnavailableResultException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    public WUnavailableResultException(String message, Throwable cause, boolean enableSuppression,
+                                       boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace, createErrDef(message, cause));
     }
 
@@ -53,8 +39,24 @@ public class WUnavailableResultException extends WRuntimeException {
         super(cause, errorDefinition);
     }
 
-    public WUnavailableResultException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace, WErrorDefinition errorDefinition) {
+    public WUnavailableResultException(String message, Throwable cause, boolean enableSuppression,
+                                       boolean writableStackTrace, WErrorDefinition errorDefinition) {
         super(message, cause, enableSuppression, writableStackTrace, errorDefinition);
+    }
+
+    private static WErrorDefinition createErrDef(String reason, Throwable cause) {
+        WErrorDefinition errorDefinition = new WErrorDefinition(WErrorSource.INTERNAL);
+        errorDefinition.setErrorType(WErrorType.UNAVAILABLE_RESULT);
+        errorDefinition.setErrorSource(WErrorSource.INTERNAL);
+        errorDefinition.setErrorReason(reason);
+        if (cause != null) {
+            errorDefinition.setErrorName(cause.getClass().getSimpleName());
+            errorDefinition.setErrorMessage(cause.getMessage());
+        } else {
+            errorDefinition.setErrorName(WUnavailableResultException.class.getSimpleName());
+            errorDefinition.setErrorMessage(reason);
+        }
+        return errorDefinition;
     }
 }
 

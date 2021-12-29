@@ -16,27 +16,22 @@ import static dev.vality.woody.api.interceptor.ext.ExtensionBundle.ContextBundle
 import static dev.vality.woody.api.interceptor.ext.ExtensionBundle.createExtBundle;
 
 public class MessageExtensionBundles {
-    public static final ExtensionBundle CALL_INFO_INJECTION_BUNDLE = createExtBundle(
-            createCtxBundle(
-                    reqCtx -> {
-                        TMessage tMessage = (TMessage) reqCtx.getProviderContext();
-                        Metadata metadata = reqCtx.getTraceData().getClientSpan().getMetadata();
-                        metadata.putValue(MetadataProperties.CALL_NAME, tMessage.name);
-                        metadata.putValue(MetadataProperties.CALL_TYPE, tMessage.type == TMessageType.ONEWAY ? CallType.CAST : CallType.CALL);
-                        metadata.putValue(THMetadataProperties.TH_CALL_MSG_TYPE, tMessage.type);
-                    },
-                    respCtx -> {
-                        TMessage tMessage = (TMessage) respCtx.getProviderContext();
-                        Metadata metadata = respCtx.getTraceData().getClientSpan().getMetadata();
-                        metadata.putValue(THMetadataProperties.TH_CALL_RESULT_MSG_TYPE, tMessage.type);
-                        metadata.putValue(MetadataProperties.CALL_REQUEST_PROCESSED_FLAG, true);
-                    }
-            )
-    );
+    public static final ExtensionBundle CALL_INFO_INJECTION_BUNDLE = createExtBundle(createCtxBundle(reqCtx -> {
+        TMessage tMessage = (TMessage) reqCtx.getProviderContext();
+        Metadata metadata = reqCtx.getTraceData().getClientSpan().getMetadata();
+        metadata.putValue(MetadataProperties.CALL_NAME, tMessage.name);
+        metadata.putValue(MetadataProperties.CALL_TYPE,
+                tMessage.type == TMessageType.ONEWAY ? CallType.CAST : CallType.CALL);
+        metadata.putValue(THMetadataProperties.TH_CALL_MSG_TYPE, tMessage.type);
+    }, respCtx -> {
+        TMessage tMessage = (TMessage) respCtx.getProviderContext();
+        Metadata metadata = respCtx.getTraceData().getClientSpan().getMetadata();
+        metadata.putValue(THMetadataProperties.TH_CALL_RESULT_MSG_TYPE, tMessage.type);
+        metadata.putValue(MetadataProperties.CALL_REQUEST_PROCESSED_FLAG, true);
+    }));
 
-    private static final List<ExtensionBundle> bundleList = Collections.unmodifiableList(Arrays.asList(
-            CALL_INFO_INJECTION_BUNDLE
-    ));
+    private static final List<ExtensionBundle> bundleList =
+            Collections.unmodifiableList(Arrays.asList(CALL_INFO_INJECTION_BUNDLE));
 
     public static List<ExtensionBundle> getClientExtensions() {
         return bundleList;

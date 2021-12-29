@@ -17,14 +17,16 @@ public interface MetadataConverter<T> {
     boolean apply(String key);
 
     /**
-     * @return true - if converter accepts absence of any entries that can be applied for conversion to object; false - otherwise
+     * @return true - if converter accepts absence of any entries that can be applied for conversion to object;
+     *      false - otherwise
      */
     default boolean applyToObject() {
         return false;
     }
 
     /**
-     * @return true - if converter accepts absence of any entries that can be applied for conversion to string; false - otherwise
+     * @return true - if converter accepts absence of any entries that can be applied for conversion to string;
+     *      false - otherwise
      */
     default boolean applyToString() {
         return false;

@@ -2,10 +2,10 @@ package dev.vality.woody.api;
 
 import dev.vality.woody.api.event.ServiceEventListener;
 
-public interface ServiceBuilder<Srv> {
+public interface ServiceBuilder<SrvT> {
     ServiceBuilder withEventListener(ServiceEventListener listener);
 
     ServiceEventListener getEventListener();
 
-    <T> Srv build(Class<T> iface, T serviceHandler);
+    <T> SrvT build(Class<T> iface, T serviceHandler);
 }

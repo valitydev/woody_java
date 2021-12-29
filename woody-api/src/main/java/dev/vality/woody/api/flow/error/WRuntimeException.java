@@ -28,7 +28,8 @@ public class WRuntimeException extends RuntimeException {
         this.errorDefinition = errorDefinition;
     }
 
-    public WRuntimeException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace, WErrorDefinition errorDefinition) {
+    public WRuntimeException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace,
+                             WErrorDefinition errorDefinition) {
         super(message, cause, enableSuppression, writableStackTrace);
         Objects.requireNonNull(errorDefinition);
         this.errorDefinition = errorDefinition;
@@ -41,9 +42,6 @@ public class WRuntimeException extends RuntimeException {
     @Override
     public String toString() {
         String msg = super.toString();
-        return "WRuntimeException{" +
-                "errorDefinition=" + errorDefinition +
-                ", " + msg +
-                "}";
+        return "WRuntimeException{" + "errorDefinition=" + errorDefinition + ", " + msg + "}";
     }
 }

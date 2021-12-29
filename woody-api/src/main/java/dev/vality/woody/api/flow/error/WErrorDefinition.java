@@ -26,36 +26,36 @@ public class WErrorDefinition {
         return errorType;
     }
 
-    public WErrorSource getErrorSource() {
-        return errorSource;
-    }
-
-    public String getErrorReason() {
-        return errorReason;
-    }
-
-    public String getErrorName() {
-        return errorName;
-    }
-
-    public String getErrorMessage() {
-        return errorMessage;
-    }
-
     public void setErrorType(WErrorType errorType) {
         this.errorType = errorType;
+    }
+
+    public WErrorSource getErrorSource() {
+        return errorSource;
     }
 
     public void setErrorSource(WErrorSource errorSource) {
         this.errorSource = errorSource;
     }
 
+    public String getErrorReason() {
+        return errorReason;
+    }
+
     public void setErrorReason(String errorReason) {
         this.errorReason = errorReason;
     }
 
+    public String getErrorName() {
+        return errorName;
+    }
+
     public void setErrorName(String errorName) {
         this.errorName = errorName;
+    }
+
+    public String getErrorMessage() {
+        return errorMessage;
     }
 
     public void setErrorMessage(String errorMessage) {
@@ -64,15 +64,16 @@ public class WErrorDefinition {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof WErrorDefinition)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof WErrorDefinition)) {
+            return false;
+        }
         WErrorDefinition that = (WErrorDefinition) o;
-        return generationSource == that.generationSource &&
-                errorType == that.errorType &&
-                errorSource == that.errorSource &&
-                Objects.equals(errorReason, that.errorReason) &&
-                Objects.equals(errorName, that.errorName) &&
-                Objects.equals(errorMessage, that.errorMessage);
+        return generationSource == that.generationSource && errorType == that.errorType
+                && errorSource == that.errorSource && Objects.equals(errorReason, that.errorReason)
+                && Objects.equals(errorName, that.errorName) && Objects.equals(errorMessage, that.errorMessage);
     }
 
     @Override
@@ -82,13 +83,8 @@ public class WErrorDefinition {
 
     @Override
     public String toString() {
-        return "WErrorDefinition{" +
-                "generationSource=" + generationSource +
-                ", errorType=" + errorType +
-                ", errorSource=" + errorSource +
-                ", errorReason='" + errorReason + '\'' +
-                ", errorName='" + errorName + '\'' +
-                ", errorMessage='" + errorMessage + '\'' +
-                '}';
+        return "WErrorDefinition{" + "generationSource=" + generationSource + ", errorType=" + errorType +
+                ", errorSource=" + errorSource + ", errorReason='" + errorReason + '\'' + ", errorName='" + errorName +
+                '\'' + ", errorMessage='" + errorMessage + '\'' + '}';
     }
 }

@@ -87,14 +87,6 @@ public class ContextUtils {
         }
     }
 
-    public static <T> T getCustomMetadataValue(MetadataExtension<T> extension) {
-        return extension.getValue(TraceContext.getCurrentTraceData().getActiveSpan().getCustomMetadata());
-    }
-
-    public static <T> T getCustomMetadataValue(String key, MetadataExtension<T> extension) {
-        return extension.getValue(key, TraceContext.getCurrentTraceData().getActiveSpan().getCustomMetadata());
-    }
-
     public static <T, TT extends T> void setCustomMetadataValue(TT val, MetadataExtension<T> extension) {
         extension.setValue(val, TraceContext.getCurrentTraceData().getActiveSpan().getCustomMetadata());
     }
@@ -107,20 +99,28 @@ public class ContextUtils {
         return TraceContext.getCurrentTraceData().getActiveSpan().getCustomMetadata().putValue(key, val);
     }
 
-    public static <T> T getMetadataValue(Class<T> targetType, String key) {
-        return getMetadataValue(TraceContext.getCurrentTraceData().getActiveSpan(), targetType, key);
+    public static <T> T getCustomMetadataValue(MetadataExtension<T> extension) {
+        return extension.getValue(TraceContext.getCurrentTraceData().getActiveSpan().getCustomMetadata());
+    }
+
+    public static <T> T getCustomMetadataValue(String key, MetadataExtension<T> extension) {
+        return extension.getValue(key, TraceContext.getCurrentTraceData().getActiveSpan().getCustomMetadata());
     }
 
     public static <T> T getCustomMetadataValue(Class<T> targetType, String key) {
         return getCustomMetadataValue(TraceContext.getCurrentTraceData().getActiveSpan(), targetType, key);
     }
 
-    public static <T> T getMetadataValue(ContextSpan span, Class<T> targetType, String key) {
-        return getMetadataValue(span.getMetadata(), targetType, key);
-    }
-
     public static <T> T getCustomMetadataValue(ContextSpan span, Class<T> targetType, String key) {
         return getMetadataValue(span.getCustomMetadata(), targetType, key);
+    }
+
+    public static <T> T getMetadataValue(Class<T> targetType, String key) {
+        return getMetadataValue(TraceContext.getCurrentTraceData().getActiveSpan(), targetType, key);
+    }
+
+    public static <T> T getMetadataValue(ContextSpan span, Class<T> targetType, String key) {
+        return getMetadataValue(span.getMetadata(), targetType, key);
     }
 
     public static <T> T getMetadataValue(Metadata metadata, Class<T> targetType, String key) {

@@ -43,7 +43,7 @@ public class THTransportErrorMapper implements WErrorMapper {
     }
 
     @Override
-    public Exception mapToError(WErrorDefinition eDefinition, ContextSpan contextSpan) {
+    public Exception mapToError(WErrorDefinition errorDefinition, ContextSpan contextSpan) {
         return null;
     }
 

@@ -6,6 +6,6 @@ public interface WErrorMapper {
 
     WErrorDefinition mapToDef(Throwable t, ContextSpan contextSpan);
 
-    Exception mapToError(WErrorDefinition eDefinition, ContextSpan contextSpan);
+    Exception mapToError(WErrorDefinition errorDefinition, ContextSpan contextSpan);
 
 }

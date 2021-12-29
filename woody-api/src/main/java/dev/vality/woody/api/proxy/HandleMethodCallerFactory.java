@@ -12,8 +12,9 @@ public class HandleMethodCallerFactory implements MethodCallerFactory {
 
         Object target = targetProvider.getTarget();
         try {
-            MethodHandle mh = MethodHandles.lookup()
-                    .findVirtual(target.getClass(), method.getName(), MethodType.methodType(method.getReturnType(), method.getParameterTypes())).asSpreader(Object[].class, method.getParameterCount());
+            MethodHandle mh = MethodHandles.lookup().findVirtual(target.getClass(), method.getName(),
+                            MethodType.methodType(method.getReturnType(), method.getParameterTypes()))
+                    .asSpreader(Object[].class, method.getParameterCount());
 
             return new InstanceMethodCaller(method) {
                 @Override

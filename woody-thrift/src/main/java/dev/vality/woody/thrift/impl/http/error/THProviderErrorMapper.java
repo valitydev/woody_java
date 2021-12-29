@@ -163,9 +163,9 @@ public class THProviderErrorMapper implements WErrorMapper {
     }
 
     @Override
-    public Exception mapToError(WErrorDefinition eDefinition, ContextSpan contextSpan) {
-        if (eDefinition.getErrorType() == WErrorType.PROVIDER_ERROR) {
-            return new WRuntimeException(eDefinition);
+    public Exception mapToError(WErrorDefinition errorDefinition, ContextSpan contextSpan) {
+        if (errorDefinition.getErrorType() == WErrorType.PROVIDER_ERROR) {
+            return new WRuntimeException(errorDefinition);
         }
         return null;
     }

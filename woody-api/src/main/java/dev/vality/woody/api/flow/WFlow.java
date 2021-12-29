@@ -14,10 +14,6 @@ public class WFlow {
     private final IdGenerator traceIdGenerator;
     private final IdGenerator spanIdGenerator;
 
-    public static IdGenerator createDefaultIdGenerator() {
-        return new ConfiguredSnowflakeIdGenerator();
-    }
-
     public WFlow() {
         this(createDefaultIdGenerator());
     }
@@ -29,6 +25,10 @@ public class WFlow {
     public WFlow(IdGenerator traceIdGenerator, IdGenerator spanIdGenerator) {
         this.traceIdGenerator = traceIdGenerator;
         this.spanIdGenerator = spanIdGenerator;
+    }
+
+    public static IdGenerator createDefaultIdGenerator() {
+        return new ConfiguredSnowflakeIdGenerator();
     }
 
     public static WRunnable create(Runnable runnable) {
@@ -51,23 +51,25 @@ public class WFlow {
         return create(runnable, new TraceData());
     }
 
+    public static <T> WCallable<T> createFork(Callable<T> callable) {
+        return create(callable, new TraceData());
+    }
+
     public static WRunnable createServiceFork(Runnable runnable, IdGenerator idGenerator) {
         return create(runnable, TraceContext.initNewServiceTrace(new TraceData(), idGenerator, idGenerator));
     }
 
-    public static WRunnable createServiceFork(Runnable runnable, IdGenerator traceIdGenerator, IdGenerator spanIdGenerator) {
+    public static WRunnable createServiceFork(Runnable runnable, IdGenerator traceIdGenerator,
+                                              IdGenerator spanIdGenerator) {
         return create(runnable, TraceContext.initNewServiceTrace(new TraceData(), traceIdGenerator, spanIdGenerator));
-    }
-
-    public static <T> WCallable<T> createFork(Callable<T> callable) {
-        return create(callable, new TraceData());
     }
 
     public static <T> WCallable<T> createServiceFork(Callable<T> callable, IdGenerator idGenerator) {
         return create(callable, TraceContext.initNewServiceTrace(new TraceData(), idGenerator, idGenerator));
     }
 
-    public static <T> WCallable<T> createServiceFork(Callable<T> callable, IdGenerator traceIdGenerator, IdGenerator spanIdGenerator) {
+    public static <T> WCallable<T> createServiceFork(Callable<T> callable, IdGenerator traceIdGenerator,
+                                                     IdGenerator spanIdGenerator) {
         return create(callable, TraceContext.initNewServiceTrace(new TraceData(), traceIdGenerator, spanIdGenerator));
     }
 

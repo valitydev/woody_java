@@ -6,7 +6,8 @@ import dev.vality.woody.api.trace.TraceData;
 
 public interface Interceptor {
     /**
-     * @return true - if flow is successfully intercepted and ready for further processing; false - if interception failed and processing must be switched to err handling
+     * @return true - if flow is successfully intercepted and ready for further processing;
+     *      false - if interception failed and processing must be switched to err handling
      */
     default boolean intercept(TraceData traceData, Object providerContext, Object... contextParams) {
         throw new UnsupportedOperationException("not implemented");

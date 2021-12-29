@@ -28,7 +28,8 @@ public class TransportEventInterceptor implements CommonInterceptor {
     @Override
     public boolean interceptRequest(TraceData traceData, Object providerContext, Object... contextParams) {
         LOG.trace("Intercept request transportEvent");
-        traceData.getActiveSpan().getMetadata().putValue(MetadataProperties.EVENT_TYPE, traceData.isClient() ? ClientEventType.CLIENT_SEND : ServiceEventType.SERVICE_RECEIVE);
+        traceData.getActiveSpan().getMetadata().putValue(MetadataProperties.EVENT_TYPE,
+                traceData.isClient() ? ClientEventType.CLIENT_SEND : ServiceEventType.SERVICE_RECEIVE);
         reqListener.run();
         return true;
     }
@@ -36,7 +37,8 @@ public class TransportEventInterceptor implements CommonInterceptor {
     @Override
     public boolean interceptResponse(TraceData traceData, Object providerContext, Object... contextParams) {
         LOG.trace("Intercept response transportEvent");
-        traceData.getActiveSpan().getMetadata().putValue(MetadataProperties.EVENT_TYPE, traceData.isClient() ? ClientEventType.CLIENT_RECEIVE : ServiceEventType.SERVICE_RESULT);
+        traceData.getActiveSpan().getMetadata().putValue(MetadataProperties.EVENT_TYPE,
+                traceData.isClient() ? ClientEventType.CLIENT_RECEIVE : ServiceEventType.SERVICE_RESULT);
         respListener.run();
         return true;
     }

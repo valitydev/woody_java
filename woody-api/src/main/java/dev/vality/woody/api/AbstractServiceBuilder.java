@@ -8,6 +8,7 @@ import dev.vality.woody.api.proxy.tracer.*;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+@SuppressWarnings("checkstyle:ClassTypeParameterName")
 public abstract class AbstractServiceBuilder<Srv> implements ServiceBuilder<Srv> {
     protected static final ServiceEventListener DEFAULT_EVENT_LISTENER = (ServiceEventListener<ServiceEvent>) event -> {
     };

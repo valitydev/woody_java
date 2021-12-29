@@ -10,6 +10,34 @@ import static java.lang.reflect.Modifier.isPrivate;
 
 public class MethodShadow {
 
+    public static final Comparator<Method> METHOD_COMPARATOR = (m1, m2) -> {
+
+        int currResult = m1.getName().compareTo(m2.getName());
+        if (currResult != 0) {
+            return currResult;
+        }
+        currResult = m1.getParameterCount() - m2.getParameterCount();
+        if (currResult != 0) {
+            return currResult;
+        }
+
+        Class[] pt1 = m1.getParameterTypes();
+        Class[] pt2 = m2.getParameterTypes();
+
+        for (int i = 0; i < pt1.length; i++) {
+            if (pt1[i] != pt2[i]) {
+                return pt1[i].hashCode() - pt2[i].hashCode();
+            }
+        }
+        return 0;
+    };
+
+    public static Method[] getShadowedIfaceMethods(Class ifaceA, Class ifaceB) {
+        Stream.of(ifaceA, ifaceB).forEach(iface -> checkInterface(iface, "Referred class is not an interface:"));
+
+        return getOverlappingMethods(ifaceA.getMethods(), ifaceB.getMethods());
+    }
+
     public static Method[] getShadowedMethods(Class ifaceA, Collection<Class> ifacesB) {
         for (Class ifaceB : ifacesB) {
             Method[] shadowedMethods = getShadowedIfaceMethods(ifaceA, ifaceB);
@@ -18,12 +46,6 @@ public class MethodShadow {
             }
         }
         return new Method[0];
-    }
-
-    public static Method[] getShadowedIfaceMethods(Class ifaceA, Class ifaceB) {
-        Stream.of(ifaceA, ifaceB).forEach(iface -> checkInterface(iface, "Referred class is not an interface:"));
-
-        return getOverlappingMethods(ifaceA.getMethods(), ifaceB.getMethods());
     }
 
     public static Method[] getShadowedMethods(Object object, Class iface) {
@@ -44,10 +66,8 @@ public class MethodShadow {
         return METHOD_COMPARATOR.compare(methodA, methodB) == 0;
     }
 
-    public static Method[] getOverlappingMethods(Method[] aMethods, Method[] bMethods) {
-        return Arrays.stream(aMethods)
-                .filter(tm -> Arrays.stream(bMethods)
-                        .anyMatch(sm -> isSameSignature(tm, sm)))
+    public static Method[] getOverlappingMethods(Method[] methodsA, Method[] methodsB) {
+        return Arrays.stream(methodsA).filter(tm -> Arrays.stream(methodsB).anyMatch(sm -> isSameSignature(tm, sm)))
                 .toArray(Method[]::new);
     }
 
@@ -64,25 +84,4 @@ public class MethodShadow {
             throw new IllegalArgumentException(errorMessage + cl.getName());
         }
     }
-
-    public static final Comparator<Method> METHOD_COMPARATOR = (m1, m2) -> {
-
-        int currResult = m1.getName().compareTo(m2.getName());
-        if (currResult != 0) {
-            return currResult;
-        }
-        currResult = m1.getParameterCount() - m2.getParameterCount();
-        if (currResult != 0) {
-            return currResult;
-        }
-
-        Class[] pt1 = m1.getParameterTypes();
-        Class[] pt2 = m2.getParameterTypes();
-
-        for (int i = 0; i < pt1.length; i++) {
-            if (pt1[i] != pt2[i])
-                return pt1[i].hashCode() - pt2[i].hashCode();
-        }
-        return 0;
-    };
 }

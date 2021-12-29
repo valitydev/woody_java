@@ -8,9 +8,10 @@ import java.util.function.BiFunction;
 
 class BuilderUtils {
 
-    static TProtocolFactory wrapProtocolFactory(TProtocolFactory protocolFactory, CommonInterceptor interceptor, boolean isClient) {
-        BiFunction<TProtocolFactory, CommonInterceptor, TProtocolFactory> tProtocolFactoryFunc = (factory, protInterceptor) ->
-                tTransport -> {
+    static TProtocolFactory wrapProtocolFactory(TProtocolFactory protocolFactory, CommonInterceptor interceptor,
+                                                boolean isClient) {
+        BiFunction<TProtocolFactory, CommonInterceptor, TProtocolFactory> tProtocolFactoryFunc =
+                (factory, protInterceptor) -> tTransport -> {
                     TProtocol tProtocol = factory.getProtocol(tTransport);
                     return new THSProtocolWrapper(tProtocol, protInterceptor, isClient);
                 };

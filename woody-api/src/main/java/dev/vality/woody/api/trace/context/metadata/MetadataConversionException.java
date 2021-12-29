@@ -16,7 +16,8 @@ public class MetadataConversionException extends RuntimeException {
         super(cause);
     }
 
-    public MetadataConversionException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    public MetadataConversionException(String message, Throwable cause, boolean enableSuppression,
+                                       boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }

@@ -19,7 +19,8 @@ public class ErrorMappingInterceptor extends EmptyCommonInterceptor {
     private final ErrorMapProcessor errorProcessor;
     private final BiConsumer<WErrorDefinition, ContextSpan> errDefConsumer;
 
-    public ErrorMappingInterceptor(ErrorMapProcessor errorProcessor, BiConsumer<WErrorDefinition, ContextSpan> errDefConsumer) {
+    public ErrorMappingInterceptor(ErrorMapProcessor errorProcessor,
+                                   BiConsumer<WErrorDefinition, ContextSpan> errDefConsumer) {
         Objects.requireNonNull(errorProcessor);
         Objects.requireNonNull(errDefConsumer);
         this.errorProcessor = errorProcessor;

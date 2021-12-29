@@ -14,7 +14,10 @@ public class CPool2TargetProvider<T> implements InvocationTargetProvider<T> {
     private final ObjectPool<T> pool;
     private final Class<T> targetType;
 
-    public static <T> CPool2TargetProvider<T> newInstance(Class<T> targetType, Supplier<TargetObjectFactory<T>> objFactoryFunc, GenericObjectPoolConfig config, AbandonedConfig abandonedConfig) {
+    public static <T> CPool2TargetProvider<T> newInstance(Class<T> targetType,
+                                                          Supplier<TargetObjectFactory<T>> objFactoryFunc,
+                                                          GenericObjectPoolConfig config,
+                                                          AbandonedConfig abandonedConfig) {
         if (config == null) {
             return new CPool2TargetProvider<>(targetType, objFactoryFunc);
         } else if (abandonedConfig == null) {
@@ -29,12 +32,17 @@ public class CPool2TargetProvider<T> implements InvocationTargetProvider<T> {
         this.pool = new GenericObjectPool<>(objFactoryFunc.get());
     }
 
-    public CPool2TargetProvider(Class<T> targetType, Supplier<TargetObjectFactory<T>> objFactoryFunc, GenericObjectPoolConfig config) {
+    public CPool2TargetProvider(Class<T> targetType,
+                                Supplier<TargetObjectFactory<T>> objFactoryFunc,
+                                GenericObjectPoolConfig config) {
         this.targetType = targetType;
         this.pool = new GenericObjectPool<>(objFactoryFunc.get(), config);
     }
 
-    public CPool2TargetProvider(Class<T> targetType, Supplier<TargetObjectFactory<T>> objFactoryFunc, GenericObjectPoolConfig config, AbandonedConfig abandonedConfig) {
+    public CPool2TargetProvider(Class<T> targetType,
+                                Supplier<TargetObjectFactory<T>> objFactoryFunc,
+                                GenericObjectPoolConfig config,
+                                AbandonedConfig abandonedConfig) {
         this.targetType = targetType;
         this.pool = new GenericObjectPool<>(objFactoryFunc.get(), config, abandonedConfig);
     }

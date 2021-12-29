@@ -25,7 +25,8 @@ public class ProviderEventInterceptor implements CommonInterceptor {
     @Override
     public boolean interceptRequest(TraceData traceData, Object providerContext, Object... contextParams) {
         LOG.trace("Intercept request providerEvent");
-        traceData.getActiveSpan().getMetadata().putValue(MetadataProperties.EVENT_TYPE, traceData.isClient() ? ClientEventType.CALL_SERVICE : ServiceEventType.SERVICE_RECEIVE);
+        traceData.getActiveSpan().getMetadata().putValue(MetadataProperties.EVENT_TYPE,
+                traceData.isClient() ? ClientEventType.CALL_SERVICE : ServiceEventType.SERVICE_RECEIVE);
         reqListener.run();
         return true;
     }
@@ -33,7 +34,8 @@ public class ProviderEventInterceptor implements CommonInterceptor {
     @Override
     public boolean interceptResponse(TraceData traceData, Object providerContext, Object... contextParams) {
         LOG.trace("Intercept response providerEvent");
-        traceData.getActiveSpan().getMetadata().putValue(MetadataProperties.EVENT_TYPE, traceData.isClient() ? ClientEventType.SERVICE_RESULT : ServiceEventType.HANDLER_RESULT);
+        traceData.getActiveSpan().getMetadata().putValue(MetadataProperties.EVENT_TYPE,
+                traceData.isClient() ? ClientEventType.SERVICE_RESULT : ServiceEventType.HANDLER_RESULT);
         respListener.run();
         return true;
     }

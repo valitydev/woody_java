@@ -5,6 +5,7 @@ import org.slf4j.MDC;
 
 import java.time.Instant;
 
+@SuppressWarnings("checkstyle:AbbreviationAsWordInName")
 public class MDCUtils {
 
     public static final String SPAN_ID = "span_id";

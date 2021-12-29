@@ -14,7 +14,8 @@ public class ErrorMappingTracer extends EmptyTracer {
     private final ErrorMapProcessor errorProcessor;
     private final BiConsumer<WErrorDefinition, ContextSpan> errDefConsumer;
 
-    public ErrorMappingTracer(ErrorMapProcessor errorProcessor, BiConsumer<WErrorDefinition, ContextSpan> errDefConsumer) {
+    public ErrorMappingTracer(ErrorMapProcessor errorProcessor,
+                              BiConsumer<WErrorDefinition, ContextSpan> errDefConsumer) {
         Objects.requireNonNull(errorProcessor);
         Objects.requireNonNull(errDefConsumer);
         this.errorProcessor = errorProcessor;

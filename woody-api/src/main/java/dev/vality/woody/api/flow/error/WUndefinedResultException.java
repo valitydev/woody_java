@@ -1,21 +1,6 @@
 package dev.vality.woody.api.flow.error;
 
 public class WUndefinedResultException extends WRuntimeException {
-    private static WErrorDefinition createErrDef(String msg, Throwable cause) {
-        WErrorDefinition errorDefinition = new WErrorDefinition(WErrorSource.INTERNAL);
-        errorDefinition.setErrorType(WErrorType.UNDEFINED_RESULT);
-        errorDefinition.setErrorSource(WErrorSource.INTERNAL);
-        errorDefinition.setErrorReason(msg);
-        if (cause != null) {
-            errorDefinition.setErrorName(cause.getClass().getSimpleName());
-            errorDefinition.setErrorMessage(cause.getMessage());
-        } else {
-            errorDefinition.setErrorName(WUndefinedResultException.class.getSimpleName());
-            errorDefinition.setErrorMessage(msg);
-        }
-        return errorDefinition;
-    }
-
     public WUndefinedResultException() {
         this(WErrorType.UNDEFINED_RESULT.getKey());
     }
@@ -32,7 +17,8 @@ public class WUndefinedResultException extends WRuntimeException {
         super(cause, createErrDef(WErrorType.UNDEFINED_RESULT.getKey(), null));
     }
 
-    public WUndefinedResultException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    public WUndefinedResultException(String message, Throwable cause, boolean enableSuppression,
+                                     boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace, createErrDef(message, cause));
     }
 
@@ -52,7 +38,23 @@ public class WUndefinedResultException extends WRuntimeException {
         super(cause, errorDefinition);
     }
 
-    public WUndefinedResultException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace, WErrorDefinition errorDefinition) {
+    public WUndefinedResultException(String message, Throwable cause, boolean enableSuppression,
+                                     boolean writableStackTrace, WErrorDefinition errorDefinition) {
         super(message, cause, enableSuppression, writableStackTrace, errorDefinition);
+    }
+
+    private static WErrorDefinition createErrDef(String msg, Throwable cause) {
+        WErrorDefinition errorDefinition = new WErrorDefinition(WErrorSource.INTERNAL);
+        errorDefinition.setErrorType(WErrorType.UNDEFINED_RESULT);
+        errorDefinition.setErrorSource(WErrorSource.INTERNAL);
+        errorDefinition.setErrorReason(msg);
+        if (cause != null) {
+            errorDefinition.setErrorName(cause.getClass().getSimpleName());
+            errorDefinition.setErrorMessage(cause.getMessage());
+        } else {
+            errorDefinition.setErrorName(WUndefinedResultException.class.getSimpleName());
+            errorDefinition.setErrorMessage(msg);
+        }
+        return errorDefinition;
     }
 }
