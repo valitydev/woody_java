@@ -1,10 +1,10 @@
 package org.apache.thrift.server;
 
-import com.rbkmoney.woody.api.interceptor.CommonInterceptor;
-import com.rbkmoney.woody.api.interceptor.EmptyCommonInterceptor;
-import com.rbkmoney.woody.api.trace.ContextUtils;
-import com.rbkmoney.woody.api.trace.TraceData;
-import com.rbkmoney.woody.api.trace.context.TraceContext;
+import dev.vality.woody.api.interceptor.CommonInterceptor;
+import dev.vality.woody.api.interceptor.EmptyCommonInterceptor;
+import dev.vality.woody.api.trace.ContextUtils;
+import dev.vality.woody.api.trace.TraceData;
+import dev.vality.woody.api.trace.context.TraceContext;
 import org.apache.thrift.TProcessor;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.protocol.TProtocolFactory;

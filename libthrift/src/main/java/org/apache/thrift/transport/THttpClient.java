@@ -19,11 +19,11 @@
 
 package org.apache.thrift.transport;
 
-import com.rbkmoney.woody.api.interceptor.CommonInterceptor;
-import com.rbkmoney.woody.api.interceptor.EmptyCommonInterceptor;
-import com.rbkmoney.woody.api.trace.ContextUtils;
-import com.rbkmoney.woody.api.trace.TraceData;
-import com.rbkmoney.woody.api.trace.context.TraceContext;
+import dev.vality.woody.api.interceptor.CommonInterceptor;
+import dev.vality.woody.api.interceptor.EmptyCommonInterceptor;
+import dev.vality.woody.api.trace.ContextUtils;
+import dev.vality.woody.api.trace.TraceData;
+import dev.vality.woody.api.trace.context.TraceContext;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
@@ -31,6 +31,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ByteArrayEntity;
+import org.apache.thrift.TConfiguration;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -47,7 +48,7 @@ import java.util.function.BooleanSupplier;
 /**
  * HTTP implementation of the TTransport interface. Used for working with a
  * Thrift web services implementation (using for example TServlet).
- * <p>
+ *
  * This class offers two implementations of the HTTP transport.
  * One uses HttpURLConnection instances, the other HttpClient from Apache
  * Http Components.
@@ -56,38 +57,38 @@ import java.util.function.BooleanSupplier;
  * Using the THttpClient(String url) constructor or passing null as the
  * HttpClient to THttpClient(String url, HttpClient client) will create an
  * instance which will use HttpURLConnection.
- * <p>
+ *
  * When using HttpClient, the following configuration leads to 5-15%
  * better performance than the HttpURLConnection implementation:
- * <p>
+ *
  * http.protocol.version=HttpVersion.HTTP_1_1
  * http.protocol.content-charset=UTF-8
  * http.protocol.expect-continue=false
  * http.connection.stalecheck=false
- * <p>
+ *
  * Also note that under high load, the HttpURLConnection implementation
  * may exhaust the open file descriptor limit.
  *
  * @see <a href="https://issues.apache.org/jira/browse/THRIFT-970">THRIFT-970</a>
  */
 
-public class THttpClient extends TTransport {
+public class THttpClient extends TEndpointTransport {
 
-    private final URL url_;
+  private URL url_ = null;
 
-    private final ByteArrayOutputStream requestBuffer_ = new ByteArrayOutputStream();
+  private final ByteArrayOutputStream requestBuffer_ = new ByteArrayOutputStream();
 
-    private InputStream inputStream_ = null;
+  private InputStream inputStream_ = null;
 
-    private int maxConnectTimeout_ = 250;
+  private int maxConnectTimeout_ = 250;
 
-    private int networkTimeout_ = 0;
+  private int networkTimeout_ = 0;
 
-    private Map<String, String> customHeaders_ = null;
+  private Map<String,String> customHeaders_ = null;
 
-    private final HttpHost host;
+  private final HttpHost host;
 
-    private final HttpClient client;
+  private final HttpClient client;
 
     private final CommonInterceptor interceptor;
 
@@ -115,29 +116,58 @@ public class THttpClient extends TTransport {
             this.interceptor = interceptor;
         }
 
-        @Override
-        public TTransport getTransport(TTransport trans) {
-            try {
-                if (null != client) {
-                    return new THttpClient(url, client, interceptor);
-                } else {
-                    return new THttpClient(url, interceptor);
-                }
-            } catch (TTransportException tte) {
-                return null;
-            }
+    @Override
+    public TTransport getTransport(TTransport trans) {
+      try {
+        if (null != client) {
+          return new THttpClient(trans.getConfiguration(), url, client, interceptor);
+        } else {
+          return new THttpClient(trans.getConfiguration(), url, null, interceptor);
         }
+      } catch (TTransportException tte) {
+        return null;
+      }
     }
+  }
 
     public THttpClient(String url) throws TTransportException {
         this(url, (CommonInterceptor) null);
     }
 
+    public THttpClient(TConfiguration config, String url) throws TTransportException {
+        super(config);
+        try {
+            url_ = new URL(url);
+            this.client = null;
+            this.host = null;
+            this.interceptor = new EmptyCommonInterceptor();
+        } catch (IOException iox) {
+            throw new TTransportException(iox);
+        }
+    }
+
     public THttpClient(String url, CommonInterceptor interceptor) throws TTransportException {
+        super(new TConfiguration());
         try {
             this.url_ = new URL(url);
             this.client = null;
             this.host = null;
+            this.interceptor = interceptor == null ? new EmptyCommonInterceptor() : interceptor;
+        } catch (IOException iox) {
+            throw new TTransportException(iox);
+        }
+    }
+
+    public THttpClient(TConfiguration config, String url, HttpClient client) throws TTransportException {
+        this(config, url, client, null);
+    }
+
+    public THttpClient(TConfiguration config, String url, HttpClient client, CommonInterceptor interceptor) throws TTransportException {
+        super(config);
+        try {
+            this.url_ = new URL(url);
+            this.client = client;
+            this.host = new HttpHost(url_.getHost(), -1 == url_.getPort() ? url_.getDefaultPort() : url_.getPort(), url_.getProtocol());
             this.interceptor = interceptor == null ? new EmptyCommonInterceptor() : interceptor;
         } catch (IOException iox) {
             throw new TTransportException(iox);
@@ -149,6 +179,7 @@ public class THttpClient extends TTransport {
     }
 
     public THttpClient(String url, HttpClient client, CommonInterceptor interceptor) throws TTransportException {
+        super(new TConfiguration());
         try {
             this.url_ = new URL(url);
             this.client = client;
@@ -204,11 +235,16 @@ public class THttpClient extends TTransport {
         if (inputStream_ == null) {
             throw new TTransportException("Response buffer is empty, no request.");
         }
+
+        checkReadBytesAvailable(len);
+
         try {
             int ret = inputStream_.read(buf, off, len);
             if (ret == -1) {
                 throw new TTransportException("No more data available.");
             }
+            countConsumedMessageBytes(ret);
+
             return ret;
         } catch (IOException iox) {
             throw new TTransportException(iox);
@@ -273,6 +309,7 @@ public class THttpClient extends TTransport {
         requestBuffer_.reset();
         HttpPost post = null;
 
+        InputStream is = null;
         try {
             // Set request to path + query string
             post = new HttpPost(this.url_.getFile());
@@ -297,18 +334,18 @@ public class THttpClient extends TTransport {
                     .build();
             post.setConfig(activeRequestConfig);
 
-            post.setEntity(new ByteArrayEntity(data));
+      post.setEntity(new ByteArrayEntity(data));
 
             HttpResponse response = this.client.execute(this.host, post);
 
             intercept(() -> interceptor.interceptResponse(traceData, response), "Response interception error");
 
-            //
-            // Retrieve the inputstream BEFORE checking the status code so
-            // resources get freed in the finally clause.
-            //
+      //
+      // Retrieve the inputstream BEFORE checking the status code so
+      // resources get freed in the finally clause.
+      //
 
-            try (InputStream is = response.getEntity().getContent()) {
+      is = response.getEntity().getContent();
 
                 // Read the responses into a byte array so we can release the connection
                 // early. This implies that the whole content will have to be read in
@@ -317,33 +354,47 @@ public class THttpClient extends TTransport {
                 // Proceeding differently might lead to exhaustion of connections and thus
                 // to app failure.
 
-                byte[] buf = new byte[1024];
-                int len;
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      byte[] buf = new byte[1024];
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
-                while ((len = is.read(buf)) != -1) {
-                    baos.write(buf, 0, len);
-                }
-
-                try {
-                    // Indicate we're done with the content.
-                    consume(response.getEntity());
-                } catch (IOException ioe) {
-                    // We ignore this exception, it might only mean the server has no
-                    // keep-alive capability.
-                }
-
-                inputStream_ = new ByteArrayInputStream(baos.toByteArray());
-            }
-
-        } catch (IOException ioe) {
-            // Abort method so the connection gets released back to the connection manager
-            if (null != post) {
-                post.abort();
-            }
-            throw new TTransportException(ioe);
+      int len = 0;
+      do {
+        len = is.read(buf);
+        if (len > 0) {
+          baos.write(buf, 0, len);
         }
+      } while (-1 != len);
+
+      try {
+        // Indicate we're done with the content.
+        consume(response.getEntity());
+      } catch (IOException ioe) {
+        // We ignore this exception, it might only mean the server has no
+        // keep-alive capability.
+      }
+
+      inputStream_ = new ByteArrayInputStream(baos.toByteArray());
+    } catch (IOException ioe) {
+      // Abort method so the connection gets released back to the connection manager
+      if (null != post) {
+        post.abort();
+      }
+      throw new TTransportException(ioe);
+    } finally {
+      resetConsumedMessageSize(-1);
+      if (null != is) {
+        // Close the entity's input stream, this will release the underlying connection
+        try {
+          is.close();
+        } catch (IOException ioe) {
+          throw new TTransportException(ioe);
+        }
+      }
+      if (post != null) {
+        post.releaseConnection();
+      }
     }
+  }
 
     private int getConnectionTimeout(int executionTimeout) {
         return BigDecimal.valueOf(executionTimeout)
@@ -359,18 +410,18 @@ public class THttpClient extends TTransport {
 
     public void flush() throws TTransportException {
 
-        if (null != this.client) {
-            flushUsingHttpClient();
-            return;
-        }
+    if (null != this.client) {
+      flushUsingHttpClient();
+      return;
+    }
 
-        // Extract request and reset buffer
-        byte[] data = requestBuffer_.toByteArray();
-        requestBuffer_.reset();
+    // Extract request and reset buffer
+    byte[] data = requestBuffer_.toByteArray();
+    requestBuffer_.reset();
 
-        try {
-            // Create connection object
-            HttpURLConnection connection = (HttpURLConnection) url_.openConnection();
+    try {
+      // Create connection object
+      HttpURLConnection connection = (HttpURLConnection)url_.openConnection();
 
             // Make the request
             connection.setRequestMethod("POST");
@@ -404,6 +455,8 @@ public class THttpClient extends TTransport {
 
         } catch (IOException iox) {
             throw new TTransportException(iox);
+        } finally {
+          resetConsumedMessageSize(-1);
         }
     }
 }

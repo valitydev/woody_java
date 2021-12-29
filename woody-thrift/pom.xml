@@ -4,21 +4,25 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>woody</artifactId>
-        <groupId>com.rbkmoney.woody</groupId>
-        <version>1.1.23</version>
+        <groupId>dev.vality.woody</groupId>
+        <version>1.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>woody-thrift</artifactId>
 
+    <properties>
+        <checkstyle.config.suppressions.path>checkstyle-suppressions.xml</checkstyle.config.suppressions.path>
+    </properties>
+
     <dependencies>
-        <!--RBK libs-->
+        <!--Vality libs-->
         <dependency>
-            <groupId>com.rbkmoney.woody</groupId>
+            <groupId>dev.vality.woody</groupId>
             <artifactId>woody-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.rbkmoney.woody</groupId>
+            <groupId>dev.vality.woody</groupId>
             <artifactId>libthrift</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -43,7 +47,7 @@
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-quickstart</artifactId>
-            <version>11.0.7</version>
+            <version>9.4.44.v20210927</version>
             <scope>test</scope>
         </dependency>
         <dependency>

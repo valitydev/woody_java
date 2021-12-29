@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE suppressions PUBLIC
+        "-//Checkstyle//DTD SuppressionFilter Configuration 1.2//EN"
+        "https://checkstyle.org/dtds/suppressions_1_2.dtd">
+
+<suppressions>
+    <!-- A lot of names relates to thrift naming conventions -->
+    <suppress files="src[\\/]main[\\/]java[\\/]dev[\\/]vality[\\/]woody[\\/]" checks="[a-zA-Z0-9]*Name"/>
+
+    <suppress files="src[\\/]test[\\/]java[\\/]dev[\\/]vality[\\/]woody[\\/]" checks="[a-zA-Z0-9]*Name"/>
+
+    <!-- Generated classes -->
+    <suppress files="src[\\/]test[\\/]java[\\/]dev[\\/]vality[\\/]woody[\\/]rpc[\\/]OwnerServiceSrv\.java" checks="[a-zA-Z0-9]*"/>
+    <suppress files="src[\\/]test[\\/]java[\\/]dev[\\/]vality[\\/]woody[\\/]rpc[\\/]test_error\.java"
+              checks="[a-zA-Z0-9]*"/>
+    <suppress files="src[\\/]test[\\/]java[\\/]dev[\\/]vality[\\/]woody[\\/]rpc[\\/]Owner\.java"
+              checks="[a-zA-Z0-9]*"/>
+</suppressions>

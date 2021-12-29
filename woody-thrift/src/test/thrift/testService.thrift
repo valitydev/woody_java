@@ -1,4 +1,4 @@
-namespace java com.rbkmoney.woody.rpc
+namespace java dev.vality.woody.rpc
 
 typedef i32 int // We can use typedef to get pretty names for the types we are using
 struct Owner {
