@@ -35,10 +35,12 @@ public class THServiceEvent extends ServiceEvent {
     }
 
     public HttpServletRequest getTransportRequest() {
-        return ContextUtils.getMetadataValue(getActiveSpan(), HttpServletRequest.class, THMetadataProperties.TH_TRANSPORT_REQUEST);
+        return ContextUtils.getMetadataValue(getActiveSpan(), HttpServletRequest.class,
+                THMetadataProperties.TH_TRANSPORT_REQUEST);
     }
 
     public HttpServletResponse getTransportResponse() {
-        return ContextUtils.getMetadataValue(getActiveSpan(), HttpServletResponse.class, THMetadataProperties.TH_TRANSPORT_RESPONSE);
+        return ContextUtils.getMetadataValue(getActiveSpan(), HttpServletResponse.class,
+                THMetadataProperties.TH_TRANSPORT_RESPONSE);
     }
 }

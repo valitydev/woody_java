@@ -82,10 +82,7 @@ public class THSpawnClientBuilder extends THClientBuilder {
     }
 
     private <T> InvocationTargetProvider<T> createTargetProvider(Class<T> iface) {
-        return new THSpawnTargetProvider<>(
-                iface,
-                () -> createProviderClient(iface),
-                this::destroyProviderClient,
+        return new THSpawnTargetProvider<>(iface, () -> createProviderClient(iface), this::destroyProviderClient,
                 isCustomHttpClient());
     }
 
@@ -94,7 +91,8 @@ public class THSpawnClientBuilder extends THClientBuilder {
         private final BiConsumer<Object, Boolean> releaseConsumer;
 
 
-        public THSpawnTargetProvider(Class<T> targetType, Supplier<T> supplier, BiConsumer<Object, Boolean> releaseConsumer, boolean customClient) {
+        public THSpawnTargetProvider(Class<T> targetType, Supplier<T> supplier,
+                                     BiConsumer<Object, Boolean> releaseConsumer, boolean customClient) {
             super(targetType, supplier);
             this.customClient = customClient;
             this.releaseConsumer = releaseConsumer;

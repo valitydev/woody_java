@@ -22,14 +22,18 @@ public class THSEventLogListener implements ServiceEventListener<THServiceEvent>
                     log.info("SRV: {}, [{}, {}]", event.getEventType(), event.getCallName(), event.getCallType());
                     break;
                 case HANDLER_RESULT:
-                    log.info("SRV: {}, CRes: {}, HTime: {}ms", event.getEventType(), event.isSuccessfulCall() ? "ok" : "error", (System.currentTimeMillis() - event.getTimeStamp()));
+                    log.info("SRV: {}, CRes: {}, HTime: {}ms", event.getEventType(),
+                            event.isSuccessfulCall() ? "ok" : "error",
+                            (System.currentTimeMillis() - event.getTimeStamp()));
                     break;
                 case SERVICE_RECEIVE:
                     HttpServletRequest request = event.getTransportRequest();
                     if (request == null) {
                         log.info("SRV: {} [no transport request]", event.getEventType());
                     } else if (log.isInfoEnabled()) {
-                        log.info("SRV: {}, [EP: {}, Url: {}, Src: [{}]:{}, Headers: {}]", event.getEventType(), event.getEndpoint().getStringValue(), buildUrl(request), request.getRemoteAddr(), request.getRemotePort(), buildHeaders(request));
+                        log.info("SRV: {}, [EP: {}, Url: {}, Src: [{}]:{}, Headers: {}]", event.getEventType(),
+                                event.getEndpoint().getStringValue(), buildUrl(request), request.getRemoteAddr(),
+                                request.getRemotePort(), buildHeaders(request));
                     }
                     break;
                 case SERVICE_RESULT:
@@ -37,14 +41,19 @@ public class THSEventLogListener implements ServiceEventListener<THServiceEvent>
                     if (response == null) {
                         log.info("SRV: {} [no transport response]", event.getEventType());
                     } else if (log.isInfoEnabled()) {
-                        log.info("SRV: {}, CRes: {}, [Status: {}, Headers: {}]", event.getEventType(), event.isSuccessfulCall() ? "ok" : "error", response.getStatus(), buildHeaders(response));
+                        log.info("SRV: {}, CRes: {}, [Status: {}, Headers: {}]", event.getEventType(),
+                                event.isSuccessfulCall() ? "ok" : "error", response.getStatus(),
+                                buildHeaders(response));
                     }
                     break;
                 case ERROR:
                     Throwable error = ContextUtils.getCallError(event.getActiveSpan());
-                    if (error == null)
+                    if (error == null) {
                         error = ContextUtils.getInterceptionError(event.getActiveSpan());
-                    log.info("SRV: {}, [ErrDef: {}, TErrType: {}], Time: {}ms", event.getEventType(), event.getErrorDefinition(), event.getThriftErrorType(), (System.currentTimeMillis() - event.getTimeStamp()), error);
+                    }
+                    log.info("SRV: {}, [ErrDef: {}, TErrType: {}], Time: {}ms", event.getEventType(),
+                            event.getErrorDefinition(), event.getThriftErrorType(),
+                            (System.currentTimeMillis() - event.getTimeStamp()), error);
                     break;
                 default:
                     log.info("SRV Unknown error: {}", event);
@@ -77,8 +86,9 @@ public class THSEventLogListener implements ServiceEventListener<THServiceEvent>
             for (String val; vals.hasMoreElements(); ) {
                 val = vals.nextElement();
                 sb.append(headerName).append(": ").append(val);
-                if (vals.hasMoreElements())
+                if (vals.hasMoreElements()) {
                     sb.append(", ");
+                }
             }
             if (headers.hasMoreElements()) {
                 sb.append(", ");
@@ -95,8 +105,9 @@ public class THSEventLogListener implements ServiceEventListener<THServiceEvent>
         for (Iterator<String> it = headers.iterator(); it.hasNext(); ) {
             String header = it.next();
             sb.append(header).append(": ").append(httpResponse.getHeader(header));
-            if (it.hasNext())
+            if (it.hasNext()) {
                 sb.append(", ");
+            }
         }
         sb.append(']');
         return sb.toString();

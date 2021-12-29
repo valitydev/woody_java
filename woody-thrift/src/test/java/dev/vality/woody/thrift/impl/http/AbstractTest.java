@@ -35,10 +35,10 @@ import java.util.Map;
 
 public class AbstractTest {
     public static final int networkTimeout = 10000;
-    private HandlerCollection handlerCollection;
     protected Server server;
     protected int serverPort = 8080;
     protected TProcessor tProcessor;
+    private HandlerCollection handlerCollection;
 
     @Before
     public void startJetty() throws Exception {
@@ -99,6 +99,10 @@ public class AbstractTest {
         return "http://localhost:" + serverPort;
     }
 
+    protected String getUrlString(String contextPath) {
+        return getUrlString() + contextPath;
+    }
+    
     public TServlet createTServlet(TProcessor tProcessor) {
         return new TServlet(tProcessor, new TBinaryProtocol.Factory());
     }
@@ -115,17 +119,14 @@ public class AbstractTest {
         return createThriftRPCService(iface, handler, eventListener, null);
     }
 
-    protected <T> Servlet createThriftRPCService(Class<T> iface, T handler, ServiceEventListener eventListener, List<MetadataExtensionKit> extensionKits) {
+    protected <T> Servlet createThriftRPCService(Class<T> iface, T handler, ServiceEventListener eventListener,
+                                                 List<MetadataExtensionKit> extensionKits) {
         THServiceBuilder serviceBuilder = new THServiceBuilder();
         if (eventListener != null) {
             serviceBuilder.withEventListener(eventListener);
         }
         serviceBuilder.withMetaExtensions(extensionKits);
         return serviceBuilder.build(iface, handler);
-    }
-
-    protected String getUrlString(String contextPath) {
-        return getUrlString() + contextPath;
     }
 
     protected <T> T createThriftClient(Class<T> iface) throws TTransportException {
@@ -154,23 +155,28 @@ public class AbstractTest {
         return createThriftRPCClient(iface, idGenerator, eventListener, getUrlString());
     }
 
-    protected <T> T createThriftRPCClient(Class<T> iface, IdGenerator idGenerator, ClientEventListener eventListener, String url) {
+    protected <T> T createThriftRPCClient(Class<T> iface, IdGenerator idGenerator, ClientEventListener eventListener,
+                                          String url) {
         return createThriftRPCClient(iface, idGenerator, eventListener, null, url);
     }
 
-    protected <T> T createThriftRPCClient(Class<T> iface, IdGenerator idGenerator, ClientEventListener eventListener, List<MetadataExtensionKit> extensionKits, String url) {
+    protected <T> T createThriftRPCClient(Class<T> iface, IdGenerator idGenerator, ClientEventListener eventListener,
+                                          List<MetadataExtensionKit> extensionKits, String url) {
         return createThriftRPCClient(iface, idGenerator, eventListener, extensionKits, url, networkTimeout);
     }
 
-    protected <T> T createThriftRPCClient(Class<T> iface, IdGenerator idGenerator, ClientEventListener eventListener, int timeout) {
+    protected <T> T createThriftRPCClient(Class<T> iface, IdGenerator idGenerator, ClientEventListener eventListener,
+                                          int timeout) {
         return createThriftRPCClient(iface, idGenerator, eventListener, null, getUrlString(), timeout);
     }
 
-    protected <T> T createThriftRPCClient(Class<T> iface, IdGenerator idGenerator, ClientEventListener eventListener, String url, int timeout) {
+    protected <T> T createThriftRPCClient(Class<T> iface, IdGenerator idGenerator, ClientEventListener eventListener,
+                                          String url, int timeout) {
         return createThriftRPCClient(iface, idGenerator, eventListener, null, url, timeout);
     }
 
-    protected <T> T createThriftRPCClient(Class<T> iface, IdGenerator idGenerator, ClientEventListener eventListener, List<MetadataExtensionKit> extensionKits, String url, int timeout) {
+    protected <T> T createThriftRPCClient(Class<T> iface, IdGenerator idGenerator, ClientEventListener eventListener,
+                                          List<MetadataExtensionKit> extensionKits, String url, int timeout) {
         return createThriftRPCClient(iface, idGenerator, eventListener, extensionKits, url, timeout, null);
     }
 
@@ -186,7 +192,9 @@ public class AbstractTest {
         return createThriftRPCClient(iface, null, null, null, url, timeout, httpClient);
     }
 
-    protected <T> T createThriftRPCClient(Class<T> iface, IdGenerator idGenerator, ClientEventListener eventListener, List<MetadataExtensionKit> extensionKits, String url, int timeout, HttpClient httpClient) {
+    protected <T> T createThriftRPCClient(Class<T> iface, IdGenerator idGenerator, ClientEventListener eventListener,
+                                          List<MetadataExtensionKit> extensionKits, String url, int timeout,
+                                          HttpClient httpClient) {
         try {
             //todo fix loosing log events for THClientBuilder
             THSpawnClientBuilder clientBuilder = new THSpawnClientBuilder();
@@ -206,11 +214,11 @@ public class AbstractTest {
         }
     }
 
-    protected void writeResultMessage(ServletRequest servletRequest, ServletResponse servletResponse) throws IOException {
+    protected void writeResultMessage(ServletRequest servletRequest, ServletResponse servletResponse)
+            throws IOException {
         try {
             TBinaryProtocol tBinaryProtocol = new TBinaryProtocol(
-                    new TIOStreamTransport(servletRequest.getInputStream(), servletResponse.getOutputStream())
-            );
+                    new TIOStreamTransport(servletRequest.getInputStream(), servletResponse.getOutputStream()));
             tBinaryProtocol.writeMessageBegin(tBinaryProtocol.readMessageBegin());
             OwnerServiceSrv.getIntValue_result intValueResult = new OwnerServiceSrv.getIntValue_result();
             intValueResult.setSuccess(42);

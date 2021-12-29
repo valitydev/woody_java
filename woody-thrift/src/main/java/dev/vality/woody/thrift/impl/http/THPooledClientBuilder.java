@@ -25,13 +25,12 @@ import java.util.function.Supplier;
  * It uses apache commons-pool2 for internal Thrift client pooling.
  */
 public class THPooledClientBuilder extends THClientBuilder {
+    private final ConcurrentLinkedQueue<CPool2TargetProvider> collectedProviders = new ConcurrentLinkedQueue<>();
+    private final ReadWriteLock rwLock = new ReentrantReadWriteLock();
     private volatile boolean collectInstance = false;
     private volatile GenericObjectPoolConfig poolConfig;
     private volatile AbandonedConfig poolAbandonedConfig;
     private boolean destroyed = false;
-    private final ConcurrentLinkedQueue<CPool2TargetProvider> collectedProviders = new ConcurrentLinkedQueue<>();
-    private final ReadWriteLock rwLock = new ReentrantReadWriteLock();
-
 
     @Override
     public THPooledClientBuilder withErrorMapper(WErrorMapper errorMapper) {
@@ -59,7 +58,9 @@ public class THPooledClientBuilder extends THClientBuilder {
     }
 
     /**
-     * If you're using pooling config which spawns any threads, you need to set {@link THPooledClientBuilder#collectInstance} field to collect all built instances and shutdown them later with {@link THPooledClientBuilder#destroy()} method.
+     * If you're using pooling config which spawns any threads, you need to set
+     *      {@link THPooledClientBuilder#collectInstance} field to collect all built instances and shutdown them later
+     *      with {@link THPooledClientBuilder#destroy()} method.
      *
      * @param collectInstance true - if you want to collect all created instances for future destroy, false - otherwise.
      * @return current builder instance.
@@ -85,7 +86,8 @@ public class THPooledClientBuilder extends THClientBuilder {
     }
 
     /**
-     * Use this method if you want to customize pooling configuration. Built in pool configuration will be used By default.
+     * Use this method if you want to customize pooling configuration.
+     *      Built in pool configuration will be used By default.
      *
      * @param poolConfig pooling config to use instead default one.
      */
@@ -95,7 +97,8 @@ public class THPooledClientBuilder extends THClientBuilder {
     }
 
     /**
-     * Use this method if you want to customize abandoned pooling configuration. Built in pool configuration will be used By default.
+     * Use this method if you want to customize abandoned pooling configuration.
+     *      Built in pool configuration will be used By default.
      *
      * @param poolAbandonedConfig abandoned pooling config to use instead default one.
      */
@@ -121,13 +124,9 @@ public class THPooledClientBuilder extends THClientBuilder {
             if (destroyed) {
                 throw new IllegalStateException("Builder is already destroyed");
             }
-            CPool2TargetProvider<T> targetProvider = CPool2TargetProvider.newInstance(
-                    iface,
-                    () -> new THTargetObjectFactory<>(
-                            () -> createProviderClient(iface),
-                            this::destroyProviderClient,
-                            isCustomHttpClient()),
-                    poolConfig, poolAbandonedConfig);
+            CPool2TargetProvider<T> targetProvider = CPool2TargetProvider.newInstance(iface,
+                    () -> new THTargetObjectFactory<>(() -> createProviderClient(iface), this::destroyProviderClient,
+                            isCustomHttpClient()), poolConfig, poolAbandonedConfig);
             if (collectInstance) {
                 collectedProviders.add(targetProvider);
             }
@@ -138,7 +137,8 @@ public class THPooledClientBuilder extends THClientBuilder {
     }
 
     /**
-     * If eviction policy was set in referred pooling config, we need to control pool eviction threads lifecycle for all built instances. This method initiates shutdown for all collected pools.
+     * If eviction policy was set in referred pooling config, we need to control pool eviction threads
+     *      lifecycle for all built instances. This method initiates shutdown for all collected pools.
      * {@link THPooledClientBuilder#collectInstance} flag must be set to make it work properly.
      */
     public void destroy() {
@@ -157,7 +157,8 @@ public class THPooledClientBuilder extends THClientBuilder {
         private final boolean customClient;
         private final BiConsumer<Object, Boolean> destroyTargetConsumer;
 
-        public THTargetObjectFactory(Supplier<T> targetSupplier, BiConsumer<Object, Boolean> destroyTargetConsumer, boolean customClient) {
+        public THTargetObjectFactory(Supplier<T> targetSupplier, BiConsumer<Object, Boolean> destroyTargetConsumer,
+                                     boolean customClient) {
             super(targetSupplier);
             this.customClient = customClient;
             this.destroyTargetConsumer = destroyTargetConsumer;

@@ -86,8 +86,8 @@ public class TestLoadErrThriftRPCClient {
         IntStream.range(1, testCount).forEach(i -> {
             try {
                 tClient.getErrOwner(i);
-            } catch (test_error e) {
-
+            } catch (test_error ignored) {
+                //ignore
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -101,8 +101,8 @@ public class TestLoadErrThriftRPCClient {
         IntStream.range(1, testCount).forEach(i -> {
             try {
                 tRPCClient.getErrOwner(i);
-            } catch (test_error e) {
-
+            } catch (test_error ignored) {
+                //ignore
             } catch (Exception e) {
                 e.printStackTrace();
             }

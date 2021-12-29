@@ -18,6 +18,7 @@ import java.util.concurrent.Future;
 
 import static org.junit.Assert.assertEquals;
 
+@SuppressWarnings("checkstyle:AbbreviationAsWordInName")
 public class TestMDCInConcurent {
 
     Logger log = LoggerFactory.getLogger(this.getClass());
@@ -52,6 +53,7 @@ public class TestMDCInConcurent {
 
     }
 
+    @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
     @Test
     public void testMDCCallable() throws ExecutionException, InterruptedException {
         TraceData traceData = TraceContext.getCurrentTraceData();
@@ -73,6 +75,7 @@ public class TestMDCInConcurent {
         Assert.assertSame(traceData, TraceContext.getCurrentTraceData());
     }
 
+    @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
     @Test
     public void testMDCRunnable() throws ExecutionException, InterruptedException {
         TraceData traceData = TraceContext.getCurrentTraceData();

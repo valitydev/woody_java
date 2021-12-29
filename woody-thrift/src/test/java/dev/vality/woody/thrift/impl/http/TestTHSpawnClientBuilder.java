@@ -10,7 +10,8 @@ import java.net.URISyntaxException;
 @Ignore
 public class TestTHSpawnClientBuilder extends AbstractConcurrentClientTest {
 
-    protected <T> T createThriftRPCClient(Class<T> iface, IdGenerator idGenerator, ClientEventListener eventListener, String url) {
+    protected <T> T createThriftRPCClient(Class<T> iface, IdGenerator idGenerator, ClientEventListener eventListener,
+                                          String url) {
         try {
             THSpawnClientBuilder clientBuilder = new THSpawnClientBuilder();
             clientBuilder.withAddress(new URI(url));

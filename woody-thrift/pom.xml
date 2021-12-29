@@ -11,6 +11,10 @@
 
     <artifactId>woody-thrift</artifactId>
 
+    <properties>
+        <checkstyle.config.suppressions.path>checkstyle-suppressions.xml</checkstyle.config.suppressions.path>
+    </properties>
+
     <dependencies>
         <!--Vality libs-->
         <dependency>

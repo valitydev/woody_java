@@ -52,10 +52,39 @@ public class THClientBuilder extends AbstractClientBuilder {
     private WErrorMapper errorMapper;
     private List<MetadataExtensionKit> metadataExtensionKits;
     private boolean logEnabled = true;
-    private THCEventLogListener logListener = new THCEventLogListener();
+    private final THCEventLogListener logListener = new THCEventLogListener();
 
     public THClientBuilder() {
         super.withIdGenerator(WFlow.createDefaultIdGenerator());
+    }
+
+    protected static <T> T createThriftClient(Class<T> clientIface, TProtocol tProtocol) {
+        try {
+            Optional<? extends Class> clientClass = Arrays.stream(clientIface.getDeclaringClass().getClasses())
+                    .filter(cl -> cl.getSimpleName().equals("Client")).findFirst();
+            if (!clientClass.isPresent()) {
+                throw new IllegalArgumentException(
+                        "Client interface doesn't conform to Thrift generated class structure");
+            }
+            if (!TServiceClient.class.isAssignableFrom(clientClass.get())) {
+                throw new IllegalArgumentException("Client class doesn't conform to Thrift generated class structure");
+            }
+            if (!clientIface.isAssignableFrom(clientClass.get())) {
+                throw new IllegalArgumentException(
+                        "Client class has wrong type which is not assignable to client interface");
+            }
+            Constructor constructor = clientClass.get().getConstructor(TProtocol.class);
+            if (constructor == null) {
+                throw new IllegalArgumentException("Client class doesn't have required constructor to be created");
+            }
+            TServiceClient tClient = (TServiceClient) constructor.newInstance(tProtocol);
+            return (T) tClient;
+        } catch (NoSuchMethodException |
+                InstantiationException |
+                IllegalAccessException |
+                InvocationTargetException e) {
+            throw new IllegalArgumentException("Failed to createCtxBundle provider client", e);
+        }
     }
 
     public THClientBuilder withErrorMapper(WErrorMapper errorMapper) {
@@ -115,7 +144,8 @@ public class THClientBuilder extends AbstractClientBuilder {
     protected <T> T build(Class<T> iface, InvocationTargetProvider<T> targetProvider) {
         if (logEnabled) {
             ClientEventListener listener = getEventListener();
-            listener = (listener == null || listener == DEFAULT_EVENT_LISTENER) ? logListener : new CompositeClientEventListener(logListener, listener);
+            listener = (listener == null || listener == DEFAULT_EVENT_LISTENER) ? logListener :
+                    new CompositeClientEventListener(logListener, listener);
             withEventListener(listener);
         }
         return super.build(iface, targetProvider);
@@ -163,7 +193,8 @@ public class THClientBuilder extends AbstractClientBuilder {
     @Override
     protected <T> T createProviderClient(Class<T> iface) {
         try {
-            THttpClient tHttpClient = new THttpClient(getAddress().toString(), getHttpClient(), createTransportInterceptor());
+            THttpClient tHttpClient =
+                    new THttpClient(getAddress().toString(), getHttpClient(), createTransportInterceptor());
             tHttpClient.setNetworkTimeout(getNetworkTimeout());
             TProtocol tProtocol = createProtocol(tHttpClient);
             return createThriftClient(iface, tProtocol);
@@ -194,7 +225,8 @@ public class THClientBuilder extends AbstractClientBuilder {
     }
 
     protected TProtocol createProtocol(TTransport tTransport) {
-        return BuilderUtils.wrapProtocolFactory(createTransferProtocolFactory(), createMessageInterceptor(), true).getProtocol(tTransport);
+        return BuilderUtils.wrapProtocolFactory(createTransferProtocolFactory(), createMessageInterceptor(), true)
+                .getProtocol(tTransport);
     }
 
     protected HttpClient createHttpClient() {
@@ -202,42 +234,18 @@ public class THClientBuilder extends AbstractClientBuilder {
     }
 
     protected CommonInterceptor createMessageInterceptor() {
-        return new CompositeInterceptor(
-                new ContainerCommonInterceptor(new THMessageInterceptor(true, true), new THMessageInterceptor(true, false)),
-                new ProviderEventInterceptor(getOnCallStartEventListener(), null)
-        );
+        return new CompositeInterceptor(new ContainerCommonInterceptor(new THMessageInterceptor(true, true),
+                new THMessageInterceptor(true, false)),
+                new ProviderEventInterceptor(getOnCallStartEventListener(), null));
     }
 
     protected CommonInterceptor createTransportInterceptor() {
-        List<ExtensionBundle> extensionBundles = Arrays.asList(new MetadataExtensionBundle(metadataExtensionKits == null ? Collections.emptyList() : metadataExtensionKits));
+        List<ExtensionBundle> extensionBundles = Arrays.asList(new MetadataExtensionBundle(
+                metadataExtensionKits == null ? Collections.emptyList() : metadataExtensionKits));
         return new CompositeInterceptor(
-                new ContainerCommonInterceptor(new THTransportInterceptor(extensionBundles, true, true), new THTransportInterceptor(extensionBundles, true, false)),
-                new TransportEventInterceptor(getOnSendEventListener(), getOnReceiveEventListener(), null)
-        );
-    }
-
-    protected static <T> T createThriftClient(Class<T> clientIface, TProtocol tProtocol) {
-        try {
-            Optional<? extends Class> clientClass = Arrays.stream(clientIface.getDeclaringClass().getClasses())
-                    .filter(cl -> cl.getSimpleName().equals("Client")).findFirst();
-            if (!clientClass.isPresent()) {
-                throw new IllegalArgumentException("Client interface doesn't conform to Thrift generated class structure");
-            }
-            if (!TServiceClient.class.isAssignableFrom(clientClass.get())) {
-                throw new IllegalArgumentException("Client class doesn't conform to Thrift generated class structure");
-            }
-            if (!clientIface.isAssignableFrom(clientClass.get())) {
-                throw new IllegalArgumentException("Client class has wrong type which is not assignable to client interface");
-            }
-            Constructor constructor = clientClass.get().getConstructor(TProtocol.class);
-            if (constructor == null) {
-                throw new IllegalArgumentException("Client class doesn't have required constructor to be created");
-            }
-            TServiceClient tClient = (TServiceClient) constructor.newInstance(tProtocol);
-            return (T) tClient;
-        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
-            throw new IllegalArgumentException("Failed to createCtxBundle provider client", e);
-        }
+                new ContainerCommonInterceptor(new THTransportInterceptor(extensionBundles, true, true),
+                        new THTransportInterceptor(extensionBundles, true, false)),
+                new TransportEventInterceptor(getOnSendEventListener(), getOnReceiveEventListener(), null));
     }
 
     private Runnable createEventRunnable(ClientEventListener eventListener) {

@@ -23,19 +23,19 @@ public class TestEventOrder extends AbstractTest {
     ServiceEventListenerImpl serviceEventListener = new ServiceEventListenerImpl();
     OwnerServiceSrv.Iface handler = new OwnerServiceStub() {
         @Override
-        public Owner getErrOwner(int id) throws TException, test_error {
-            switch (id) {
-                case 500:
-                    throw new RuntimeException("Test");
-                default:
-                    return super.getErrOwner(id);
+        public Owner getErrOwner(int id) throws TException {
+            if (id == 500) {
+                throw new RuntimeException("Test");
             }
+            return super.getErrOwner(id);
         }
     };
 
     Servlet servlet = createThriftRPCService(OwnerServiceSrv.Iface.class, handler, serviceEventListener);
 
-    OwnerServiceSrv.Iface client = createThriftRPCClient(OwnerServiceSrv.Iface.class, new TimestampIdGenerator(), clientEventListener, getUrlString("/rpc"));
+    OwnerServiceSrv.Iface client =
+            createThriftRPCClient(OwnerServiceSrv.Iface.class, new TimestampIdGenerator(), clientEventListener,
+                    getUrlString("/rpc"));
 
     @Before
     public void before() {
@@ -63,7 +63,7 @@ public class TestEventOrder extends AbstractTest {
         serviceEventListener.setEventActionListener(serviceEventActionListener);
 
         client.getOwner(0);
-        System.out.println("Target client:"+client);
+        System.out.println("Target client:" + client);
         verify(clientActionListener);
     }
 

@@ -1,6 +1,7 @@
 package dev.vality.woody.thrift.impl.http;
 
 import dev.vality.woody.api.event.ClientEventListener;
+import dev.vality.woody.api.event.ClientEventType;
 import dev.vality.woody.api.flow.error.WRuntimeException;
 import dev.vality.woody.api.flow.error.WUndefinedResultException;
 import dev.vality.woody.api.generator.TimestampIdGenerator;
@@ -15,6 +16,20 @@ import static org.junit.Assert.*;
 
 public class TestClientChainEventHandling extends AbstractTest {
 
+    OwnerServiceSrv.Iface client1 = createThriftRPCClient(OwnerServiceSrv.Iface.class, new TimestampIdGenerator(),
+            (ClientEventListener<THClientEvent>) (THClientEvent thClientEvent) -> {
+                if (thClientEvent.getEventType() == ClientEventType.ERROR) {
+                    assertFalse(thClientEvent.isSuccessfulCall());
+                    assertEquals(new Integer(502), thClientEvent.getThriftResponseStatus());
+                }
+            });
+    OwnerServiceSrv.Iface client2 = createThriftRPCClient(OwnerServiceSrv.Iface.class, new TimestampIdGenerator(),
+            (ClientEventListener<THClientEvent>) (THClientEvent thClientEvent) -> {
+                if (thClientEvent.getEventType() == ClientEventType.ERROR) {
+                    assertFalse(thClientEvent.isSuccessfulCall());
+                    assertEquals(new Integer(504), thClientEvent.getThriftResponseStatus());
+                }
+            });
     OwnerServiceSrv.Iface handler = new OwnerServiceStub() {
         @Override
         public Owner getOwner(int id) throws TException {
@@ -37,24 +52,6 @@ public class TestClientChainEventHandling extends AbstractTest {
             throw new test_error(id);
         }
     };
-
-    OwnerServiceSrv.Iface client1 = createThriftRPCClient(OwnerServiceSrv.Iface.class, new TimestampIdGenerator(), (ClientEventListener<THClientEvent>) (THClientEvent thClientEvent) -> {
-        switch (thClientEvent.getEventType()) {
-            case ERROR:
-                assertFalse(thClientEvent.isSuccessfulCall());
-                assertEquals(new Integer(502), thClientEvent.getThriftResponseStatus());
-                break;
-        }
-    });
-
-    OwnerServiceSrv.Iface client2 = createThriftRPCClient(OwnerServiceSrv.Iface.class, new TimestampIdGenerator(), (ClientEventListener<THClientEvent>) (THClientEvent thClientEvent) -> {
-        switch (thClientEvent.getEventType()) {
-            case ERROR:
-                assertFalse(thClientEvent.isSuccessfulCall());
-                assertEquals(new Integer(504), thClientEvent.getThriftResponseStatus());
-                break;
-        }
-    });
 
     @Test
     public void testUndefinedResultError() throws TException {

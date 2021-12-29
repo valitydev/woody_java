@@ -22,11 +22,15 @@ public class TestMetadata {
         try {
             metadata.putValue("1", 1);
             fail();
-        } catch (IllegalStateException e) {}
+        } catch (IllegalStateException ignored) {
+            //ignore
+        }
 
         try {
             metadata.removeValue("1");
             fail();
-        } catch (IllegalStateException e) {}
+        } catch (IllegalStateException ignored) {
+            //ignore
+        }
     }
 }

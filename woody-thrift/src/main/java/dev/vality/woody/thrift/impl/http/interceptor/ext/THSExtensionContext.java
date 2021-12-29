@@ -31,11 +31,13 @@ public class THSExtensionContext extends ExtensionContext {
             response = ContextUtils.getContextValue(HttpServletResponse.class, getContextParameters(), 0);
         }
         if (response == null) {
-            response = ContextUtils.getMetadataValue(getTraceData().getServiceSpan(), HttpServletResponse.class, THMetadataProperties.TH_TRANSPORT_RESPONSE);
+            response = ContextUtils.getMetadataValue(getTraceData().getServiceSpan(), HttpServletResponse.class,
+                    THMetadataProperties.TH_TRANSPORT_RESPONSE);
         }
 
         if (response == null) {
-            throw new IllegalArgumentException("Unknown type:" + providerContext.getClass() + "|" + ContextUtils.getContextValue(Object.class, getContextParameters(), 0));
+            throw new IllegalArgumentException("Unknown type:" + providerContext.getClass() + "|" +
+                    ContextUtils.getContextValue(Object.class, getContextParameters(), 0));
         }
         return response;
     }

@@ -29,11 +29,13 @@ public class TestWExecutorService {
         traceData.getActiveSpan().getMetadata().putValue(Boolean.TRUE.toString(), new Object());
         Future future = executorService.submit(() -> {
             try {
-                TraceData cData = TraceContext.getCurrentTraceData();
-                Assert.assertNotSame(traceData, cData);
-                Assert.assertEquals(traceData.getActiveSpan().getSpan().getId(), cData.getActiveSpan().getSpan().getId());
-                Assert.assertSame(traceData.getActiveSpan().getMetadata().<Object>getValue(Boolean.TRUE.toString()), cData.getActiveSpan().getMetadata().getValue(Boolean.TRUE.toString()));
-                Assert.assertNotSame(traceData, cData);
+                TraceData currentData = TraceContext.getCurrentTraceData();
+                Assert.assertNotSame(traceData, currentData);
+                Assert.assertEquals(traceData.getActiveSpan().getSpan().getId(),
+                        currentData.getActiveSpan().getSpan().getId());
+                Assert.assertSame(traceData.getActiveSpan().getMetadata().getValue(Boolean.TRUE.toString()),
+                        currentData.getActiveSpan().getMetadata().getValue(Boolean.TRUE.toString()));
+                Assert.assertNotSame(traceData, currentData);
             } catch (Throwable t) {
                 hasErrors.set(true);
                 t.printStackTrace();
@@ -53,11 +55,13 @@ public class TestWExecutorService {
         traceData.getActiveSpan().getMetadata().putValue(Boolean.TRUE.toString(), new Object());
         Future future = executorService.submit(() -> {
             try {
-                TraceData cData = TraceContext.getCurrentTraceData();
-                Assert.assertNotSame(traceData, cData);
-                Assert.assertEquals(traceData.getActiveSpan().getSpan().getId(), cData.getActiveSpan().getSpan().getId());
-                Assert.assertSame(traceData.getActiveSpan().getMetadata().<Object>getValue(Boolean.TRUE.toString()), cData.getActiveSpan().getMetadata().getValue(Boolean.TRUE.toString()));
-                Assert.assertNotSame(traceData, cData);
+                TraceData currentData = TraceContext.getCurrentTraceData();
+                Assert.assertNotSame(traceData, currentData);
+                Assert.assertEquals(traceData.getActiveSpan().getSpan().getId(),
+                        currentData.getActiveSpan().getSpan().getId());
+                Assert.assertSame(traceData.getActiveSpan().getMetadata().getValue(Boolean.TRUE.toString()),
+                        currentData.getActiveSpan().getMetadata().getValue(Boolean.TRUE.toString()));
+                Assert.assertNotSame(traceData, currentData);
             } catch (Throwable t) {
                 hasErrors.set(true);
                 t.printStackTrace();

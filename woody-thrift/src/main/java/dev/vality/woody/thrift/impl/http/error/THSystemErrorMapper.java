@@ -14,8 +14,9 @@ public class THSystemErrorMapper implements WErrorMapper {
             WErrorDefinition errorDefinition = ContextUtils.getErrorDefinition(contextSpan);
             if (errorDefinition != null) {
                 WErrorType errorType = errorDefinition.getErrorType();
-                if (errorType == WErrorType.UNEXPECTED_ERROR ||
-                        errorType == WErrorType.UNAVAILABLE_RESULT || errorType == WErrorType.UNDEFINED_RESULT) {
+                if (errorType == WErrorType.UNEXPECTED_ERROR
+                        || errorType == WErrorType.UNAVAILABLE_RESULT
+                        || errorType == WErrorType.UNDEFINED_RESULT) {
                     return errorDefinition;
                 }
             }

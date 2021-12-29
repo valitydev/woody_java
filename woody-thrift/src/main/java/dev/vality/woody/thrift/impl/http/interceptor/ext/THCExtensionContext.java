@@ -63,7 +63,8 @@ public class THCExtensionContext extends ExtensionContext {
             case RESP_URL_CONNECTION_TYPE:
                 return ((HttpURLConnection) providerContext).getHeaderFields().keySet();
             case RESP_HTTP_CLIENT_TYPE:
-                return Arrays.stream(((HttpResponse) providerContext).getAllHeaders()).map(header -> header.getName()).collect(Collectors.toSet());
+                return Arrays.stream(((HttpResponse) providerContext).getAllHeaders()).map(header -> header.getName())
+                        .collect(Collectors.toSet());
             default:
                 throw new RuntimeException("Unknown type:" + providerContext.getClass());
         }

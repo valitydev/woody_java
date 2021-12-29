@@ -27,6 +27,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
+@SuppressWarnings("checkstyle:AbbreviationAsWordInName")
 public class MDCLogTest extends AbstractTest {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
@@ -51,11 +52,13 @@ public class MDCLogTest extends AbstractTest {
         assertEquals(MDC.get(MDCUtils.PARENT_ID), event.getParentId());
     };
 
-    OwnerServiceSrv.Iface client1 = createThriftRPCClient(OwnerServiceSrv.Iface.class, new TimestampIdGenerator(), new CompositeClientEventListener( clientEventListener), getUrlString("/rpc"));
-    OwnerServiceSrv.Iface client2 = createThriftRPCClient(OwnerServiceSrv.Iface.class, new TimestampIdGenerator(), new CompositeClientEventListener( clientEventListener), getUrlString("/rpc"));
+    OwnerServiceSrv.Iface client1 = createThriftRPCClient(OwnerServiceSrv.Iface.class, new TimestampIdGenerator(),
+            new CompositeClientEventListener(clientEventListener), getUrlString("/rpc"));
+    OwnerServiceSrv.Iface client2 = createThriftRPCClient(OwnerServiceSrv.Iface.class, new TimestampIdGenerator(),
+            new CompositeClientEventListener(clientEventListener), getUrlString("/rpc"));
     OwnerServiceSrv.Iface handler = new OwnerServiceStub() {
         @Override
-        public Owner getErrOwner(int id) throws TException, test_error {
+        public Owner getErrOwner(int id) throws TException {
             switch (id) {
                 case 0:
                     Owner owner = client2.getOwner(0);
@@ -79,7 +82,8 @@ public class MDCLogTest extends AbstractTest {
         }
     };
 
-    Servlet servlet = createThriftRPCService(OwnerServiceSrv.Iface.class, handler, new CompositeServiceEventListener( serviceEventListener));
+    Servlet servlet = createThriftRPCService(OwnerServiceSrv.Iface.class, handler,
+            new CompositeServiceEventListener(serviceEventListener));
 
     @Before
     public void before() {
@@ -96,7 +100,8 @@ public class MDCLogTest extends AbstractTest {
         try {
             client1.getErrOwner(200);
             Assert.fail();
-        } catch (test_error e) {
+        } catch (test_error ignored) {
+            //ignore
         }
 
         out.println("Root call>");

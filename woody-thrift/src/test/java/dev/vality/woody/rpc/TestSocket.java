@@ -36,7 +36,7 @@ public class TestSocket {
     }
 
     @Test
-    public void testExample() throws TTransportException, TException {
+    public void testExample() throws TException {
         TTransport transport = new TSocket("localhost", PORT);
         TProtocol protocol = new TBinaryProtocol(transport);
         OwnerServiceSrv.Client client = new OwnerServiceSrv.Client(protocol);
@@ -74,7 +74,8 @@ public class TestSocket {
             try {
                 TServerSocket serverTransport = new TServerSocket(PORT);
                 OwnerServiceSrv.Processor processor = new OwnerServiceSrv.Processor(new OwnerServiceImpl());
-                TServer server = new TThreadPoolServer(new TThreadPoolServer.Args(serverTransport).processor(processor));
+                TServer server =
+                        new TThreadPoolServer(new TThreadPoolServer.Args(serverTransport).processor(processor));
                 System.out.println("Starting server on port " + PORT);
                 server.serve();
             } catch (TTransportException e) {

@@ -24,11 +24,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class AbstractConcurrentClientTest extends AbstractTest {
-    protected long runTime = 5000;
-    protected int nThreads = 8;
     final AtomicInteger clientCalls = new AtomicInteger(0);
     final AtomicInteger serverAccepts = new AtomicInteger(0);
-
+    protected long runTime = 5000;
+    protected int threadsNum = 8;
     protected ServiceEventListener serviceEventStub = new ServiceEventListenerImpl();
     protected ServiceEventListener serviceEventLogger = new ServiceEventLogListener();
     protected ClientEventListener clientEventStub = new ClientEventListenerImpl();
@@ -50,11 +49,13 @@ public abstract class AbstractConcurrentClientTest extends AbstractTest {
             }
         }, serviceEventLogger);
         addServlet(servlet, "/load");
-        OwnerServiceSrv.Iface client = createThriftRPCClient(OwnerServiceSrv.Iface.class, new TimestampIdGenerator(), clientEventLogger, getUrlString()+"/load");
+        OwnerServiceSrv.Iface client =
+                createThriftRPCClient(OwnerServiceSrv.Iface.class, new TimestampIdGenerator(), clientEventLogger,
+                        getUrlString() + "/load");
 
-        ExecutorService executor = Executors.newFixedThreadPool(nThreads);
+        ExecutorService executor = Executors.newFixedThreadPool(threadsNum);
 
-        Collection<Callable> callableCollection = Collections.nCopies(nThreads, () -> {
+        Collection<Callable> callableCollection = Collections.nCopies(threadsNum, () -> {
             while (!Thread.currentThread().isInterrupted()) {
                 try {
                     client.getOwner(0);
@@ -64,10 +65,9 @@ public abstract class AbstractConcurrentClientTest extends AbstractTest {
                     //Thread.sleep(100);
 
                 } catch (Exception e) {
-                    if (!(e instanceof InterruptedException))
+                    if (!(e instanceof InterruptedException)) {
                         e.printStackTrace();
-                } finally {
-
+                    }
                 }
             }
             return null;
@@ -85,8 +85,8 @@ public abstract class AbstractConcurrentClientTest extends AbstractTest {
                     Thread.sleep(1000);
                     int currCVal = clientCalls.get();
                     int currSVal = serverAccepts.get();
-                    System.out.println("C Op/sec:"+ (currCVal - lastCVal));
-                    System.out.println("S Op/sec:"+ (currSVal - lastSVal));
+                    System.out.println("C Op/sec:" + (currCVal - lastCVal));
+                    System.out.println("S Op/sec:" + (currSVal - lastSVal));
                     lastCVal = currCVal;
                     lastSVal = currSVal;
                 } catch (InterruptedException e) {
@@ -112,5 +112,7 @@ public abstract class AbstractConcurrentClientTest extends AbstractTest {
         return super.createThriftRPCService(iface, handler, serviceEventStub);
     }
 
-    abstract protected <T> T createThriftRPCClient(Class<T> iface, IdGenerator idGenerator, ClientEventListener eventListener, String url);
+    @SuppressWarnings({"checkstyle:AbbreviationAsWordInName", "checkstyle:ModifierOrder"})
+    abstract protected <T> T createThriftRPCClient(Class<T> iface, IdGenerator idGenerator,
+                                                   ClientEventListener eventListener, String url);
 }

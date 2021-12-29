@@ -30,9 +30,9 @@ import java.util.*;
 import java.util.function.BiConsumer;
 
 public class THServiceBuilder extends AbstractServiceBuilder<Servlet> {
+    private final THSEventLogListener logListener = new THSEventLogListener();
     private List<MetadataExtensionKit> metadataExtensionKits;
     private boolean logEnabled = true;
-    private THSEventLogListener logListener = new THSEventLogListener();
     private WErrorMapper errorMapper;
 
     @Override
@@ -59,7 +59,8 @@ public class THServiceBuilder extends AbstractServiceBuilder<Servlet> {
     public <T> Servlet build(Class<T> iface, T serviceHandler) {
         if (logEnabled) {
             ServiceEventListener listener = getEventListener();
-            listener = (listener == null || listener == DEFAULT_EVENT_LISTENER) ? logListener : new CompositeServiceEventListener(logListener, listener);
+            listener = (listener == null || listener == DEFAULT_EVENT_LISTENER) ? logListener :
+                    new CompositeServiceEventListener(logListener, listener);
             withEventListener(listener);
         }
         return super.build(iface, serviceHandler);
@@ -67,8 +68,9 @@ public class THServiceBuilder extends AbstractServiceBuilder<Servlet> {
 
     protected BiConsumer<WErrorDefinition, ContextSpan> getErrorDefinitionConsumer() {
         return (eDef, contextSpan) -> {
-            if (eDef.getErrorType() != WErrorType.BUSINESS_ERROR)
+            if (eDef.getErrorType() != WErrorType.BUSINESS_ERROR) {
                 contextSpan.getMetadata().removeValue(THMetadataProperties.TH_TRANSPORT_RESPONSE_SET_FLAG);
+            }
         };
     }
 
@@ -100,7 +102,8 @@ public class THServiceBuilder extends AbstractServiceBuilder<Servlet> {
     @Override
     protected <T> Servlet createProviderService(Class<T> serviceInterface, T handler) {
         try {
-            THErrorMapProcessor errorMapProcessor = THErrorMapProcessor.getInstance(false, serviceInterface, errorMapper);
+            THErrorMapProcessor errorMapProcessor =
+                    THErrorMapProcessor.getInstance(false, serviceInterface, errorMapper);
             TProcessor tProcessor = createThriftProcessor(serviceInterface, handler);
             return createThriftServlet(tProcessor, createInterceptor(errorMapProcessor, true), errorMapProcessor);
         } catch (Exception e) {
@@ -113,38 +116,39 @@ public class THServiceBuilder extends AbstractServiceBuilder<Servlet> {
     }
 
     /**
-     * @param isTransportLevel true - if this interceptor must be invoked on the lowers level (transport), next is thrift protocol level wit allows message read/write detection
+     * @param isTransportLevel true - if this interceptor must be invoked on the lowers level (transport),
+     *                         next is thrift protocol level wit allows message read/write detection
      */
     protected CommonInterceptor createInterceptor(THErrorMapProcessor errorMapProcessor, boolean isTransportLevel) {
         List<CommonInterceptor> interceptors = new ArrayList<>();
 
         if (!isTransportLevel) {
-            interceptors.add(new ContainerCommonInterceptor(
-                    new THMessageInterceptor(false, true), new THMessageInterceptor(false, false)
-            ));
+            interceptors.add(new ContainerCommonInterceptor(new THMessageInterceptor(false, true),
+                    new THMessageInterceptor(false, false)));
         }
 
-        List<ExtensionBundle> extensionBundles = Arrays.asList(new MetadataExtensionBundle(metadataExtensionKits == null ? Collections.EMPTY_LIST : metadataExtensionKits));
+        List<ExtensionBundle> extensionBundles = Arrays.asList(new MetadataExtensionBundle(
+                metadataExtensionKits == null ? Collections.EMPTY_LIST : metadataExtensionKits));
         interceptors.add(new ErrorMappingInterceptor(errorMapProcessor, getErrorDefinitionConsumer()));
         interceptors.add(new ContainerCommonInterceptor(
                 isTransportLevel ? new THTransportInterceptor(extensionBundles, false, true) : null,
-                new THTransportInterceptor(extensionBundles, false, false)
-        ));
+                new THTransportInterceptor(extensionBundles, false, false)));
 
         if (isTransportLevel) {
             //interceptors.add(new ProviderEventInterceptor(getOnSendEventListener(), null));
-            interceptors.add(new ContextInterceptor(
-                    TraceContext.forService(),
-                    new TransportEventInterceptor(getOnReceiveEventListener(), getOnReceiveEventListener(), getErrorListener())
-            ));
+            interceptors.add(new ContextInterceptor(TraceContext.forService(),
+                    new TransportEventInterceptor(getOnReceiveEventListener(), getOnReceiveEventListener(),
+                            getErrorListener())));
         }
         return new CompositeInterceptor(interceptors.toArray(new CommonInterceptor[interceptors.size()]));
 
     }
 
-    protected Servlet createThriftServlet(TProcessor tProcessor, CommonInterceptor servletInterceptor, THErrorMapProcessor errorMapProcessor) {
+    protected Servlet createThriftServlet(TProcessor tProcessor, CommonInterceptor servletInterceptor,
+                                          THErrorMapProcessor errorMapProcessor) {
         TProtocolFactory tProtocolFactory = createTransferProtocolFactory();
-        TProtocolFactory wtProtocolFactory = BuilderUtils.wrapProtocolFactory(tProtocolFactory, createInterceptor(errorMapProcessor, false), false);
+        TProtocolFactory wtProtocolFactory =
+                BuilderUtils.wrapProtocolFactory(tProtocolFactory, createInterceptor(errorMapProcessor, false), false);
 
         return new TServlet(tProcessor, wtProtocolFactory, servletInterceptor);
     }
@@ -154,7 +158,8 @@ public class THServiceBuilder extends AbstractServiceBuilder<Servlet> {
             Optional<? extends Class> processorClass = Arrays.stream(serviceInterface.getDeclaringClass().getClasses())
                     .filter(cl -> cl.getSimpleName().equals("Processor")).findFirst();
             if (!processorClass.isPresent()) {
-                throw new IllegalArgumentException("Service interface doesn't conform to Thrift generated class structure");
+                throw new IllegalArgumentException(
+                        "Service interface doesn't conform to Thrift generated class structure");
             }
             if (!TProcessor.class.isAssignableFrom(processorClass.get())) {
                 throw new IllegalArgumentException("Service class doesn't conform to Thrift generated class structure");
@@ -164,7 +169,10 @@ public class THServiceBuilder extends AbstractServiceBuilder<Servlet> {
                 throw new IllegalArgumentException("Service class doesn't have required constructor to be created");
             }
             return (TProcessor) constructor.newInstance(handler);
-        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
+        } catch (NoSuchMethodException |
+                InstantiationException |
+                IllegalAccessException |
+                InvocationTargetException e) {
             throw new IllegalArgumentException("Failed to createCtxBundle provider service", e);
         }
     }

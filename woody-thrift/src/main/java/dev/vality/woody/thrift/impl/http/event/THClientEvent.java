@@ -34,10 +34,12 @@ public class THClientEvent extends ClientEvent {
     }
 
     public HttpRequestBase getTransportRequest() {
-        return ContextUtils.getMetadataValue(getActiveSpan(), HttpRequestBase.class, THMetadataProperties.TH_TRANSPORT_REQUEST);
+        return ContextUtils.getMetadataValue(getActiveSpan(), HttpRequestBase.class,
+                THMetadataProperties.TH_TRANSPORT_REQUEST);
     }
 
     public HttpResponse getTransportResponse() {
-        return ContextUtils.getMetadataValue(getActiveSpan(), HttpResponse.class, THMetadataProperties.TH_TRANSPORT_RESPONSE);
+        return ContextUtils.getMetadataValue(getActiveSpan(), HttpResponse.class,
+                THMetadataProperties.TH_TRANSPORT_RESPONSE);
     }
 }

@@ -9,19 +9,22 @@ import java.util.List;
 
 public class THErrorMapProcessor extends ErrorMapProcessor {
 
+    public THErrorMapProcessor(boolean isClient, List<WErrorMapper> mappers) {
+        super(isClient, mappers);
+    }
+
     private static List<WErrorMapper> getMappers(Class ifaceClass) {
-        return Arrays.asList(
-                new THBusinessErrorMapper(ifaceClass),
-                new THSystemErrorMapper(),
-                new THTransportErrorMapper(),
-                new THProviderErrorMapper(),
-                new THDefaultErrorMapper()
-        );
+        return Arrays.asList(new THBusinessErrorMapper(ifaceClass), new THSystemErrorMapper(),
+                new THTransportErrorMapper(), new THProviderErrorMapper(), new THDefaultErrorMapper());
     }
 
     public static THErrorMapProcessor getInstance(boolean isClient, Class ifaceClass, WErrorMapper customMapper) {
         if (customMapper != null) {
-            return new THErrorMapProcessor(isClient, new ArrayList(getMappers(ifaceClass)) {{add(0, customMapper);}});
+            return new THErrorMapProcessor(isClient, new ArrayList(getMappers(ifaceClass)) {
+                {
+                    add(0, customMapper);
+                }
+            });
         } else {
             return getInstance(isClient, ifaceClass);
         }
@@ -29,10 +32,5 @@ public class THErrorMapProcessor extends ErrorMapProcessor {
 
     public static THErrorMapProcessor getInstance(boolean isClient, Class ifaceClass) {
         return new THErrorMapProcessor(isClient, getMappers(ifaceClass));
-    }
-
-
-    public THErrorMapProcessor(boolean isClient, List<WErrorMapper> mappers) {
-        super(isClient, mappers);
     }
 }

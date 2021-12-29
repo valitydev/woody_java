@@ -22,8 +22,12 @@ public class TestChildRequests extends AbstractTest {
 
 
     ClientEventListener clientListener = null;
-    OwnerServiceSrv.Iface client1 = createThriftRPCClient(OwnerServiceSrv.Iface.class, new TimestampIdGenerator(), clientListener, getUrlString("/rpc"));
-    OwnerServiceSrv.Iface client2 = createThriftRPCClient(OwnerServiceSrv.Iface.class, new TimestampIdGenerator(), clientListener, getUrlString("/rpc"));
+    OwnerServiceSrv.Iface client1 =
+            createThriftRPCClient(OwnerServiceSrv.Iface.class, new TimestampIdGenerator(), clientListener,
+                    getUrlString("/rpc"));
+    OwnerServiceSrv.Iface client2 =
+            createThriftRPCClient(OwnerServiceSrv.Iface.class, new TimestampIdGenerator(), clientListener,
+                    getUrlString("/rpc"));
     OwnerServiceSrv.Iface handler = new OwnerServiceStub() {
 
         @Override
@@ -34,7 +38,7 @@ public class TestChildRequests extends AbstractTest {
         }
 
         @Override
-        public Owner getErrOwner(int id) throws TException, test_error {
+        public Owner getErrOwner(int id) throws TException {
             switch (id) {
                 case 0:
                     Owner owner = client2.getOwner(0);
@@ -73,7 +77,8 @@ public class TestChildRequests extends AbstractTest {
         try {
             client1.getErrOwner(200);
             Assert.fail();
-        } catch (test_error e) {
+        } catch (test_error ignored) {
+            //ignore
         }
         out.println("<");
         out.println("Root call>");

@@ -15,7 +15,8 @@ public class TestProxyInvocationFactory {
 
         MethodCallTracer wrappedCallTracer = new EventTracer();
 
-        ProxyFactory reflectionProxyFactory = new ProxyFactory(new ReflectionMethodCallerFactory(), wrappedCallTracer, false);
+        ProxyFactory reflectionProxyFactory =
+                new ProxyFactory(new ReflectionMethodCallerFactory(), wrappedCallTracer, false);
         ProxyFactory handleProxyFactory = new ProxyFactory(new HandleMethodCallerFactory(), wrappedCallTracer, false);
 
         Srv directLambda = () -> "string";

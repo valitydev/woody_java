@@ -1,6 +1,7 @@
 package dev.vality.woody.thrift.impl.http;
 
 import dev.vality.woody.api.event.ClientEventListener;
+import dev.vality.woody.api.event.ClientEventType;
 import dev.vality.woody.api.flow.error.WErrorSource;
 import dev.vality.woody.api.flow.error.WErrorType;
 import dev.vality.woody.api.flow.error.WRuntimeException;
@@ -18,8 +19,29 @@ import static org.junit.Assert.*;
 
 public class TestTransportErrorMapper extends AbstractTest {
     private final Semaphore semaphore = new Semaphore(0);
-
+    OwnerServiceSrv.Iface noTimeoutClient =
+            createThriftRPCClient(OwnerServiceSrv.Iface.class, new TimestampIdGenerator(),
+                    (ClientEventListener<THClientEvent>) (THClientEvent thClientEvent) -> {
+                        if (thClientEvent.getEventType() == ClientEventType.ERROR) {
+                            if (thClientEvent.getCallArguments()[0].equals(2)) {
+                                //do nothing, response is already closed
+                            } else {
+                                assertFalse(thClientEvent.isSuccessfulCall());
+                                assertEquals(new Integer(502), thClientEvent.getThriftResponseStatus());
+                                assertEquals(WErrorType.UNDEFINED_RESULT,
+                                        thClientEvent.getErrorDefinition().getErrorType());
+                            }
+                        }
+                    }, -1);
+    OwnerServiceSrv.Iface timeoutClient = createThriftRPCClient(OwnerServiceSrv.Iface.class, new TimestampIdGenerator(),
+            (ClientEventListener<THClientEvent>) (THClientEvent thClientEvent) -> {
+                if (thClientEvent.getEventType() == ClientEventType.ERROR) {
+                    assertFalse(thClientEvent.isSuccessfulCall());
+                    assertEquals(WErrorType.UNDEFINED_RESULT, thClientEvent.getErrorDefinition().getErrorType());
+                }
+            });
     OwnerServiceSrv.Iface handler = new OwnerServiceStub() {
+        @SuppressWarnings("checkstyle:MissingSwitchDefault")
         @Override
         public Owner getOwner(int id) throws TException {
             switch (id) {
@@ -49,38 +71,15 @@ public class TestTransportErrorMapper extends AbstractTest {
             throw new test_error(id);
         }
     };
-
-    OwnerServiceSrv.Iface noTimeoutClient = createThriftRPCClient(OwnerServiceSrv.Iface.class, new TimestampIdGenerator(), (ClientEventListener<THClientEvent>) (THClientEvent thClientEvent) -> {
-        switch (thClientEvent.getEventType()) {
-            case ERROR:
-                if (thClientEvent.getCallArguments()[0].equals(2)) {
-                    //do nothing, response is already closed
-                } else {
-                    assertFalse(thClientEvent.isSuccessfulCall());
-                    assertEquals(new Integer(502), thClientEvent.getThriftResponseStatus());
-                    assertEquals(WErrorType.UNDEFINED_RESULT, thClientEvent.getErrorDefinition().getErrorType());
-                }
-                break;
-        }
-    }, -1);
-
-    OwnerServiceSrv.Iface timeoutClient = createThriftRPCClient(OwnerServiceSrv.Iface.class, new TimestampIdGenerator(), (ClientEventListener<THClientEvent>) (THClientEvent thClientEvent) -> {
-        switch (thClientEvent.getEventType()) {
-            case ERROR:
-                assertFalse(thClientEvent.isSuccessfulCall());
-                assertEquals(WErrorType.UNDEFINED_RESULT, thClientEvent.getErrorDefinition().getErrorType());
-                break;
-        }
-    });
-
-    OwnerServiceSrv.Iface unknownHostClient = createThriftRPCClient(OwnerServiceSrv.Iface.class, new TimestampIdGenerator(), (ClientEventListener<THClientEvent>) (THClientEvent thClientEvent) -> {
-        switch (thClientEvent.getEventType()) {
-            case ERROR:
-                assertFalse(thClientEvent.isSuccessfulCall());
-                assertEquals(WErrorType.UNAVAILABLE_RESULT, thClientEvent.getErrorDefinition().getErrorType());
-                break;
-        }
-    }, "http://wronghost:" + serverPort);
+    OwnerServiceSrv.Iface unknownHostClient =
+            createThriftRPCClient(OwnerServiceSrv.Iface.class, new TimestampIdGenerator(),
+                    (ClientEventListener<THClientEvent>) (THClientEvent thClientEvent) -> {
+                        if (thClientEvent.getEventType() == ClientEventType.ERROR) {
+                            assertFalse(thClientEvent.isSuccessfulCall());
+                            assertEquals(WErrorType.UNAVAILABLE_RESULT,
+                                    thClientEvent.getErrorDefinition().getErrorType());
+                        }
+                    }, "http://wronghost:" + serverPort);
 
     @Test
     public void testSocketTimeoutError() throws TException {
@@ -90,9 +89,12 @@ public class TestTransportErrorMapper extends AbstractTest {
             noTimeoutClient.getOwner(0);
             fail();
         } catch (WRuntimeException e) {
-            assertEquals("Network timeout expected", WErrorType.UNDEFINED_RESULT, e.getErrorDefinition().getErrorType());
-            assertEquals("Error returned from child request", WErrorSource.EXTERNAL, e.getErrorDefinition().getErrorSource());
-            assertEquals("Generation source is external for all network errors", WErrorSource.EXTERNAL, e.getErrorDefinition().getGenerationSource());
+            assertEquals("Network timeout expected", WErrorType.UNDEFINED_RESULT,
+                    e.getErrorDefinition().getErrorType());
+            assertEquals("Error returned from child request", WErrorSource.EXTERNAL,
+                    e.getErrorDefinition().getErrorSource());
+            assertEquals("Generation source is external for all network errors", WErrorSource.EXTERNAL,
+                    e.getErrorDefinition().getGenerationSource());
         }
     }
 
@@ -115,8 +117,10 @@ public class TestTransportErrorMapper extends AbstractTest {
             fail();
         } catch (WRuntimeException e) {
             assertEquals(WErrorType.UNAVAILABLE_RESULT, e.getErrorDefinition().getErrorType());
-            assertEquals("Error returned on main client call", WErrorSource.INTERNAL, e.getErrorDefinition().getErrorSource());
-            assertEquals("Generation source is external for all network errors", WErrorSource.EXTERNAL, e.getErrorDefinition().getGenerationSource());
+            assertEquals("Error returned on main client call", WErrorSource.INTERNAL,
+                    e.getErrorDefinition().getErrorSource());
+            assertEquals("Generation source is external for all network errors", WErrorSource.EXTERNAL,
+                    e.getErrorDefinition().getGenerationSource());
         }
         t.join();
     }
@@ -127,9 +131,12 @@ public class TestTransportErrorMapper extends AbstractTest {
             unknownHostClient.getOwner(0);
             fail();
         } catch (WRuntimeException e) {
-            assertEquals("Network timeout expected", WErrorType.UNAVAILABLE_RESULT, e.getErrorDefinition().getErrorType());
-            assertEquals("Error returned for root client request", WErrorSource.INTERNAL, e.getErrorDefinition().getErrorSource());
-            assertEquals("Generation source is external for all network errors", WErrorSource.EXTERNAL, e.getErrorDefinition().getGenerationSource());
+            assertEquals("Network timeout expected", WErrorType.UNAVAILABLE_RESULT,
+                    e.getErrorDefinition().getErrorType());
+            assertEquals("Error returned for root client request", WErrorSource.INTERNAL,
+                    e.getErrorDefinition().getErrorSource());
+            assertEquals("Generation source is external for all network errors", WErrorSource.EXTERNAL,
+                    e.getErrorDefinition().getGenerationSource());
         }
     }
 

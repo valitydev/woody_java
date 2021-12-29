@@ -28,13 +28,35 @@ import java.util.Arrays;
 import static org.junit.Assert.*;
 
 public class TestCustomMetadataExtension extends AbstractTest {
+    OwnerServiceSrv.Iface rpcMetaClientToMetaSrv =
+            createThriftRPCClient(OwnerServiceSrv.Iface.class, new TimestampIdGenerator(),
+                    new CompositeClientEventListener(), Arrays.asList(IntExtension.instance),
+                    getUrlString("/rpc_cmeta"));
+    OwnerServiceSrv.Iface rpcMetaClientToNoMetaSrv =
+            createThriftRPCClient(OwnerServiceSrv.Iface.class, new TimestampIdGenerator(),
+                    new CompositeClientEventListener(), Arrays.asList(IntExtension.instance),
+                    getUrlString("/rpc_no_cmeta"));
+    OwnerServiceSrv.Iface rpcNoMetaClientToMetaSrv =
+            createThriftRPCClient(OwnerServiceSrv.Iface.class, new TimestampIdGenerator(),
+                    new CompositeClientEventListener(), getUrlString("/rpc_cmeta"));
+    OwnerServiceSrv.Iface rpcNoMetaClientToNoMetaSrv =
+            createThriftRPCClient(OwnerServiceSrv.Iface.class, new TimestampIdGenerator(),
+                    new CompositeClientEventListener(), getUrlString("/rpc_no_cmeta"));
+    OwnerServiceSrv.Iface client1 = createThriftRPCClient(OwnerServiceSrv.Iface.class, new TimestampIdGenerator(),
+            new CompositeClientEventListener(), getUrlString("/rpc_no_cmeta"));
+    OwnerServiceSrv.Iface client2 = createThriftRPCClient(OwnerServiceSrv.Iface.class, new TimestampIdGenerator(),
+            new CompositeClientEventListener(), getUrlString("/rpc_no_cmeta"));
+    OwnerServiceSrv.Iface client3 = createThriftRPCClient(OwnerServiceSrv.Iface.class, new TimestampIdGenerator(),
+            new CompositeClientEventListener(), getUrlString("/rpc_no_cmeta"));
     OwnerServiceSrv.Iface handler = new OwnerServiceStub() {
         @Override
         public Owner getOwner(int id) throws TException {
             switch (id) {
                 case 0:
                     assertEquals("A", ContextUtils.getCustomMetadataValue(String.class, "1"));
-                    assertNull("A", ContextUtils.getCustomMetadataValue(TraceContext.getCurrentTraceData().getClientSpan(), String.class, "1"));
+                    assertNull("A",
+                            ContextUtils.getCustomMetadataValue(TraceContext.getCurrentTraceData().getClientSpan(),
+                                    String.class, "1"));
                     ContextUtils.setCustomMetadataValue("2", "B");
                     client2.getOwner(1);
                     ContextUtils.setCustomMetadataValue("3", "EC");
@@ -42,7 +64,9 @@ public class TestCustomMetadataExtension extends AbstractTest {
                 case 1:
                     assertEquals("A", ContextUtils.getCustomMetadataValue(String.class, "1"));
                     assertEquals("B", ContextUtils.getCustomMetadataValue(String.class, "2"));
-                    assertNull("A", ContextUtils.getCustomMetadataValue(TraceContext.getCurrentTraceData().getClientSpan(), String.class, "1"));
+                    assertNull("A",
+                            ContextUtils.getCustomMetadataValue(TraceContext.getCurrentTraceData().getClientSpan(),
+                                    String.class, "1"));
                     ContextUtils.setCustomMetadataValue("3", "C");
                     client3.getOwner(2);
                     break;
@@ -50,7 +74,9 @@ public class TestCustomMetadataExtension extends AbstractTest {
                     assertEquals("A", ContextUtils.getCustomMetadataValue(String.class, "1"));
                     assertEquals("B", ContextUtils.getCustomMetadataValue(String.class, "2"));
                     assertEquals("C", ContextUtils.getCustomMetadataValue(String.class, "3"));
-                    assertNull("A", ContextUtils.getCustomMetadataValue(TraceContext.getCurrentTraceData().getClientSpan(), String.class, "1"));
+                    assertNull("A",
+                            ContextUtils.getCustomMetadataValue(TraceContext.getCurrentTraceData().getClientSpan(),
+                                    String.class, "1"));
                     break;
                 case 10:
                     assertEquals((Object) 1, ContextUtils.getCustomMetadataValue(IntExtension.instance.getExtension()));
@@ -64,20 +90,18 @@ public class TestCustomMetadataExtension extends AbstractTest {
             return super.getOwner(id);
         }
     };
-
-    OwnerServiceSrv.Iface rpcMetaClientToMetaSrv =     createThriftRPCClient(OwnerServiceSrv.Iface.class, new TimestampIdGenerator(), new CompositeClientEventListener(), Arrays.asList(IntExtension.instance), getUrlString("/rpc_cmeta"));
-    OwnerServiceSrv.Iface rpcMetaClientToNoMetaSrv =   createThriftRPCClient(OwnerServiceSrv.Iface.class, new TimestampIdGenerator(), new CompositeClientEventListener(), Arrays.asList(IntExtension.instance), getUrlString("/rpc_no_cmeta"));
-    OwnerServiceSrv.Iface rpcNoMetaClientToMetaSrv =   createThriftRPCClient(OwnerServiceSrv.Iface.class, new TimestampIdGenerator(), new CompositeClientEventListener(), getUrlString("/rpc_cmeta"));
-    OwnerServiceSrv.Iface rpcNoMetaClientToNoMetaSrv = createThriftRPCClient(OwnerServiceSrv.Iface.class, new TimestampIdGenerator(), new CompositeClientEventListener(), getUrlString("/rpc_no_cmeta"));
-    OwnerServiceSrv.Iface client1 =                    createThriftRPCClient(OwnerServiceSrv.Iface.class, new TimestampIdGenerator(), new CompositeClientEventListener(), getUrlString("/rpc_no_cmeta"));
-    OwnerServiceSrv.Iface client2 =                    createThriftRPCClient(OwnerServiceSrv.Iface.class, new TimestampIdGenerator(), new CompositeClientEventListener(), getUrlString("/rpc_no_cmeta"));
-    OwnerServiceSrv.Iface client3 =                    createThriftRPCClient(OwnerServiceSrv.Iface.class, new TimestampIdGenerator(), new CompositeClientEventListener(), getUrlString("/rpc_no_cmeta"));
-    OwnerServiceSrv.Iface rpcMetaMultiExtClientToMultiExtMetaSrv =     createThriftRPCClient(OwnerServiceSrv.Iface.class, new TimestampIdGenerator(), new CompositeClientEventListener(), Arrays.asList(IntExtension.instance, StringExtension.instance), getUrlString("/rpc_cmeta"));
-
-    Servlet cMetaServlet =   createThriftRPCService(OwnerServiceSrv.Iface.class, handler, new CompositeServiceEventListener(), Arrays.asList(IntExtension.instance));
-    Servlet ncMetaServlet =  createThriftRPCService(OwnerServiceSrv.Iface.class, handler, new CompositeServiceEventListener());
-    Servlet cMetaMultipleExtKitServlet =  createThriftRPCService(OwnerServiceSrv.Iface.class, handler, new CompositeServiceEventListener(), Arrays.asList(IntExtension.instance, StringExtension.instance));
-
+    Servlet cMetaServlet =
+            createThriftRPCService(OwnerServiceSrv.Iface.class, handler, new CompositeServiceEventListener(),
+                    Arrays.asList(IntExtension.instance));
+    Servlet ncMetaServlet =
+            createThriftRPCService(OwnerServiceSrv.Iface.class, handler, new CompositeServiceEventListener());
+    Servlet cMetaMultipleExtKitServlet =
+            createThriftRPCService(OwnerServiceSrv.Iface.class, handler, new CompositeServiceEventListener(),
+                    Arrays.asList(IntExtension.instance, StringExtension.instance));
+    OwnerServiceSrv.Iface rpcMetaMultiExtClientToMultiExtMetaSrv =
+            createThriftRPCClient(OwnerServiceSrv.Iface.class, new TimestampIdGenerator(),
+                    new CompositeClientEventListener(), Arrays.asList(IntExtension.instance, StringExtension.instance),
+                    getUrlString("/rpc_cmeta"));
 
     @Before
     public void setUp() {
@@ -157,7 +181,7 @@ public class TestCustomMetadataExtension extends AbstractTest {
         addServlet(cMetaMultipleExtKitServlet, "/rpc_cmeta");
         new WFlow().createServiceFork(() -> {
             ContextUtils.setCustomMetadataValue(1, IntExtension.instance.getExtension());
-            ContextUtils.setCustomMetadataValue(StringExtension.KEY,"test");
+            ContextUtils.setCustomMetadataValue(StringExtension.KEY, "test");
             return rpcMetaMultiExtClientToMultiExtMetaSrv.getIntValue();
         }).call();
     }
@@ -216,9 +240,8 @@ public class TestCustomMetadataExtension extends AbstractTest {
     }
 
     static class IntExtension implements MetadataExtensionKit<Integer> {
-        private static final String KEY = "int-val";
         static final IntExtension instance = new IntExtension();
-
+        private static final String KEY = "int-val";
         private final boolean applyToObject;
         private final boolean applyToString;
 
@@ -278,9 +301,8 @@ public class TestCustomMetadataExtension extends AbstractTest {
     }
 
     static class StringExtension implements MetadataExtensionKit<String> {
-        private static final String KEY = "string-val";
         static final StringExtension instance = new StringExtension();
-
+        private static final String KEY = "string-val";
         private final boolean applyToObject;
         private final boolean applyToString;
 

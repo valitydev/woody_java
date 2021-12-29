@@ -37,58 +37,63 @@ public class TestClientAndServerHttpHeaders extends AbstractTest {
 
     private final String servletContextPath = "/test_servlet";
 
-    private final Servlet testServlet = createThriftRPCService(OwnerServiceSrv.Iface.class, new OwnerServiceSrv.Iface() {
+    private final Servlet testServlet =
+            createThriftRPCService(OwnerServiceSrv.Iface.class, new OwnerServiceSrv.Iface() {
 
-        @Override
-        public int getIntValue() throws TException {
-            return 42;
-        }
+                @Override
+                public int getIntValue() throws TException {
+                    return 42;
+                }
 
-        @Override
-        public Owner getOwner(int id) throws TException {
-            return new Owner(id, "test");
-        }
+                @Override
+                public Owner getOwner(int id) throws TException {
+                    return new Owner(id, "test");
+                }
 
-        @Override
-        public Owner getErrOwner(int id) throws test_error, TException {
-            throw new test_error();
-        }
+                @Override
+                public Owner getErrOwner(int id) throws TException {
+                    throw new test_error();
+                }
 
-        @Override
-        public void setOwner(Owner owner) throws TException {
-            //nothing
-        }
+                @Override
+                public void setOwner(Owner owner) throws TException {
+                    //nothing
+                }
 
-        @Override
-        public void setOwnerOneway(Owner owner) throws TException {
-            //nothing
-        }
+                @Override
+                public void setOwnerOneway(Owner owner) throws TException {
+                    //nothing
+                }
 
-        @Override
-        public Owner setErrOwner(Owner owner, int id) throws test_error, TException {
-            throw new test_error();
-        }
-    });
+                @Override
+                public Owner setErrOwner(Owner owner, int id) throws TException {
+                    throw new test_error();
+                }
+            });
 
     @Test
     public void testCheckClientTraceHeaders() throws TException {
         addServlet(new HttpServlet() {
             @Override
-            protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-                for (THttpHeader tHttpHeader : Arrays.asList(THttpHeader.SPAN_ID, THttpHeader.TRACE_ID, THttpHeader.PARENT_ID)) {
+            protected void doPost(HttpServletRequest request, HttpServletResponse response)
+                    throws ServletException, IOException {
+                for (THttpHeader tHttpHeader : Arrays.asList(THttpHeader.SPAN_ID, THttpHeader.TRACE_ID,
+                        THttpHeader.PARENT_ID)) {
                     assertNotNull(request.getHeader(tHttpHeader.getKey()));
                 }
                 writeResultMessage(request, response);
             }
         }, "/check_trace_headers");
-        OwnerServiceSrv.Iface client = createThriftRPCClient(OwnerServiceSrv.Iface.class, getUrlString("/check_trace_headers"));
+        OwnerServiceSrv.Iface client =
+                createThriftRPCClient(OwnerServiceSrv.Iface.class, getUrlString("/check_trace_headers"));
         client.getIntValue();
     }
 
     @Test
     public void testCheckClientMetaHeaders() {
         Map.Entry<String, String> metadataWithoutExtensionKit = new AbstractMap.SimpleEntry<>("test", "test-value");
-        Map.Entry<String, String> metadataWithExtensionKit = new AbstractMap.SimpleEntry<>("extension-test", "extension-test-value");
+        Map.Entry<String, String> metadataWithExtensionKit =
+                new AbstractMap.SimpleEntry<>("extension-test", "extension-test-value");
         MetadataExtensionKit metadataExtensionTestKit = new MetadataExtensionKit<String>() {
 
             @Override
@@ -129,16 +134,22 @@ public class TestClientAndServerHttpHeaders extends AbstractTest {
 
         addServlet(new HttpServlet() {
             @Override
-            protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-                assertEquals(request.getHeader(THttpHeader.META.getKey() + metadataWithExtensionKit.getKey()), metadataWithExtensionKit.getValue());
-                assertEquals(request.getHeader(THttpHeader.META.getKey() + metadataWithoutExtensionKit.getKey()), metadataWithoutExtensionKit.getValue());
+            protected void doPost(HttpServletRequest request, HttpServletResponse response)
+                    throws ServletException, IOException {
+                assertEquals(request.getHeader(THttpHeader.META.getKey() + metadataWithExtensionKit.getKey()),
+                        metadataWithExtensionKit.getValue());
+                assertEquals(request.getHeader(THttpHeader.META.getKey() + metadataWithoutExtensionKit.getKey()),
+                        metadataWithoutExtensionKit.getValue());
                 writeResultMessage(request, response);
             }
         }, "/check_meta_headers");
-        OwnerServiceSrv.Iface client = createThriftRPCClient(OwnerServiceSrv.Iface.class, Arrays.asList(metadataExtensionTestKit), getUrlString("/check_meta_headers"));
+        OwnerServiceSrv.Iface client =
+                createThriftRPCClient(OwnerServiceSrv.Iface.class, Arrays.asList(metadataExtensionTestKit),
+                        getUrlString("/check_meta_headers"));
 
         new WFlow().createServiceFork(() -> {
-            ContextUtils.setCustomMetadataValue(metadataWithoutExtensionKit.getKey(), metadataWithoutExtensionKit.getValue());
+            ContextUtils.setCustomMetadataValue(metadataWithoutExtensionKit.getKey(),
+                    metadataWithoutExtensionKit.getValue());
             ContextUtils.setCustomMetadataValue(metadataWithExtensionKit.getKey(), metadataWithExtensionKit.getValue());
             try {
                 client.getIntValue();
@@ -152,13 +163,14 @@ public class TestClientAndServerHttpHeaders extends AbstractTest {
     @Test
     public void testWhenTraceDataIsEmpty() throws TException {
         addServlet(testServlet, servletContextPath);
-        CloseableHttpClient httpClient = HttpClients.custom()
-                .addInterceptorFirst((HttpRequestInterceptor) (httpRequest, httpContext) -> {
+        CloseableHttpClient httpClient =
+                HttpClients.custom().addInterceptorFirst((HttpRequestInterceptor) (httpRequest, httpContext) -> {
                     httpRequest.removeHeader(httpRequest.getFirstHeader(THttpHeader.SPAN_ID.getKey()));
                     httpRequest.removeHeader(httpRequest.getFirstHeader(THttpHeader.TRACE_ID.getKey()));
                     httpRequest.removeHeader(httpRequest.getFirstHeader(THttpHeader.PARENT_ID.getKey()));
                 }).build();
-        OwnerServiceSrv.Iface client = createThriftRPCClient(OwnerServiceSrv.Iface.class, getUrlString(servletContextPath), httpClient);
+        OwnerServiceSrv.Iface client =
+                createThriftRPCClient(OwnerServiceSrv.Iface.class, getUrlString(servletContextPath), httpClient);
         try {
             client.getIntValue();
             fail();

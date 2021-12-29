@@ -22,15 +22,16 @@ import java.util.function.UnaryOperator;
 
 public class THProviderErrorMapper implements WErrorMapper {
 
-    private static final String UNKNOWN_ERROR_MESSAGE = "internal thrift application error";
     public static final Function<Object, String> THRIFT_TRANSPORT_ERROR_REASON_FUNC = obj -> "thrift transport error";
     public static final Function<Object, String> THRIFT_PROTOCOL_ERROR_REASON_FUNC = obj -> "thrift protocol error";
-    public static final Function<Object, String> UNKNOWN_PROVIDER_ERROR_REASON_FUNC = msg -> "unknown provider error: " + msg;
+    public static final Function<Object, String> UNKNOWN_PROVIDER_ERROR_REASON_FUNC =
+            msg -> "unknown provider error: " + msg;
     public static final Function<Object, String> UNKNOWN_CALL_REASON_FUNC = callName -> "unknown method: " + callName;
     public static final UnaryOperator<String> BAD_CONTENT_TYPE_REASON_FUNC = cType -> "content type wrong/missing";
     public static final UnaryOperator<String> RPC_ID_HEADER_MISSING_REASON_FUNC = header -> header + " missing";
     public static final UnaryOperator<String> BAD_HEADER_REASON_FUNC = header -> "bad header: " + header;
     public static final UnaryOperator<String> BAD_REQUEST_TYPE_REASON_FUNC = rewMethod -> "http method wrong";
+    private static final String UNKNOWN_ERROR_MESSAGE = "internal thrift application error";
 
     public static WErrorDefinition createErrorDefinition(THResponseInfo responseInfo, Supplier invalidErrClass) {
         WErrorDefinition errorDefinition = null;
@@ -55,7 +56,8 @@ public class THProviderErrorMapper implements WErrorMapper {
             errorDefinition.setErrorReason(responseInfo.getErrReason());
         } else if (status == 502) {
             errorDefinition = new WErrorDefinition(WErrorSource.EXTERNAL);
-            errorDefinition.setErrorType(Optional.ofNullable(WErrorType.getValueByKey(responseInfo.getErrClass())).orElse(WErrorType.UNEXPECTED_ERROR));
+            errorDefinition.setErrorType(Optional.ofNullable(WErrorType.getValueByKey(responseInfo.getErrClass()))
+                    .orElse(WErrorType.UNEXPECTED_ERROR));
             errorDefinition.setErrorSource(WErrorSource.EXTERNAL);
             errorDefinition.setErrorReason(responseInfo.getErrReason());
             if (errorDefinition.getErrorType() == WErrorType.BUSINESS_ERROR) {
@@ -74,9 +76,11 @@ public class THProviderErrorMapper implements WErrorMapper {
     }
 
     public static THResponseInfo getResponseInfo(ContextSpan contextSpan) {
-        WErrorDefinition errorDefinition = ContextUtils.getMetadataValue(contextSpan, WErrorDefinition.class, MetadataProperties.ERROR_DEFINITION);
+        WErrorDefinition errorDefinition =
+                ContextUtils.getMetadataValue(contextSpan, WErrorDefinition.class, MetadataProperties.ERROR_DEFINITION);
         int status;
-        String errClass = null, errReason = null;
+        String errClass = null;
+        String errReason = null;
         if (errorDefinition == null) {
             status = 200;
         } else {
@@ -88,17 +92,22 @@ public class THProviderErrorMapper implements WErrorMapper {
                 case PROVIDER_ERROR:
                     errClass = WErrorType.UNEXPECTED_ERROR.getKey();
                     if (errorDefinition.getGenerationSource() == WErrorSource.INTERNAL) {
-                        TErrorType tErrorType = ContextUtils.getMetadataValue(contextSpan, TErrorType.class, THMetadataProperties.TH_ERROR_TYPE);
+                        TErrorType tErrorType = ContextUtils.getMetadataValue(contextSpan, TErrorType.class,
+                                THMetadataProperties.TH_ERROR_TYPE);
                         tErrorType = tErrorType == null ? TErrorType.UNKNOWN : tErrorType;
-                        boolean isRequest = !contextSpan.getMetadata().containsKey(MetadataProperties.CALL_REQUEST_PROCESSED_FLAG);
+                        boolean isRequest =
+                                !contextSpan.getMetadata().containsKey(MetadataProperties.CALL_REQUEST_PROCESSED_FLAG);
                         if (isRequest) {
                             switch (tErrorType) {
                                 case PROTOCOL:
                                     status = 400;
                                     break;
                                 case TRANSPORT:
-                                    TTransportErrorType tTransportErrorType = ContextUtils.getMetadataValue(contextSpan, TTransportErrorType.class, THMetadataProperties.TH_ERROR_SUBTYPE);
-                                    tTransportErrorType = tTransportErrorType == null ? TTransportErrorType.UNKNOWN : tTransportErrorType;
+                                    TTransportErrorType tTransportErrorType =
+                                            ContextUtils.getMetadataValue(contextSpan, TTransportErrorType.class,
+                                                    THMetadataProperties.TH_ERROR_SUBTYPE);
+                                    tTransportErrorType = tTransportErrorType == null ? TTransportErrorType.UNKNOWN :
+                                            tTransportErrorType;
                                     switch (tTransportErrorType) {
                                         case BAD_REQUEST_TYPE:
                                             status = 405;
@@ -181,8 +190,6 @@ public class THProviderErrorMapper implements WErrorMapper {
     private WErrorDefinition createDefFromWrappedError(Metadata metadata, Throwable err) {
         WErrorType errorType = WErrorType.PROVIDER_ERROR;
         TErrorType tErrorType;
-        String errMessage = err.getMessage();
-        String errName = err.getClass().getSimpleName();
         String errReason;
         if (err instanceof TApplicationException) {
             TApplicationException appError = (TApplicationException) err;
@@ -241,8 +248,8 @@ public class THProviderErrorMapper implements WErrorMapper {
         errorDefinition.setErrorType(errorType);
         errorDefinition.setErrorSource(WErrorSource.INTERNAL);
         errorDefinition.setErrorReason(errReason);
-        errorDefinition.setErrorName(errName);
-        errorDefinition.setErrorMessage(errMessage);
+        errorDefinition.setErrorName(err.getClass().getSimpleName());
+        errorDefinition.setErrorMessage(err.getMessage());
 
         metadata.putValue(THMetadataProperties.TH_ERROR_TYPE, tErrorType);
         return errorDefinition;

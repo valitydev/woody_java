@@ -20,17 +20,13 @@ public class THMessageInterceptor extends ExtendableInterceptor implements Commo
     }
 
     public THMessageInterceptor(List<ExtensionBundle> extensionBundles, boolean isClient, boolean isRequest) {
-        super(
-                MessageExtensionBundles::getExtensions,
-                extensionBundles,
-                isClient,
-                isRequest
-        );
+        super(MessageExtensionBundles::getExtensions, extensionBundles, isClient, isRequest);
         this.isClient = isClient;
     }
 
     @Override
     protected ExtensionContext createContext(TraceData traceData, Object providerContext, Object[] contextParams) {
-        return isClient ? new THCExtensionContext(traceData, providerContext, contextParams) : new THSExtensionContext(traceData, providerContext, contextParams);
+        return isClient ? new THCExtensionContext(traceData, providerContext, contextParams) :
+                new THSExtensionContext(traceData, providerContext, contextParams);
     }
 }

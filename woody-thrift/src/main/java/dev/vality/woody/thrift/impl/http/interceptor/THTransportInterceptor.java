@@ -20,17 +20,13 @@ public class THTransportInterceptor extends ExtendableInterceptor implements Com
     }
 
     public THTransportInterceptor(List<ExtensionBundle> extensionBundles, boolean isClient, boolean isRequest) {
-        super(
-                TransportExtensionBundles::getExtensions,
-                extensionBundles,
-                isClient,
-                isRequest
-        );
+        super(TransportExtensionBundles::getExtensions, extensionBundles, isClient, isRequest);
         this.isClient = isClient;
     }
 
     @Override
     protected ExtensionContext createContext(TraceData traceData, Object providerContext, Object[] contextParams) {
-        return isClient ? new THCExtensionContext(traceData, providerContext, contextParams) : new THSExtensionContext(traceData, providerContext, contextParams);
+        return isClient ? new THCExtensionContext(traceData, providerContext, contextParams) :
+                new THSExtensionContext(traceData, providerContext, contextParams);
     }
 }

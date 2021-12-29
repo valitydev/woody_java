@@ -50,9 +50,9 @@ public class THBusinessErrorMapper implements WErrorMapper {
         if (isDeclaredError(t.getClass(), caller.getTargetMethod())) {
             WErrorDefinition errorDefinition = ContextUtils.getErrorDefinition(contextSpan);
             String errName = getDeclaredErrName(t);
-            if (!(errorDefinition != null &&
-                    errorDefinition.getErrorType() == WErrorType.BUSINESS_ERROR && Objects.equals(
-                    errorDefinition.getErrorName(), errName))) {
+            if (!(errorDefinition != null
+                    && errorDefinition.getErrorType() == WErrorType.BUSINESS_ERROR
+                    && Objects.equals(errorDefinition.getErrorName(), errName))) {
                 errorDefinition = new WErrorDefinition(WErrorSource.INTERNAL);
                 errorDefinition.setErrorType(WErrorType.BUSINESS_ERROR);
                 errorDefinition.setErrorSource(WErrorSource.INTERNAL);
