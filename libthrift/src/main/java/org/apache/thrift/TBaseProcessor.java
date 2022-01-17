@@ -3,6 +3,8 @@ package org.apache.thrift;
 import java.util.Collections;
 import java.util.Map;
 
+import dev.vality.woody.api.trace.MetadataProperties;
+import dev.vality.woody.api.trace.context.TraceContext;
 import org.apache.thrift.protocol.TMessage;
 import org.apache.thrift.protocol.TMessageType;
 import org.apache.thrift.protocol.TProtocol;
@@ -25,6 +27,7 @@ public abstract class TBaseProcessor<I> implements TProcessor {
   @Override
   public void process(TProtocol in, TProtocol out) throws TException {
     TMessage msg = in.readMessageBegin();
+    TraceContext.getCurrentTraceData().getServiceSpan().getMetadata().putValue(MetadataProperties.CALL_NAME, msg.name);
     ProcessFunction fn = processMap.get(msg.name);
     if (fn == null) {
       TProtocolUtil.skip(in, TType.STRUCT);
