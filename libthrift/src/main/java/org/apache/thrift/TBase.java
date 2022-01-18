@@ -20,8 +20,9 @@
 package org.apache.thrift;
 
 import java.io.Serializable;
+import java.util.Map;
 
-import org.apache.thrift.protocol.TProtocol;
+import org.apache.thrift.meta_data.FieldMetaData;
 
 /**
  * Generic base interface for generated Thrift objects.
@@ -49,7 +50,21 @@ public interface TBase<T extends TBase<T,F>, F extends TFieldIdEnum> extends Com
    */
   public Object getFieldValue(F field);
 
-  /**
+    /**
+     * Get all fields.
+     *
+     * @return fields
+     */
+    public F[] getFields();
+
+    /**
+     * Get Fields meta data
+     *
+     * @return field meta data
+     */
+    public Map<F, FieldMetaData> getFieldMetaData();
+
+    /**
    * Set a field's value by field variable. Primitive types must be "boxed" in
    * the appropriate object wrapper type.
    *
