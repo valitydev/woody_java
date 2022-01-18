@@ -15,3 +15,27 @@ jobs:
           distribution: 'adopt'
       - name: Build package
         run: mvn --batch-mode clean package
+name: Build Artifact
+
+on:
+  pull_request:
+    branches:
+      - '*'
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+
+      - name: Checkout GitHub Action Repo
+        uses: actions/checkout@v2
+
+      - name: Run Build Java
+        uses: valitydev/action-jdk-build@v0.0.7
+
+      - name: Codecov
+        uses: codecov/codecov-action@v2
+        with:
+          verbose: true
