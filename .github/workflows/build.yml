@@ -14,7 +14,7 @@ jobs:
           java-version: '8'
           distribution: 'adopt'
       - name: Build package
-        run: mvn --batch-mode clean package
+        run: mvn --batch-mode clean verify
 
       - name: Codecov
         uses: codecov/codecov-action@v2
