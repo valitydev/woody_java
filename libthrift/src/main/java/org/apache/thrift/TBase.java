@@ -26,57 +26,57 @@ import org.apache.thrift.meta_data.FieldMetaData;
 
 /**
  * Generic base interface for generated Thrift objects.
- *
  */
-public interface TBase<T extends TBase<T,F>, F extends TFieldIdEnum> extends Comparable<T>,  TSerializable, Serializable {
+public interface TBase<T extends TBase<T, F>, F extends TFieldIdEnum> extends Comparable<T>,
+        TSerializable, Serializable {
 
-  /**
-   * Get the F instance that corresponds to fieldId.
-   */
-  public F fieldForId(int fieldId);
+    /**
+     * Get the F instance that corresponds to fieldId.
+     */
+    F fieldForId(int fieldId);
 
-  /**
-   * Check if a field is currently set or unset.
-   *
-   * @param field
-   */
-  public boolean isSet(F field);
+    /**
+     * Check if a field is currently set or unset.
+     *
+     * @param field
+     */
+    boolean isSet(F field);
 
-  /**
-   * Get a field's value by field variable. Primitive types will be wrapped in
-   * the appropriate "boxed" types.
-   *
-   * @param field
-   */
-  public Object getFieldValue(F field);
+    /**
+     * Get a field's value by field variable. Primitive types will be wrapped in
+     * the appropriate "boxed" types.
+     *
+     * @param field
+     */
+    Object getFieldValue(F field);
 
     /**
      * Get all fields.
      *
      * @return fields
      */
-    public F[] getFields();
+    F[] getFields();
 
     /**
      * Get Fields meta data
      *
      * @return field meta data
      */
-    public Map<F, FieldMetaData> getFieldMetaData();
+    Map<F, FieldMetaData> getFieldMetaData();
 
     /**
-   * Set a field's value by field variable. Primitive types must be "boxed" in
-   * the appropriate object wrapper type.
-   *
-   * @param field
-   */
-  public void setFieldValue(F field, Object value);
+     * Set a field's value by field variable. Primitive types must be "boxed" in
+     * the appropriate object wrapper type.
+     *
+     * @param field
+     */
+    void setFieldValue(F field, Object value);
 
-  public T deepCopy();
+    T deepCopy();
 
-  /**
-   * Return to the state of having just been initialized, as though you had just
-   * called the default constructor.
-   */
-  public void clear();
+    /**
+     * Return to the state of having just been initialized, as though you had just
+     * called the default constructor.
+     */
+    void clear();
 }
