@@ -20,3 +20,6 @@ jobs:
           server-password: ${{ secrets.OSSRH_TOKEN }}
           deploy-secret-key: ${{ secrets.OSSRH_GPG_SECRET_KEY }}
           deploy-secret-key-password: ${{ secrets.OSSRH_GPG_SECRET_KEY_PASSWORD }}
+
+      - name: Codecov
+        uses: codecov/codecov-action@v2

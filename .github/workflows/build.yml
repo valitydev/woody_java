@@ -18,5 +18,3 @@ jobs:
 
       - name: Codecov
         uses: codecov/codecov-action@v2
-        with:
-          verbose: true
