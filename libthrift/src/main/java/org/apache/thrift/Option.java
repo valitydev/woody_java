@@ -19,107 +19,125 @@
 
 package org.apache.thrift;
 
-/**
- * Implementation of the Option type pattern
- */
+import java.util.Optional;
+
+/** Implementation of the Option type pattern */
 public abstract class Option<T> {
 
-    @SuppressWarnings("rawtypes")
-    private static final Option NONE = new None();
+  @SuppressWarnings("rawtypes")
+  private static final Option NONE = new None();
 
-    /**
-     * Whether the Option is defined or not
-     * @return
-     *         true if the Option is defined (of type Some)
-     *         false if the Option is not defined (of type None)
-     */
-    public abstract boolean isDefined();
+  /**
+   * Whether the Option is defined or not
+   *
+   * @return true if the Option is defined (of type Some) false if the Option is not defined (of
+   *     type None)
+   */
+  public abstract boolean isDefined();
 
-    /**
-     * Get the value of the Option (if it is defined)
-     * @return the value
-     * @throws IllegalStateException if called on a None
-     */
-    public abstract T get();
+  /**
+   * Get the value of the Option (if it is defined)
+   *
+   * @return the value
+   * @throws IllegalStateException if called on a None
+   */
+  public abstract T get();
 
-    /**
-     * Get the contained value (if defined) or else return a default value
-     * @param other what to return if the value is not defined (a None)
-     * @return either the value, or other if the value is not defined
-     */
-    public T or(T other) {
-        if (isDefined()) {
-            return get();
-        } else {
-            return other;
-        }
+  /**
+   * Get the contained value (if defined) or else return a default value
+   *
+   * @param other what to return if the value is not defined (a None)
+   * @return either the value, or other if the value is not defined
+   */
+  public T or(T other) {
+    if (isDefined()) {
+      return get();
+    } else {
+      return other;
     }
-    /**
-     * The None type, representing an absent value (instead of "null")
-     */
-    public static class None<T> extends Option<T> {
-        public boolean isDefined() {
-            return false;
-        }
+  }
 
-        public T get() {
-            throw new IllegalStateException("Cannot call get() on None");
-        }
-
-        public String toString() {
-            return "None";
-        }
+  /**
+   * Turn this Option into Java 8 Optional type
+   *
+   * @return Java 8+ Optional Type
+   */
+  public Optional<T> toOptional() {
+    if (isDefined()) {
+      return Optional.of(get());
+    } else {
+      return Optional.empty();
     }
+  }
 
-    /**
-     * The Some type, representing an existence of some value
-     * @param <T> The type of value
-     */
-    public static class Some<T> extends Option<T> {
-        private final T value;
-        public Some(T value) {
-            this.value = value;
-        }
-
-        public boolean isDefined() {
-            return true;
-        }
-
-        public T get() {
-            return value;
-        }
-
-        public String toString() {
-            return "Some(" + value + ")";
-        }
+  /** The None type, representing an absent value (instead of "null") */
+  public static class None<T> extends Option<T> {
+    public boolean isDefined() {
+      return false;
     }
 
-    /**
-     * Wraps value in an Option type, depending on whether or not value is null
-     * @param value
-     * @param <T> type of value
-     * @return Some(value) if value is not null, None if value is null
-     */
-    public static <T> Option<T> fromNullable(T value) {
-        if (value != null) {
-            return some(value);
-        } else {
-            return none();
-        }
+    public T get() {
+      throw new IllegalStateException("Cannot call get() on None");
     }
 
-    /**
-     * Wrap value in a Some type (NB! value must not be null!)
-     * @param value
-     * @param <T> type of value
-     * @return a new Some(value)
-     */
-    public static <T> Some<T> some(T value) {
-        return new Some<T>(value);
+    public String toString() {
+      return "None";
+    }
+  }
+
+  /**
+   * The Some type, representing an existence of some value
+   *
+   * @param <T> The type of value
+   */
+  public static class Some<T> extends Option<T> {
+    private final T value;
+
+    public Some(T value) {
+      this.value = value;
     }
 
-    @SuppressWarnings("unchecked")
-    public static <T> None<T> none() {
-        return (None<T>) NONE;
+    public boolean isDefined() {
+      return true;
     }
+
+    public T get() {
+      return value;
+    }
+
+    public String toString() {
+      return "Some(" + value + ")";
+    }
+  }
+
+  /**
+   * Wraps value in an Option type, depending on whether or not value is null
+   *
+   * @param value the value to wrap in Option
+   * @param <T> the type of value
+   * @return Some(value) if value is not null, None if value is null
+   */
+  public static <T> Option<T> fromNullable(T value) {
+    if (value != null) {
+      return some(value);
+    } else {
+      return none();
+    }
+  }
+
+  /**
+   * Wrap value in a Some type (NB! value must not be null!)
+   *
+   * @param value the value to wrap.
+   * @param <T> the type of value
+   * @return a new Some(value)
+   */
+  public static <T> Some<T> some(T value) {
+    return new Some<T>(value);
+  }
+
+  @SuppressWarnings("unchecked")
+  public static <T> None<T> none() {
+    return (None<T>) NONE;
+  }
 }

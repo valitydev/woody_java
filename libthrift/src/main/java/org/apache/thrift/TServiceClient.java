@@ -19,13 +19,16 @@
 
 package org.apache.thrift;
 
+import dev.vality.woody.api.interceptor.CommonInterceptor;
+import dev.vality.woody.api.trace.MetadataProperties;
+import dev.vality.woody.api.trace.context.TraceContext;
 import org.apache.thrift.protocol.TMessage;
 import org.apache.thrift.protocol.TMessageType;
 import org.apache.thrift.protocol.TProtocol;
 
 /**
- * A TServiceClient is used to communicate with a TService implementation
- * across protocols and transports.
+ * A TServiceClient is used to communicate with a TService implementation across protocols and
+ * transports.
  */
 public abstract class TServiceClient {
   public TServiceClient(TProtocol prot) {
@@ -39,11 +42,13 @@ public abstract class TServiceClient {
 
   protected TProtocol iprot_;
   protected TProtocol oprot_;
+  protected CommonInterceptor interceptor;
 
   protected int seqid_;
 
   /**
    * Get the TProtocol being used as the input (read) protocol.
+   *
    * @return the TProtocol being used as the input (read) protocol.
    */
   public TProtocol getInputProtocol() {
@@ -52,28 +57,40 @@ public abstract class TServiceClient {
 
   /**
    * Get the TProtocol being used as the output (write) protocol.
+   *
    * @return the TProtocol being used as the output (write) protocol.
    */
   public TProtocol getOutputProtocol() {
     return this.oprot_;
   }
 
-  protected void sendBase(String methodName, TBase<?,?> args) throws TException {
+  public CommonInterceptor getInterceptor() {
+    return interceptor;
+  }
+
+  public void setInterceptor(CommonInterceptor interceptor) {
+    this.interceptor = interceptor;
+  }
+
+  protected void sendBase(String methodName, TBase<?, ?> args) throws TException {
     sendBase(methodName, args, TMessageType.CALL);
   }
 
-  protected void sendBaseOneway(String methodName, TBase<?,?> args) throws TException {
+  protected void sendBaseOneway(String methodName, TBase<?, ?> args) throws TException {
     sendBase(methodName, args, TMessageType.ONEWAY);
   }
 
-  private void sendBase(String methodName, TBase<?,?> args, byte type) throws TException {
+  private void sendBase(String methodName, TBase<?, ?> args, byte type) throws TException {
     oprot_.writeMessageBegin(new TMessage(methodName, type, ++seqid_));
     args.write(oprot_);
     oprot_.writeMessageEnd();
     oprot_.getTransport().flush();
   }
 
-  protected void receiveBase(TBase<?,?> result, String methodName) throws TException {
+  protected void receiveBase(TBase<?, ?> result, String methodName) throws TException {
+    if (TraceContext.getCurrentTraceData().getActiveSpan().getMetadata().containsKey(MetadataProperties.RESPONSE_SKIP_READING_FLAG)){
+      return;
+    }
     TMessage msg = iprot_.readMessageBegin();
     if (msg.type == TMessageType.EXCEPTION) {
       TApplicationException x = new TApplicationException();
@@ -82,10 +99,14 @@ public abstract class TServiceClient {
       throw x;
     }
     if (msg.seqid != seqid_) {
-      throw new TApplicationException(TApplicationException.BAD_SEQUENCE_ID,
-          String.format("%s failed: out of sequence response: expected %d but got %d", methodName, seqid_, msg.seqid));
+      throw new TApplicationException(
+          TApplicationException.BAD_SEQUENCE_ID,
+          String.format(
+              "%s failed: out of sequence response: expected %d but got %d",
+              methodName, seqid_, msg.seqid));
     }
     result.read(iprot_);
     iprot_.readMessageEnd();
   }
+
 }

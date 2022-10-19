@@ -19,6 +19,7 @@
 
 package org.apache.thrift.server;
 
+import java.net.SocketException;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
@@ -26,7 +27,7 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-
+import java.util.concurrent.atomic.AtomicLong;
 import org.apache.thrift.TException;
 import org.apache.thrift.TProcessor;
 import org.apache.thrift.protocol.TProtocol;
@@ -37,8 +38,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Server which uses Java's built in ThreadPool management to spawn off
- * a worker pool that deals with client connections in blocking way.
+ * Server which uses Java's built in ThreadPool management to spawn off a worker pool that deals
+ * with client connections in blocking way.
  */
 public class TThreadPoolServer extends TServer {
   private static final Logger LOGGER = LoggerFactory.getLogger(TThreadPoolServer.class);
@@ -93,18 +94,26 @@ public class TThreadPoolServer extends TServer {
     stopTimeoutUnit = args.stopTimeoutUnit;
     stopTimeoutVal = args.stopTimeoutVal;
 
-    executorService_ = args.executorService != null ?
-        args.executorService : createDefaultExecutorService(args);
+    executorService_ =
+        args.executorService != null ? args.executorService : createDefaultExecutorService(args);
   }
 
   private static ExecutorService createDefaultExecutorService(Args args) {
-    return new ThreadPoolExecutor(args.minWorkerThreads, args.maxWorkerThreads, 60L, TimeUnit.SECONDS,
-        new SynchronousQueue<>(), new ThreadFactory() {
+    return new ThreadPoolExecutor(
+        args.minWorkerThreads,
+        args.maxWorkerThreads,
+        60L,
+        TimeUnit.SECONDS,
+        new SynchronousQueue<>(),
+        new ThreadFactory() {
+          final AtomicLong count = new AtomicLong();
+
           @Override
           public Thread newThread(Runnable r) {
             Thread thread = new Thread(r);
             thread.setDaemon(true);
-            thread.setName("TThreadPoolServer WorkerProcess-%d");
+            thread.setName(
+                String.format("TThreadPoolServer WorkerProcess-%d", count.getAndIncrement()));
             return thread;
           }
         });
@@ -155,7 +164,8 @@ public class TThreadPoolServer extends TServer {
           executorService_.execute(new WorkerProcess(client));
         } catch (RejectedExecutionException ree) {
           if (!stopped_) {
-            LOGGER.warn("ThreadPool is saturated with incoming requests. Closing latest connection.");
+            LOGGER.warn(
+                "ThreadPool is saturated with incoming requests. Closing latest connection.");
           }
           client.close();
         }
@@ -193,9 +203,7 @@ public class TThreadPoolServer extends TServer {
 
   private class WorkerProcess implements Runnable {
 
-    /**
-     * Client that this services.
-     */
+    /** Client that this services. */
     private TTransport client_;
 
     /**
@@ -207,9 +215,7 @@ public class TThreadPoolServer extends TServer {
       client_ = client;
     }
 
-    /**
-     * Loops on processing a client forever
-     */
+    /** Loops on processing a client forever */
     public void run() {
       TProcessor processor = null;
       TTransport inputTransport = null;
@@ -248,15 +254,7 @@ public class TThreadPoolServer extends TServer {
           processor.process(inputProtocol, outputProtocol);
         }
       } catch (Exception x) {
-        LOGGER.debug("Error processing request", x);
-
-        // We'll usually receive RuntimeException types here
-        // Need to unwrap to ascertain real causing exception before we choose to ignore
-        // Ignore err-logging all transport-level/type exceptions
-        if (!isIgnorableException(x)) {
-          // Log the exception at error level and continue
-          LOGGER.error((x instanceof TException ? "Thrift " : "") + "Error occurred during processing of message.", x);
-        }
+        logException(x);
       } finally {
         if (eventHandler.isPresent()) {
           eventHandler.get().deleteContext(connectionContext, inputProtocol, outputProtocol);
@@ -273,7 +271,11 @@ public class TThreadPoolServer extends TServer {
       }
     }
 
-    private boolean isIgnorableException(Exception x) {
+    private void logException(Exception x) {
+      LOGGER.debug("Error processing request", x);
+      // We'll usually receive RuntimeException types here
+      // Need to unwrap to ascertain real causing exception before we choose to ignore
+      // Ignoring err-logging all transport-level/type exceptions and SocketExceptions
       TTransportException tTransportException = null;
 
       if (x instanceof TTransportException) {
@@ -283,13 +285,24 @@ public class TThreadPoolServer extends TServer {
       }
 
       if (tTransportException != null) {
-        switch(tTransportException.getType()) {
+        switch (tTransportException.getType()) {
           case TTransportException.END_OF_FILE:
           case TTransportException.TIMED_OUT:
-            return true;
+            return; // don't log these
+        }
+        if (tTransportException.getCause() != null
+            && (tTransportException.getCause() instanceof SocketException)) {
+          LOGGER.warn(
+              "SocketException occurred during processing of message.",
+              tTransportException.getCause());
+          return;
         }
       }
-      return false;
+      // Log the exception at error level and continue
+      LOGGER.error(
+          (x instanceof TException ? "Thrift " : "")
+              + "Error occurred during processing of message.",
+          x);
     }
   }
 }

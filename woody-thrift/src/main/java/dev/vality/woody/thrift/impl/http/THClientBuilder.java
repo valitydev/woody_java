@@ -195,7 +195,7 @@ public class THClientBuilder extends AbstractClientBuilder {
         try {
             THttpClient tHttpClient =
                     new THttpClient(getAddress().toString(), getHttpClient(), createTransportInterceptor());
-            tHttpClient.setNetworkTimeout(getNetworkTimeout());
+            tHttpClient.setReadTimeout(getNetworkTimeout());
             TProtocol tProtocol = createProtocol(tHttpClient);
             return createThriftClient(iface, tProtocol);
         } catch (Exception e) {

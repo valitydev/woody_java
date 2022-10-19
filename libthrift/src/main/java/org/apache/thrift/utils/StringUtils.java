@@ -25,12 +25,14 @@ public final class StringUtils {
     // Utility class.
   }
 
-  private static final char[] HEX_CHARS = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+  private static final char[] HEX_CHARS = {
+    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
+  };
 
   /**
    * Stringify a byte array to the hex representation for each byte.
    *
-   * @param bytes
+   * @param bytes the byte array to convert to hex string.
    * @return hex string.
    */
   public static String bytesToHexString(byte[] bytes) {
@@ -56,7 +58,13 @@ public final class StringUtils {
       throw new IndexOutOfBoundsException("Negative start offset " + offset);
     }
     if (length > bytes.length - offset) {
-      throw new IndexOutOfBoundsException("Invalid range, bytes.length: " + bytes.length + " offset: " + offset + " length: " + length);
+      throw new IndexOutOfBoundsException(
+          "Invalid range, bytes.length: "
+              + bytes.length
+              + " offset: "
+              + offset
+              + " length: "
+              + length);
     }
     char[] chars = new char[length * 2];
     for (int i = 0; i < length; i++) {

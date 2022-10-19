@@ -19,64 +19,73 @@
 
 package org.apache.thrift;
 
+import org.apache.thrift.meta_data.FieldMetaData;
+
 import java.io.Serializable;
 import java.util.Map;
 
-import org.apache.thrift.meta_data.FieldMetaData;
+/** Generic base interface for generated Thrift objects. */
+public interface TBase<T extends TBase<T, F>, F extends TFieldIdEnum>
+    extends Comparable<T>, TSerializable, Serializable {
 
-/**
- * Generic base interface for generated Thrift objects.
- */
-public interface TBase<T extends TBase<T, F>, F extends TFieldIdEnum> extends Comparable<T>,
-        TSerializable, Serializable {
+  /**
+   * Get the F instance that corresponds to fieldId.
+   *
+   * @param fieldId the ID of the requested field.
+   * @return F instance that corresponds to fieldId.
+   */
+  public F fieldForId(int fieldId);
 
-    /**
-     * Get the F instance that corresponds to fieldId.
-     */
-    F fieldForId(int fieldId);
+  /**
+   * Check if a field is currently set or unset.
+   *
+   * @param field the field to check.
+   * @return true if the field is set, false otherwise.
+   */
+  public boolean isSet(F field);
 
-    /**
-     * Check if a field is currently set or unset.
-     *
-     * @param field
-     */
-    boolean isSet(F field);
+  /**
+   * Get a field's value by field variable. Primitive types will be wrapped in the appropriate
+   * "boxed" types.
+   *
+   * @param field the field whose value is requested.
+   * @return the value of the requested field.
+   */
+  public Object getFieldValue(F field);
 
-    /**
-     * Get a field's value by field variable. Primitive types will be wrapped in
-     * the appropriate "boxed" types.
-     *
-     * @param field
-     */
-    Object getFieldValue(F field);
+  /**
+   * Get all fields.
+   *
+   * @return fields
+   */
+  public F[] getFields();
 
-    /**
-     * Get all fields.
-     *
-     * @return fields
-     */
-    F[] getFields();
+  /**
+   * Get Fields meta data
+   *
+   * @return field meta data
+   */
+  public Map<F, FieldMetaData> getFieldMetaData();
 
-    /**
-     * Get Fields meta data
-     *
-     * @return field meta data
-     */
-    Map<F, FieldMetaData> getFieldMetaData();
+  /**
+   * Set a field's value by field variable. Primitive types must be "boxed" in the appropriate
+   * object wrapper type.
+   *
+   * @param field the field whose value is to be set.
+   * @param value the value to be assigned to field.
+   */
+  public void setFieldValue(F field, Object value);
 
-    /**
-     * Set a field's value by field variable. Primitive types must be "boxed" in
-     * the appropriate object wrapper type.
-     *
-     * @param field
-     */
-    void setFieldValue(F field, Object value);
+  /**
+   * Performs a deep copy of this instance and returns the copy.
+   *
+   * @return a deep copy of this instance.
+   */
+  public T deepCopy();
 
-    T deepCopy();
-
-    /**
-     * Return to the state of having just been initialized, as though you had just
-     * called the default constructor.
-     */
-    void clear();
+  /**
+   * Return to the state of having just been initialized, as though you had just called the default
+   * constructor.
+   */
+  public void clear();
 }
