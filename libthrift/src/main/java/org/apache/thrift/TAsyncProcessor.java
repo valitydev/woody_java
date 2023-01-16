@@ -23,10 +23,10 @@ import org.apache.thrift.server.AbstractNonblockingServer.AsyncFrameBuffer;
 public interface TAsyncProcessor {
   /**
    * Process a single frame.
-
-   * <b>Note:</b> Implementations must call fb.responseReady() once processing
-   * is complete
    *
+   * <p><b>Note:</b> Implementations must call fb.responseReady() once processing is complete
+   *
+   * @param fb the frame buffer to process.
    * @throws TException if the frame cannot be processed
    */
   public void process(final AsyncFrameBuffer fb) throws TException;

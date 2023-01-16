@@ -17,22 +17,18 @@
  * under the License.
  */
 
-
 package org.apache.thrift.transport;
 
 import java.nio.channels.Selector;
 
-/**
- * Server transport that can be operated in a nonblocking fashion.
- */
+/** Server transport that can be operated in a nonblocking fashion. */
 public abstract class TNonblockingServerTransport extends TServerTransport {
 
   public abstract void registerSelector(Selector selector);
 
   /**
-   *
    * @return an incoming connection or null if there is none.
-   * @throws TTransportException
+   * @throws TTransportException on error during this operation.
    */
   @Override
   public abstract TNonblockingTransport accept() throws TTransportException;

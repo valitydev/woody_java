@@ -21,8 +21,7 @@ package org.apache.thrift.meta_data;
 
 public class SetMetaData extends CollectionMetaData {
 
-    public SetMetaData(byte type, FieldValueMetaData eMetaData){
-        super(type, eMetaData);
-    }
-
+  public SetMetaData(byte type, FieldValueMetaData eMetaData) {
+    super(type, eMetaData);
+  }
 }
