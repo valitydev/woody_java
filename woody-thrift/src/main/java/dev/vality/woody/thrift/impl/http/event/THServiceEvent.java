@@ -5,9 +5,8 @@ import dev.vality.woody.api.trace.ContextUtils;
 import dev.vality.woody.api.trace.TraceData;
 import dev.vality.woody.thrift.impl.http.TErrorType;
 import dev.vality.woody.thrift.impl.http.THMetadataProperties;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 public class THServiceEvent extends ServiceEvent {
     public THServiceEvent(TraceData traceData) {

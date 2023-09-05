@@ -48,7 +48,7 @@ import org.apache.thrift.TException;
  * System.out.println(service2.getTemperature());
  * }</pre>
  *
- * @see org.apache.thrift.protocol.TProtocolDecorator
+ * @see TProtocolDecorator
  */
 public class TMultiplexedProtocol extends TProtocolDecorator {
 

@@ -14,7 +14,7 @@ import org.apache.thrift.TException;
 import org.junit.Assert;
 import org.junit.Test;
 
-import javax.servlet.Servlet;
+import jakarta.servlet.Servlet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.Callable;

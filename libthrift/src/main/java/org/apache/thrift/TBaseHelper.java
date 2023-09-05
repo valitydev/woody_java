@@ -197,7 +197,7 @@ public final class TBaseHelper {
       sb.append("[");
       while (true) {
         ByteBuffer bb = it.next();
-        org.apache.thrift.TBaseHelper.toString(bb, sb);
+        TBaseHelper.toString(bb, sb);
         if (!it.hasNext()) {
           sb.append("]");
           return;

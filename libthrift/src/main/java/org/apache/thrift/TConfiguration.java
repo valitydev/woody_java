@@ -64,7 +64,7 @@ public class TConfiguration {
 
   public static final TConfiguration DEFAULT = new Builder().build();
 
-  public static TConfiguration.Builder custom() {
+  public static Builder custom() {
     return new Builder();
   }
 

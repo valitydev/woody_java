@@ -18,11 +18,11 @@ import dev.vality.woody.rpc.Owner;
 import dev.vality.woody.rpc.OwnerServiceSrv;
 import dev.vality.woody.thrift.impl.http.AbstractTest;
 import dev.vality.woody.thrift.impl.http.OwnerServiceStub;
+import jakarta.servlet.Servlet;
 import org.apache.thrift.TException;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.servlet.Servlet;
 import java.util.Arrays;
 
 import static org.junit.Assert.*;

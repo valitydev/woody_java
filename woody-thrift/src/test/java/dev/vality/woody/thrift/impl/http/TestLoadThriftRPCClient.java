@@ -5,7 +5,7 @@ import dev.vality.woody.rpc.OwnerServiceSrv;
 import dev.vality.woody.rpc.TestHttp;
 import dev.vality.woody.thrift.impl.http.event.ClientEventListenerImpl;
 import dev.vality.woody.thrift.impl.http.event.ServiceEventListenerImpl;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
@@ -17,7 +17,7 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.junit.*;
 
-import javax.servlet.Servlet;
+import jakarta.servlet.Servlet;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.stream.IntStream;

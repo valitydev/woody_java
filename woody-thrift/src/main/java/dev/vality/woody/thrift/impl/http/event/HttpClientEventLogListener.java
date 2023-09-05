@@ -1,8 +1,8 @@
 package dev.vality.woody.thrift.impl.http.event;
 
 import dev.vality.woody.api.event.ClientEventListener;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequest;
+import org.apache.hc.core5.http.HttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +18,7 @@ public class HttpClientEventLogListener implements ClientEventListener<THClientE
 
             switch (event.getEventType()) {
                 case CLIENT_SEND:
-                    HttpRequestBase httpRequest = event.getTransportRequest();
+                    HttpUriRequest httpRequest = event.getTransportRequest();
                     if (httpRequest != null) {
                         log.info("CLIENT Event: {}, {}", event.getEventType(), buildRequestLog(httpRequest));
                     }
@@ -35,10 +35,10 @@ public class HttpClientEventLogListener implements ClientEventListener<THClientE
         }
     }
 
-    private String buildRequestLog(HttpRequestBase requestBase) {
+    private String buildRequestLog(HttpUriRequest requestBase) {
         StringBuilder sb = new StringBuilder();
         sb.append("HttpRequest:").append(requestBase.toString()).append(", Headers:")
-                .append(Arrays.toString(requestBase.getAllHeaders()));
+                .append(Arrays.toString(requestBase.getHeaders()));
 
         return sb.toString();
 
@@ -46,8 +46,8 @@ public class HttpClientEventLogListener implements ClientEventListener<THClientE
 
     private String buildResponseLog(HttpResponse httpResponse) {
         StringBuilder sb = new StringBuilder();
-        sb.append("HttpResponse:").append(httpResponse.getStatusLine().toString()).append(", Headers:")
-                .append(Arrays.toString(httpResponse.getAllHeaders()));
+        sb.append("HttpResponse:").append(httpResponse.getReasonPhrase()).append(", Headers:")
+                .append(Arrays.toString(httpResponse.getHeaders()));
 
         return sb.toString();
     }

@@ -2,8 +2,8 @@ package dev.vality.woody.thrift.impl.http.event;
 
 import dev.vality.woody.api.event.ClientEventListener;
 import dev.vality.woody.api.trace.ContextUtils;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequest;
+import org.apache.hc.core5.http.HttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,12 +20,12 @@ public class THCEventLogListener implements ClientEventListener<THClientEvent> {
                     log.info("CLN: {}, [{}, {}]", event.getEventType(), event.getCallName(), event.getCallType());
                     break;
                 case CLIENT_SEND:
-                    HttpRequestBase request = event.getTransportRequest();
+                    HttpUriRequest request = event.getTransportRequest();
                     if (request == null) {
                         log.info("CLN: {} [no transport request]", event.getEventType());
                     } else if (log.isInfoEnabled()) {
                         log.info("CLN: {}, [EP: {}, Headers: {}]", event.getEventType(),
-                                event.getEndpoint().getStringValue(), Arrays.toString(request.getAllHeaders()));
+                                event.getEndpoint().getStringValue(), Arrays.toString(request.getHeaders()));
                     }
                     break;
                 case CLIENT_RECEIVE:
@@ -34,8 +34,8 @@ public class THCEventLogListener implements ClientEventListener<THClientEvent> {
                         log.info("CLN: {} [no transport response]", event.getEventType());
                     } else if (log.isInfoEnabled()) {
                         log.info("CLN: {}, CRes: {}, [StLine: {}, Headers: {}]", event.getEventType(),
-                                event.isSuccessfulCall() ? "ok" : "error", response.getStatusLine().toString(),
-                                Arrays.toString(response.getAllHeaders()));
+                                event.isSuccessfulCall() ? "ok" : "error", response.getReasonPhrase(),
+                                Arrays.toString(response.getHeaders()));
                     }
                     break;
                 case SERVICE_RESULT:

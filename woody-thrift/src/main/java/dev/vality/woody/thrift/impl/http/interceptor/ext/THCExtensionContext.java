@@ -3,9 +3,11 @@ package dev.vality.woody.thrift.impl.http.interceptor.ext;
 import dev.vality.woody.api.interceptor.ext.ExtensionContext;
 import dev.vality.woody.api.trace.ContextUtils;
 import dev.vality.woody.api.trace.TraceData;
-import org.apache.http.Header;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.NameValuePair;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -27,14 +29,14 @@ public class THCExtensionContext extends ExtensionContext {
         super(traceData, providerContext, contextParameters);
     }
 
-    public void setRequestHeader(String key, String value) {
+        public void setRequestHeader(String key, String value) {
         Object providerContext = getProviderContext();
         switch (getRequestContextType(providerContext)) {
             case REQ_URL_CONNECTION_TYPE:
                 ((HttpURLConnection) providerContext).setRequestProperty(key, value);
                 break;
             case REQ_HTTP_CLIENT_TYPE:
-                ((HttpRequestBase) providerContext).setHeader(key, value);
+                ((HttpUriRequestBase) providerContext).setHeader(key, value);
                 break;
             default:
                 throw new RuntimeException("Unknown type:" + providerContext.getClass());
@@ -63,7 +65,7 @@ public class THCExtensionContext extends ExtensionContext {
             case RESP_URL_CONNECTION_TYPE:
                 return ((HttpURLConnection) providerContext).getHeaderFields().keySet();
             case RESP_HTTP_CLIENT_TYPE:
-                return Arrays.stream(((HttpResponse) providerContext).getAllHeaders()).map(header -> header.getName())
+                return Arrays.stream(((ClassicHttpResponse) providerContext).getHeaders()).map(NameValuePair::getName)
                         .collect(Collectors.toSet());
             default:
                 throw new RuntimeException("Unknown type:" + providerContext.getClass());
@@ -77,7 +79,7 @@ public class THCExtensionContext extends ExtensionContext {
                 case RESP_URL_CONNECTION_TYPE:
                     return ((HttpURLConnection) providerContext).getResponseCode();
                 case RESP_HTTP_CLIENT_TYPE:
-                    return ((HttpResponse) providerContext).getStatusLine().getStatusCode();
+                    return ((ClassicHttpResponse) providerContext).getCode();
                 default:
                     throw new RuntimeException("Unknown type:" + providerContext.getClass());
 
@@ -94,7 +96,7 @@ public class THCExtensionContext extends ExtensionContext {
                 case RESP_URL_CONNECTION_TYPE:
                     return ((HttpURLConnection) providerContext).getResponseMessage();
                 case RESP_HTTP_CLIENT_TYPE:
-                    return ((HttpResponse) providerContext).getStatusLine().getReasonPhrase();
+                    return ((ClassicHttpResponse) providerContext).getReasonPhrase();
                 default:
                     throw new RuntimeException("Unknown type:" + providerContext.getClass());
 
@@ -119,7 +121,7 @@ public class THCExtensionContext extends ExtensionContext {
 
     private int getRequestContextType(Object providerContext) {
         if (reqContextType == 0) {
-            if (providerContext instanceof HttpRequestBase) {
+            if (providerContext instanceof HttpUriRequestBase) {
                 reqContextType = REQ_HTTP_CLIENT_TYPE;
             } else if (providerContext instanceof HttpURLConnection) {
                 reqContextType = REQ_URL_CONNECTION_TYPE;

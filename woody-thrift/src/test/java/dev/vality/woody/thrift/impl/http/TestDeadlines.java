@@ -10,19 +10,18 @@ import dev.vality.woody.rpc.Owner;
 import dev.vality.woody.rpc.OwnerServiceSrv;
 import dev.vality.woody.rpc.test_error;
 import dev.vality.woody.thrift.impl.http.transport.THttpHeader;
-import org.apache.http.HttpRequestInterceptor;
-import org.apache.http.HttpResponseInterceptor;
-import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.core5.http.HttpResponseInterceptor;
 import org.apache.thrift.TException;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import javax.servlet.Servlet;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.Servlet;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -151,9 +150,9 @@ public class TestDeadlines extends AbstractTest {
         addServlet(testServlet, servletContextPath);
         Instant deadline = Instant.now().plusSeconds(20);
         HttpClient httpClient =
-                HttpClients.custom().addInterceptorFirst((HttpResponseInterceptor) (response, context) -> {
-                    assertTrue(response.containsHeader(DEADLINE.getKey()));
-                    assertEquals(deadline.toString(), response.getLastHeader(DEADLINE.getKey()).getValue());
+                HttpClients.custom().addResponseInterceptorFirst((httpResponse, httpEntity, context) -> {
+                    assertTrue(httpResponse.containsHeader(DEADLINE.getKey()));
+                    assertEquals(deadline.toString(), httpResponse.getLastHeader(DEADLINE.getKey()).getValue());
                 }).build();
         OwnerServiceSrv.Iface client =
                 createThriftRPCClient(OwnerServiceSrv.Iface.class, getUrlString(servletContextPath), httpClient);
@@ -167,7 +166,7 @@ public class TestDeadlines extends AbstractTest {
     public void testWhenDeadlineHeaderIsIncorrect() throws Exception {
         addServlet(testServlet, servletContextPath);
         HttpClient httpClient =
-                HttpClients.custom().addInterceptorFirst((HttpRequestInterceptor) (request, context) -> {
+                HttpClients.custom().addRequestInterceptorFirst((request, httpEntity, context) -> {
                     assertTrue(request.containsHeader(THttpHeader.DEADLINE.getKey()));
                     request.setHeader(THttpHeader.DEADLINE.getKey(), "%%?%%???");
                 }).build();
@@ -205,8 +204,8 @@ public class TestDeadlines extends AbstractTest {
     public void testWhenDeadlineIsReachedOnServer() throws Exception {
         addServlet(testServlet, servletContextPath);
 
-        HttpClient httpClient = HttpClients.custom().addInterceptorFirst(
-                (HttpRequestInterceptor) (request, context) -> request.setHeader(DEADLINE.getKey(),
+        HttpClient httpClient = HttpClients.custom().addRequestInterceptorFirst(
+                (request, httpEntity, context) -> request.setHeader(DEADLINE.getKey(),
                         Instant.now().minusSeconds(5).toString())).build();
         OwnerServiceSrv.Iface client =
                 createThriftRPCClient(OwnerServiceSrv.Iface.class, getUrlString(servletContextPath), httpClient);
@@ -248,9 +247,9 @@ public class TestDeadlines extends AbstractTest {
         int timeout = -1;
         addServlet(testServlet, servletContextPath);
         HttpClient httpClient =
-                HttpClients.custom().addInterceptorFirst((HttpRequestInterceptor) (request, context) -> {
+                HttpClients.custom().addRequestInterceptorFirst((request,httpEntity, context) -> {
                     assertFalse(request.containsHeader(DEADLINE.getKey()));
-                }).addInterceptorFirst((HttpResponseInterceptor) (response, context) -> {
+                }).addResponseInterceptorFirst((response, httpEntity, context) -> {
                     assertFalse(response.containsHeader(DEADLINE.getKey()));
                 }).build();
         OwnerServiceSrv.Iface client =

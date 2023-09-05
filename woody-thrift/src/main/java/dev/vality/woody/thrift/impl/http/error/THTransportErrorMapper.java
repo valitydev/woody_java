@@ -13,7 +13,8 @@ public class THTransportErrorMapper implements WErrorMapper {
     private static final ErrorAnalyzer[] analyzers = new ErrorAnalyzer[] {
             new ErrorAnalyzer(Pattern.compile(SocketTimeoutException.class.getName()),
                     THTransportErrorMapper::getUndefinedResult),
-            new ErrorAnalyzer(Pattern.compile(Pattern.quote(org.apache.http.NoHttpResponseException.class.getName())),
+            new ErrorAnalyzer(
+                    Pattern.compile(Pattern.quote(org.apache.hc.core5.http.NoHttpResponseException.class.getName())),
                     THTransportErrorMapper::genUnavailableResult),
             new ErrorAnalyzer(Pattern.compile(Pattern.quote(java.net.UnknownHostException.class.getName())),
                     THTransportErrorMapper::genUnavailableResult),
