@@ -29,7 +29,7 @@ public class THCExtensionContext extends ExtensionContext {
         super(traceData, providerContext, contextParameters);
     }
 
-        public void setRequestHeader(String key, String value) {
+    public void setRequestHeader(String key, String value) {
         Object providerContext = getProviderContext();
         switch (getRequestContextType(providerContext)) {
             case REQ_URL_CONNECTION_TYPE:
