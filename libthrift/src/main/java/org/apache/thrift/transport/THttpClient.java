@@ -310,6 +310,13 @@ public class THttpClient extends TEndpointTransport {
               .setConnectionRequestTimeout(Timeout.ofMilliseconds(connectTimeout_))
               .build();
     }
+
+    if (readTimeout_ > 0) {
+      requestConfig =
+              RequestConfig.copy(requestConfig)
+                      .setResponseTimeout(Timeout.ofMilliseconds(readTimeout_))
+                      .build();
+    }
     return requestConfig;
   }
 
