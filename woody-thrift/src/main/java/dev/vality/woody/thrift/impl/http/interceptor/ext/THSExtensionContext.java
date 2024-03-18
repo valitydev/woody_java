@@ -4,9 +4,8 @@ import dev.vality.woody.api.interceptor.ext.ExtensionContext;
 import dev.vality.woody.api.trace.ContextUtils;
 import dev.vality.woody.api.trace.TraceData;
 import dev.vality.woody.thrift.impl.http.THMetadataProperties;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 public class THSExtensionContext extends ExtensionContext {
     public THSExtensionContext(TraceData traceData, Object providerContext, Object[] contextParameters) {

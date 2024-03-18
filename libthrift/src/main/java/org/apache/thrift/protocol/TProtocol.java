@@ -186,7 +186,7 @@ public abstract class TProtocol implements TWriteProtocol, TReadProtocol {
    */
   public final <T> boolean readField(ReadCallback<TField, T> callback) throws Exception {
     TField tField = readFieldBegin();
-    if (tField.type == org.apache.thrift.protocol.TType.STOP) {
+    if (tField.type == TType.STOP) {
       return true;
     }
     callback.accept(tField);

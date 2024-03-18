@@ -10,7 +10,7 @@ import dev.vality.woody.api.trace.context.metadata.MetadataExtensionKit;
 import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.impl.AbandonedConfig;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
-import org.apache.http.client.HttpClient;
+import org.apache.hc.client5.http.classic.HttpClient;
 
 import java.net.URI;
 import java.util.List;

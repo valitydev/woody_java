@@ -9,7 +9,7 @@ import dev.vality.woody.thrift.impl.http.interceptor.THRequestInterceptionExcept
 import dev.vality.woody.thrift.impl.http.transport.THttpHeader;
 import dev.vality.woody.thrift.impl.http.transport.TTransportErrorType;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Enumeration;
 import java.util.LinkedHashSet;
 import java.util.List;

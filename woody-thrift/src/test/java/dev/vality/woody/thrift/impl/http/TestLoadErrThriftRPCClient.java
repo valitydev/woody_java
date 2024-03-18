@@ -3,7 +3,7 @@ package dev.vality.woody.thrift.impl.http;
 import dev.vality.woody.rpc.Owner;
 import dev.vality.woody.rpc.OwnerServiceSrv;
 import dev.vality.woody.rpc.test_error;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.protocol.TProtocol;

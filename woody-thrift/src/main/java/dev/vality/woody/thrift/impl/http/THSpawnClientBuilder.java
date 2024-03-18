@@ -7,9 +7,9 @@ import dev.vality.woody.api.generator.IdGenerator;
 import dev.vality.woody.api.proxy.InvocationTargetProvider;
 import dev.vality.woody.api.proxy.SpawnTargetProvider;
 import dev.vality.woody.api.trace.context.metadata.MetadataExtensionKit;
-import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
+import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.BasicHttpClientConnectionManager;
 
 import java.net.URI;
 import java.util.List;

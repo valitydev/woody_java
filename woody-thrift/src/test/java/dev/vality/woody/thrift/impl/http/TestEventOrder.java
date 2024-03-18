@@ -13,7 +13,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.servlet.Servlet;
+import jakarta.servlet.Servlet;
 
 import static org.easymock.EasyMock.*;
 
