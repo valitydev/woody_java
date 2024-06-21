@@ -73,6 +73,7 @@
                         <artifactId>thrift-maven-plugin</artifactId>
                         <version>0.10.0</version>
                         <configuration>
+                            <generator>java:jakarta_annotations</generator>
                             <thriftExecutable>thrift</thriftExecutable>
                         </configuration>
                         <executions>
