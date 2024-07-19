@@ -12,6 +12,7 @@ import dev.vality.woody.thrift.impl.http.transport.THttpHeader;
 import dev.vality.woody.thrift.impl.http.transport.TTransportErrorType;
 import dev.vality.woody.thrift.impl.http.transport.UrlStringEndpoint;
 import dev.vality.woody.api.trace.*;
+import io.opentelemetry.api.trace.SpanContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
@@ -111,6 +112,8 @@ public class TransportExtensionBundles {
                 reqCCtx.setRequestHeader(THttpHeader.TRACE_ID.getKey(), span.getTraceId());
                 reqCCtx.setRequestHeader(THttpHeader.SPAN_ID.getKey(), span.getId());
                 reqCCtx.setRequestHeader(THttpHeader.PARENT_ID.getKey(), span.getParentId());
+                reqCCtx.setRequestHeader(THttpHeader.OTEL_SPAN_ID.getKey(), span.getOtelSpanId());
+                reqCCtx.setRequestHeader(THttpHeader.OTEL_TRACE_ID.getKey(), span.getOtelTraceId());
             }, respCCtx -> {
             }), createCtxBundle((InterceptorExtension<THSExtensionContext>) reqSCtx -> {
                 HttpServletRequest request = reqSCtx.getProviderRequest();
@@ -118,6 +121,8 @@ public class TransportExtensionBundles {
                 List<Map.Entry<THttpHeader, Consumer<String>>> headerConsumers =
                         Arrays.asList(new SimpleEntry<>(THttpHeader.TRACE_ID, span::setTraceId),
                                 new SimpleEntry<>(THttpHeader.PARENT_ID, span::setParentId),
+                                new SimpleEntry<>(THttpHeader.OTEL_SPAN_ID, span::setOtelSpanId),
+                                new SimpleEntry<>(THttpHeader.OTEL_TRACE_ID, span::setOtelTraceId),
                                 new SimpleEntry<>(THttpHeader.SPAN_ID, span::setId));
                 validateAndProcessTraceHeaders(request, THttpHeader::getKey, headerConsumers);
             }, (InterceptorExtension<THSExtensionContext>) respSCtx -> {
@@ -125,6 +130,8 @@ public class TransportExtensionBundles {
                 respSCtx.setResponseHeader(THttpHeader.TRACE_ID.getKey(), span.getTraceId());
                 respSCtx.setResponseHeader(THttpHeader.PARENT_ID.getKey(), span.getParentId());
                 respSCtx.setResponseHeader(THttpHeader.SPAN_ID.getKey(), span.getId());
+                respSCtx.setResponseHeader(THttpHeader.OTEL_TRACE_ID.getKey(), span.getOtelTraceId());
+                respSCtx.setResponseHeader(THttpHeader.OTEL_SPAN_ID.getKey(), span.getOtelSpanId());
             }));
     public static final ExtensionBundle TRANSPORT_STATE_MAPPING_BUNDLE = createExtBundle(createCtxBundle(reqCCtx -> {
     }, (InterceptorExtension<THCExtensionContext>) respCCtx -> {

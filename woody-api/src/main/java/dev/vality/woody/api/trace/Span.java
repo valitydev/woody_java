@@ -4,6 +4,8 @@ import java.time.Instant;
 
 public class Span {
     private String traceId;
+    private String otelTraceId;
+    private String otelSpanId;
     private String name;
     private String id;
     private String parentId;
@@ -16,12 +18,30 @@ public class Span {
 
     protected Span(Span oldSpan) {
         this.traceId = oldSpan.traceId;
+        this.otelTraceId = oldSpan.otelTraceId;
+        this.otelSpanId = oldSpan.otelSpanId;
         this.name = oldSpan.name;
         this.id = oldSpan.id;
         this.parentId = oldSpan.parentId;
         this.deadline = oldSpan.deadline;
         this.timestamp = oldSpan.timestamp;
         this.duration = oldSpan.duration;
+    }
+
+    public String getOtelTraceId() {
+        return otelTraceId;
+    }
+
+    public void setOtelTraceId(String otelTraceId) {
+        this.otelTraceId = otelTraceId;
+    }
+
+    public void setOtelSpanId(String otelSpanId) {
+        this.otelSpanId = otelSpanId;
+    }
+
+    public String getOtelSpanId() {
+        return otelSpanId;
     }
 
     public String getTraceId() {
@@ -94,6 +114,8 @@ public class Span {
 
     public void reset() {
         traceId = null;
+        otelTraceId = null;
+        otelSpanId = null;
         name = null;
         id = null;
         parentId = null;
@@ -110,6 +132,8 @@ public class Span {
     public String toString() {
         return "Span{" +
                 "traceId='" + traceId + '\'' +
+                ", otelTraceId='" + otelTraceId + '\'' +
+                ", otelSpanId='" + otelSpanId + '\'' +
                 ", name='" + name + '\'' +
                 ", id='" + id + '\'' +
                 ", parentId='" + parentId + '\'' +

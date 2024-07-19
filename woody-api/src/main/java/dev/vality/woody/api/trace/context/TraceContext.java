@@ -2,6 +2,7 @@ package dev.vality.woody.api.trace.context;
 
 import dev.vality.woody.api.MDCUtils;
 import dev.vality.woody.api.generator.IdGenerator;
+import dev.vality.woody.api.trace.ContextSpan;
 import dev.vality.woody.api.trace.Span;
 import dev.vality.woody.api.trace.TraceData;
 
@@ -119,26 +120,32 @@ public class TraceContext {
 
     private static TraceData initSpan(IdGenerator traceIdGenerator, IdGenerator spanIdGenerator, TraceData traceData,
                                       boolean isClient) {
-
-        long timestamp = System.currentTimeMillis();
         Span clientSpan = traceData.getClientSpan().getSpan();
         Span serviceSpan = traceData.getServiceSpan().getSpan();
 
         Span initSpan = isClient ? clientSpan : serviceSpan;
+        ContextSpan initContextSpan = isClient ? traceData.getClientSpan() : traceData.getServiceSpan();
 
         boolean root = traceData.isRoot();
         String traceId = root ? traceIdGenerator.generateId() : serviceSpan.getTraceId();
+        String otelTraceId =
+                root ? initContextSpan.getOtelSpan().getSpanContext().getTraceId() : serviceSpan.getOtelTraceId();
+
         if (root) {
             initSpan.setId(spanIdGenerator.generateId());
+            initSpan.setOtelSpanId(initContextSpan.getOtelSpan().getSpanContext().getSpanId());
             initSpan.setParentId(NO_PARENT_ID);
         } else {
             initSpan.setId(spanIdGenerator.generateId("", traceData.getServiceSpan().getCounter().incrementAndGet()));
             initSpan.setParentId(serviceSpan.getId());
+            initSpan.setOtelSpanId(initContextSpan.getOtelSpan().getSpanContext().getSpanId());
             if (!initSpan.hasDeadline()) {
                 initSpan.setDeadline(serviceSpan.getDeadline());
             }
         }
         initSpan.setTraceId(traceId);
+        initSpan.setOtelTraceId(otelTraceId);
+        long timestamp = System.currentTimeMillis();
         initTime(initSpan, timestamp);
         return traceData;
     }
@@ -158,7 +165,7 @@ public class TraceContext {
             traceData = initServiceContext(traceData);
         }
         setCurrentTraceData(traceData);
-        MDCUtils.putSpanData(traceData.getActiveSpan().getSpan());
+        MDCUtils.putSpanData(traceData.getActiveSpan().getSpan(), traceData.getActiveSpan().getOtelSpan());
 
         postInit.run();
     }
@@ -186,7 +193,7 @@ public class TraceContext {
             setCurrentTraceData(traceData);
 
             if (traceData.getServiceSpan().isFilled()) {
-                MDCUtils.putSpanData(traceData.getServiceSpan().getSpan());
+                MDCUtils.putSpanData(traceData.getServiceSpan().getSpan(), traceData.getServiceSpan().getOtelSpan());
             } else {
                 MDCUtils.removeSpanData();
             }
