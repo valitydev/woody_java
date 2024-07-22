@@ -33,15 +33,14 @@ public class WCallable<T> implements Callable<T> {
         TraceContext.setCurrentTraceData(getTraceData().cloneObject());
 
         if (traceData != originalTraceData) {
-            MDCUtils.putSpanData(traceData.getActiveSpan().getSpan(), traceData.getActiveSpan().getOtelSpan());
+            MDCUtils.putSpanData(traceData.getActiveSpan().getSpan());
         }
 
         try {
             return getWrappedCallable().call();
         } finally {
             TraceContext.setCurrentTraceData(originalTraceData);
-            MDCUtils.putSpanData(originalTraceData.getActiveSpan().getSpan(),
-                    originalTraceData.getActiveSpan().getOtelSpan());
+            MDCUtils.putSpanData(originalTraceData.getActiveSpan().getSpan());
         }
     }
 

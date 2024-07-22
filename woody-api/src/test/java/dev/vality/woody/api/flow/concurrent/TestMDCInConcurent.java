@@ -29,9 +29,8 @@ public class TestMDCInConcurent {
             assertEquals(MDC.get(MDCUtils.SPAN_ID), span.getId());
             assertEquals(MDC.get(MDCUtils.TRACE_ID), span.getTraceId());
             assertEquals(MDC.get(MDCUtils.PARENT_ID), span.getParentId());
-            io.opentelemetry.api.trace.Span otelSpan = TraceContext.getCurrentTraceData().getActiveSpan().getOtelSpan();
-            assertEquals(MDC.get(MDCUtils.OTEL_SPAN_ID), otelSpan.getSpanContext().getSpanId());
-            assertEquals(MDC.get(MDCUtils.OTEL_TRACE_ID), otelSpan.getSpanContext().getTraceId());
+            assertEquals(MDC.get(MDCUtils.OTEL_SPAN_ID), span.getOtelSpanId());
+            assertEquals(MDC.get(MDCUtils.OTEL_TRACE_ID), span.getOtelTraceId());
         } catch (Throwable t) {
             t.printStackTrace();
         }
@@ -43,9 +42,8 @@ public class TestMDCInConcurent {
             assertEquals(MDC.get(MDCUtils.SPAN_ID), span.getId());
             assertEquals(MDC.get(MDCUtils.TRACE_ID), span.getTraceId());
             assertEquals(MDC.get(MDCUtils.PARENT_ID), span.getParentId());
-            io.opentelemetry.api.trace.Span otelSpan = TraceContext.getCurrentTraceData().getActiveSpan().getOtelSpan();
-            assertEquals(MDC.get(MDCUtils.OTEL_TRACE_ID), otelSpan.getSpanContext().getTraceId());
-            assertEquals(MDC.get(MDCUtils.OTEL_SPAN_ID), otelSpan.getSpanContext().getSpanId());
+            assertEquals(MDC.get(MDCUtils.OTEL_TRACE_ID), span.getOtelTraceId());
+            assertEquals(MDC.get(MDCUtils.OTEL_SPAN_ID), span.getOtelSpanId());
         } catch (Throwable t) {
             t.printStackTrace();
         }

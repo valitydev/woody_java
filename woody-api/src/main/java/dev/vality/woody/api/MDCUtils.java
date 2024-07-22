@@ -20,7 +20,7 @@ public class MDCUtils {
      *
      * @param span - service or client span
      */
-    public static void putSpanData(Span span, io.opentelemetry.api.trace.Span otelSpan) {
+    public static void putSpanData(Span span) {
         MDC.put(SPAN_ID, span.getId() != null ? span.getId() : "");
         MDC.put(TRACE_ID, span.getTraceId() != null ? span.getTraceId() : "");
         MDC.put(PARENT_ID, span.getParentId() != null ? span.getParentId() : "");
