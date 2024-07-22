@@ -3,7 +3,6 @@ package dev.vality.woody.api.trace.context;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
 import io.opentelemetry.context.propagation.ContextPropagators;
-import io.opentelemetry.exporter.logging.LoggingSpanExporter;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
@@ -23,7 +22,6 @@ class ExampleConfiguration {
     static OpenTelemetry initOpenTelemetry() {
         SdkTracerProvider sdkTracerProvider =
                 SdkTracerProvider.builder()
-                        .addSpanProcessor(SimpleSpanProcessor.create(LoggingSpanExporter.create()))
                         .build();
 
         OpenTelemetrySdk sdk =
