@@ -20,17 +20,10 @@ class ExampleConfiguration {
      * @return A ready-to-use {@link OpenTelemetry} instance.
      */
     static OpenTelemetry initOpenTelemetry() {
-        SdkTracerProvider sdkTracerProvider =
-                SdkTracerProvider.builder()
-                        .build();
-
         OpenTelemetrySdk sdk =
                 OpenTelemetrySdk.builder()
-                        .setTracerProvider(sdkTracerProvider)
                         .setPropagators(ContextPropagators.create(W3CTraceContextPropagator.getInstance()))
                         .build();
-
-        Runtime.getRuntime().addShutdownHook(new Thread(sdkTracerProvider::close));
         return sdk;
     }
 }
