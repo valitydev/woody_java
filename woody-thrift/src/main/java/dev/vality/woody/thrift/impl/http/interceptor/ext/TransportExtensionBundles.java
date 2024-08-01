@@ -4,6 +4,7 @@ import dev.vality.woody.api.flow.error.WErrorDefinition;
 import dev.vality.woody.api.flow.error.WErrorType;
 import dev.vality.woody.api.interceptor.ext.ExtensionBundle;
 import dev.vality.woody.api.interceptor.ext.InterceptorExtension;
+import dev.vality.woody.api.trace.*;
 import dev.vality.woody.thrift.impl.http.THMetadataProperties;
 import dev.vality.woody.thrift.impl.http.THResponseInfo;
 import dev.vality.woody.thrift.impl.http.error.THProviderErrorMapper;
@@ -11,8 +12,6 @@ import dev.vality.woody.thrift.impl.http.interceptor.THRequestInterceptionExcept
 import dev.vality.woody.thrift.impl.http.transport.THttpHeader;
 import dev.vality.woody.thrift.impl.http.transport.TTransportErrorType;
 import dev.vality.woody.thrift.impl.http.transport.UrlStringEndpoint;
-import dev.vality.woody.api.trace.*;
-import io.opentelemetry.api.trace.SpanContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
@@ -112,8 +111,12 @@ public class TransportExtensionBundles {
                 reqCCtx.setRequestHeader(THttpHeader.TRACE_ID.getKey(), span.getTraceId());
                 reqCCtx.setRequestHeader(THttpHeader.SPAN_ID.getKey(), span.getId());
                 reqCCtx.setRequestHeader(THttpHeader.PARENT_ID.getKey(), span.getParentId());
-                reqCCtx.setRequestHeader(THttpHeader.OTEL_SPAN_ID.getKey(), span.getOtelSpanId());
-                reqCCtx.setRequestHeader(THttpHeader.OTEL_TRACE_ID.getKey(), span.getOtelTraceId());
+                if (span.getOtelSpanId() != null) {
+                    reqCCtx.setRequestHeader(THttpHeader.OTEL_SPAN_ID.getKey(), span.getOtelSpanId());
+                }
+                if (span.getOtelTraceId() != null) {
+                    reqCCtx.setRequestHeader(THttpHeader.OTEL_TRACE_ID.getKey(), span.getOtelTraceId());
+                }
             }, respCCtx -> {
             }), createCtxBundle((InterceptorExtension<THSExtensionContext>) reqSCtx -> {
                 HttpServletRequest request = reqSCtx.getProviderRequest();
@@ -121,9 +124,13 @@ public class TransportExtensionBundles {
                 List<Map.Entry<THttpHeader, Consumer<String>>> headerConsumers =
                         Arrays.asList(new SimpleEntry<>(THttpHeader.TRACE_ID, span::setTraceId),
                                 new SimpleEntry<>(THttpHeader.PARENT_ID, span::setParentId),
-                                new SimpleEntry<>(THttpHeader.OTEL_SPAN_ID, span::setOtelSpanId),
-                                new SimpleEntry<>(THttpHeader.OTEL_TRACE_ID, span::setOtelTraceId),
                                 new SimpleEntry<>(THttpHeader.SPAN_ID, span::setId));
+                if (span.getOtelSpanId() != null) {
+                    headerConsumers.add(new SimpleEntry<>(THttpHeader.OTEL_SPAN_ID, span::setOtelSpanId));
+                }
+                if (span.getOtelTraceId() != null) {
+                    headerConsumers.add(new SimpleEntry<>(THttpHeader.OTEL_TRACE_ID, span::setOtelTraceId));
+                }
                 validateAndProcessTraceHeaders(request, THttpHeader::getKey, headerConsumers);
             }, (InterceptorExtension<THSExtensionContext>) respSCtx -> {
                 Span span = respSCtx.getTraceData().getServiceSpan().getSpan();
