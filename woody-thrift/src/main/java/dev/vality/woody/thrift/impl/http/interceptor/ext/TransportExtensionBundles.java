@@ -121,15 +121,17 @@ public class TransportExtensionBundles {
                 List<Map.Entry<THttpHeader, Consumer<String>>> headerConsumers =
                         Arrays.asList(new SimpleEntry<>(THttpHeader.TRACE_ID, span::setTraceId),
                                 new SimpleEntry<>(THttpHeader.PARENT_ID, span::setParentId),
+                                new SimpleEntry<>(THttpHeader.OTEL_SPAN_ID, span::setOtelSpanId),
+                                new SimpleEntry<>(THttpHeader.OTEL_TRACE_ID, span::setOtelTraceId),
                                 new SimpleEntry<>(THttpHeader.SPAN_ID, span::setId));
                 validateAndProcessTraceHeaders(request, THttpHeader::getKey, headerConsumers);
             }, (InterceptorExtension<THSExtensionContext>) respSCtx -> {
                 Span span = respSCtx.getTraceData().getServiceSpan().getSpan();
                 respSCtx.setResponseHeader(THttpHeader.TRACE_ID.getKey(), span.getTraceId());
                 respSCtx.setResponseHeader(THttpHeader.PARENT_ID.getKey(), span.getParentId());
-                respSCtx.setResponseHeader(THttpHeader.SPAN_ID.getKey(), span.getId());
-                respSCtx.setResponseHeader(THttpHeader.OTEL_TRACE_ID.getKey(), span.getOtelTraceId());
                 respSCtx.setResponseHeader(THttpHeader.OTEL_SPAN_ID.getKey(), span.getOtelSpanId());
+                respSCtx.setResponseHeader(THttpHeader.OTEL_TRACE_ID.getKey(), span.getOtelTraceId());
+                respSCtx.setResponseHeader(THttpHeader.SPAN_ID.getKey(), span.getId());
             }));
     public static final ExtensionBundle TRANSPORT_STATE_MAPPING_BUNDLE = createExtBundle(createCtxBundle(reqCCtx -> {
     }, (InterceptorExtension<THCExtensionContext>) respCCtx -> {
