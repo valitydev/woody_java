@@ -1,6 +1,7 @@
 package dev.vality.woody.api.trace.context;
 
 import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.logs.LoggerProvider;
 import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
 import io.opentelemetry.context.propagation.ContextPropagators;
 import io.opentelemetry.sdk.OpenTelemetrySdk;

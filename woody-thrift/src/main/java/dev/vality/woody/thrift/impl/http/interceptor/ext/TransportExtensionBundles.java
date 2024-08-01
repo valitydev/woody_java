@@ -121,8 +121,6 @@ public class TransportExtensionBundles {
                 List<Map.Entry<THttpHeader, Consumer<String>>> headerConsumers =
                         Arrays.asList(new SimpleEntry<>(THttpHeader.TRACE_ID, span::setTraceId),
                                 new SimpleEntry<>(THttpHeader.PARENT_ID, span::setParentId),
-                                new SimpleEntry<>(THttpHeader.OTEL_SPAN_ID, span::setOtelSpanId),
-                                new SimpleEntry<>(THttpHeader.OTEL_TRACE_ID, span::setOtelTraceId),
                                 new SimpleEntry<>(THttpHeader.SPAN_ID, span::setId));
                 validateAndProcessTraceHeaders(request, THttpHeader::getKey, headerConsumers);
             }, (InterceptorExtension<THSExtensionContext>) respSCtx -> {
