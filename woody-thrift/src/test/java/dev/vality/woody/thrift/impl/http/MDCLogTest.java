@@ -36,20 +36,28 @@ public class MDCLogTest extends AbstractTest {
         assertNotNull(MDC.get(MDCUtils.SPAN_ID));
         assertNotNull(MDC.get(MDCUtils.TRACE_ID));
         assertNotNull(MDC.get(MDCUtils.PARENT_ID));
+        assertNotNull(MDC.get(MDCUtils.OTEL_SPAN_ID));
+        assertNotNull(MDC.get(MDCUtils.OTEL_TRACE_ID));
 
         assertEquals(MDC.get(MDCUtils.SPAN_ID), event.getSpanId());
         assertEquals(MDC.get(MDCUtils.TRACE_ID), event.getTraceId());
         assertEquals(MDC.get(MDCUtils.PARENT_ID), event.getParentId());
+        assertEquals(MDC.get(MDCUtils.OTEL_SPAN_ID), event.getOtelSpanId());
+        assertEquals(MDC.get(MDCUtils.OTEL_TRACE_ID), event.getOtelTraceId());
     };
 
     ServiceEventListener serviceEventListener = (ServiceEventListener<THServiceEvent>) event -> {
         assertNotNull(MDC.get(MDCUtils.SPAN_ID));
         assertNotNull(MDC.get(MDCUtils.TRACE_ID));
         assertNotNull(MDC.get(MDCUtils.PARENT_ID));
+        assertNotNull(MDC.get(MDCUtils.OTEL_SPAN_ID));
+        assertNotNull(MDC.get(MDCUtils.OTEL_TRACE_ID));
 
         assertEquals(MDC.get(MDCUtils.SPAN_ID), event.getSpanId());
         assertEquals(MDC.get(MDCUtils.TRACE_ID), event.getTraceId());
         assertEquals(MDC.get(MDCUtils.PARENT_ID), event.getParentId());
+        assertEquals(MDC.get(MDCUtils.OTEL_SPAN_ID), event.getOtelSpanId());
+        assertEquals(MDC.get(MDCUtils.OTEL_TRACE_ID), event.getOtelTraceId());
     };
 
     OwnerServiceSrv.Iface client1 = createThriftRPCClient(OwnerServiceSrv.Iface.class, new TimestampIdGenerator(),

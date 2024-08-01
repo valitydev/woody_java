@@ -1,10 +1,6 @@
 package dev.vality.woody.api.event;
 
 import dev.vality.woody.api.flow.error.WErrorDefinition;
-import dev.vality.woody.api.trace.ContextSpan;
-import dev.vality.woody.api.trace.ContextUtils;
-import dev.vality.woody.api.trace.Endpoint;
-import dev.vality.woody.api.trace.TraceData;
 import dev.vality.woody.api.trace.*;
 
 public abstract class Event {
@@ -48,6 +44,14 @@ public abstract class Event {
 
     public String getParentId() {
         return getActiveSpan().getSpan().getParentId();
+    }
+
+    public String getOtelTraceId() {
+        return getActiveSpan().getSpan().getOtelTraceId();
+    }
+
+    public String getOtelSpanId() {
+        return getActiveSpan().getSpan().getOtelSpanId();
     }
 
     public String getTraceId() {

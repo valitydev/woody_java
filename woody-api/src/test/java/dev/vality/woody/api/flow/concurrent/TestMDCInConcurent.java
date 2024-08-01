@@ -25,7 +25,8 @@ public class TestMDCInConcurent {
     Runnable runnable = () -> {
         try {
             Span span = TraceContext.getCurrentTraceData().getActiveSpan().getSpan();
-            log.info("Runnable {} {} {}", span.getId(), span.getParentId(), span.getTraceId());
+            log.info("Runnable {} {} {} {} {}", span.getId(), span.getParentId(), span.getTraceId(),
+                    span.getOtelSpanId(), span.getOtelTraceId());
             assertEquals(MDC.get(MDCUtils.SPAN_ID), span.getId());
             assertEquals(MDC.get(MDCUtils.TRACE_ID), span.getTraceId());
             assertEquals(MDC.get(MDCUtils.PARENT_ID), span.getParentId());
@@ -38,7 +39,8 @@ public class TestMDCInConcurent {
     Callable callable = () -> {
         try {
             Span span = TraceContext.getCurrentTraceData().getActiveSpan().getSpan();
-            log.info("Callable {} {} {}", span.getId(), span.getParentId(), span.getTraceId());
+            log.info("Callable {} {} {} {} {}", span.getId(), span.getParentId(), span.getTraceId(),
+                    span.getOtelSpanId(), span.getOtelTraceId());
             assertEquals(MDC.get(MDCUtils.SPAN_ID), span.getId());
             assertEquals(MDC.get(MDCUtils.TRACE_ID), span.getTraceId());
             assertEquals(MDC.get(MDCUtils.PARENT_ID), span.getParentId());
@@ -64,12 +66,16 @@ public class TestMDCInConcurent {
         traceData.getActiveSpan().getSpan().setId("span1");
         traceData.getActiveSpan().getSpan().setTraceId("trace1");
         traceData.getActiveSpan().getSpan().setParentId("parent1");
+        traceData.getActiveSpan().getSpan().setOtelTraceId("otel_trace1");
+        traceData.getActiveSpan().getSpan().setOtelSpanId("otel_span1");
 
         Future future1 = executorService.submit(callable);
 
         traceData.getActiveSpan().getSpan().setId("span2");
         traceData.getActiveSpan().getSpan().setTraceId("trace2");
         traceData.getActiveSpan().getSpan().setParentId("parent2");
+        traceData.getActiveSpan().getSpan().setOtelTraceId("otel_trace2");
+        traceData.getActiveSpan().getSpan().setOtelSpanId("otel_span2");
 
         Future future2 = executorService.submit(callable);
 
@@ -86,12 +92,16 @@ public class TestMDCInConcurent {
         traceData.getActiveSpan().getSpan().setId("span1");
         traceData.getActiveSpan().getSpan().setTraceId("trace1");
         traceData.getActiveSpan().getSpan().setParentId("parent1");
+        traceData.getActiveSpan().getSpan().setOtelTraceId("otel_trace1");
+        traceData.getActiveSpan().getSpan().setOtelSpanId("otel_span1");
 
         Future future1 = executorService.submit(runnable);
 
         traceData.getActiveSpan().getSpan().setId("span2");
         traceData.getActiveSpan().getSpan().setTraceId("trace2");
         traceData.getActiveSpan().getSpan().setParentId("parent2");
+        traceData.getActiveSpan().getSpan().setOtelTraceId("otel_trace2");
+        traceData.getActiveSpan().getSpan().setOtelSpanId("otel_span2");
 
         Future future2 = executorService.submit(runnable);
 
