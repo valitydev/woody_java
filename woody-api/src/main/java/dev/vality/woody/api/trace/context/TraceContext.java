@@ -133,7 +133,15 @@ public class TraceContext {
         String traceId = root ? traceIdGenerator.generateId() : serviceSpan.getTraceId();
 
         io.opentelemetry.api.trace.Span otelSpan = tracer.spanBuilder("otel span").startSpan();
-        String otelTraceId = root ? otelSpan.getSpanContext().getTraceId() : serviceSpan.getOtelTraceId();
+        if (root) {
+            initSpan.setOtelTraceId(otelSpan.getSpanContext().getTraceId());
+            initSpan.setOtelTraceFlag(otelSpan.getSpanContext().getTraceFlags().asHex());
+            initSpan.setOtelVersion("00");
+        } else {
+            initSpan.setOtelTraceId(serviceSpan.getOtelTraceId());
+            initSpan.setOtelTraceFlag(serviceSpan.getOtelTraceFlag());
+            initSpan.setOtelVersion(serviceSpan.getOtelVersion());
+        }
 
         if (root) {
             initSpan.setId(spanIdGenerator.generateId());
@@ -148,9 +156,9 @@ public class TraceContext {
             }
         }
         initSpan.setTraceId(traceId);
-        initSpan.setOtelTraceId(otelTraceId);
         long timestamp = System.currentTimeMillis();
         initTime(initSpan, timestamp);
+        otelSpan.end();
         return traceData;
     }
 

@@ -6,6 +6,8 @@ public class Span {
     private String traceId;
     private String otelTraceId;
     private String otelSpanId;
+    private String otelTraceFlag;
+    private String otelVersion;
     private String name;
     private String id;
     private String parentId;
@@ -20,6 +22,8 @@ public class Span {
         this.traceId = oldSpan.traceId;
         this.otelTraceId = oldSpan.otelTraceId;
         this.otelSpanId = oldSpan.otelSpanId;
+        this.otelTraceFlag = oldSpan.otelTraceFlag;
+        this.otelVersion = oldSpan.otelVersion;
         this.name = oldSpan.name;
         this.id = oldSpan.id;
         this.parentId = oldSpan.parentId;
@@ -40,8 +44,24 @@ public class Span {
         this.otelSpanId = otelSpanId;
     }
 
+    public void setOtelTraceFlag(String otelTraceFlag) {
+        this.otelTraceFlag = otelTraceFlag;
+    }
+
+    public void setOtelVersion(String otelVersion) {
+        this.otelVersion = otelVersion;
+    }
+
     public String getOtelSpanId() {
         return otelSpanId;
+    }
+
+    public String getOtelTraceFlag() {
+        return otelTraceFlag;
+    }
+
+    public String getOtelVersion() {
+        return otelVersion;
     }
 
     public String getTraceId() {
@@ -116,6 +136,8 @@ public class Span {
         traceId = null;
         otelTraceId = null;
         otelSpanId = null;
+        otelTraceFlag = null;
+        otelVersion = null;
         name = null;
         id = null;
         parentId = null;
@@ -134,6 +156,8 @@ public class Span {
                 "traceId='" + traceId + '\'' +
                 ", otelTraceId='" + otelTraceId + '\'' +
                 ", otelSpanId='" + otelSpanId + '\'' +
+                ", otelTraceFlag='" + otelTraceFlag + '\'' +
+                ", otelVersion='" + otelVersion + '\'' +
                 ", name='" + name + '\'' +
                 ", id='" + id + '\'' +
                 ", parentId='" + parentId + '\'' +

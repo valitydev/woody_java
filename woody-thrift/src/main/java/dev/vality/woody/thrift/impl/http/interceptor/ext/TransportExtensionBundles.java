@@ -7,6 +7,7 @@ import dev.vality.woody.api.interceptor.ext.InterceptorExtension;
 import dev.vality.woody.api.trace.*;
 import dev.vality.woody.thrift.impl.http.THMetadataProperties;
 import dev.vality.woody.thrift.impl.http.THResponseInfo;
+import dev.vality.woody.thrift.impl.http.TraceParentUtils;
 import dev.vality.woody.thrift.impl.http.error.THProviderErrorMapper;
 import dev.vality.woody.thrift.impl.http.interceptor.THRequestInterceptionException;
 import dev.vality.woody.thrift.impl.http.transport.THttpHeader;
@@ -111,12 +112,10 @@ public class TransportExtensionBundles {
                 reqCCtx.setRequestHeader(THttpHeader.TRACE_ID.getKey(), span.getTraceId());
                 reqCCtx.setRequestHeader(THttpHeader.SPAN_ID.getKey(), span.getId());
                 reqCCtx.setRequestHeader(THttpHeader.PARENT_ID.getKey(), span.getParentId());
-                if (span.getOtelSpanId() != null) {
-                    reqCCtx.setRequestHeader(THttpHeader.OTEL_SPAN_ID.getKey(), span.getOtelSpanId());
-                }
-                if (span.getOtelTraceId() != null) {
-                    reqCCtx.setRequestHeader(THttpHeader.OTEL_TRACE_ID.getKey(), span.getOtelTraceId());
-                }
+                reqCCtx.setRequestHeader(THttpHeader.TRACE_PARENT.getKey(),
+                        TraceParentUtils.initParentTrace(span.getOtelVersion(), span.getOtelTraceId(),
+                                span.getOtelSpanId(),
+                                span.getOtelTraceFlag()));
             }, respCCtx -> {
             }), createCtxBundle((InterceptorExtension<THSExtensionContext>) reqSCtx -> {
                 HttpServletRequest request = reqSCtx.getProviderRequest();
@@ -124,20 +123,23 @@ public class TransportExtensionBundles {
                 List<Map.Entry<THttpHeader, Consumer<String>>> headerConsumers =
                         Arrays.asList(new SimpleEntry<>(THttpHeader.TRACE_ID, span::setTraceId),
                                 new SimpleEntry<>(THttpHeader.PARENT_ID, span::setParentId),
-                                new SimpleEntry<>(THttpHeader.SPAN_ID, span::setId));
-                if (span.getOtelSpanId() != null) {
-                    headerConsumers.add(new SimpleEntry<>(THttpHeader.OTEL_SPAN_ID, span::setOtelSpanId));
-                }
-                if (span.getOtelTraceId() != null) {
-                    headerConsumers.add(new SimpleEntry<>(THttpHeader.OTEL_TRACE_ID, span::setOtelTraceId));
-                }
+                                new SimpleEntry<>(THttpHeader.TRACE_PARENT, (t) -> {
+                                    span.setOtelVersion(TraceParentUtils.parseVersion(t));
+                                    span.setOtelTraceFlag(TraceParentUtils.parseFlag(t));
+                                    span.setOtelSpanId(TraceParentUtils.parseSpanId(t));
+                                    span.setOtelTraceId(TraceParentUtils.parseTraceId(t));
+                                }),
+                                new SimpleEntry<>(THttpHeader.SPAN_ID, span::setId)
+                        );
                 validateAndProcessTraceHeaders(request, THttpHeader::getKey, headerConsumers);
             }, (InterceptorExtension<THSExtensionContext>) respSCtx -> {
                 Span span = respSCtx.getTraceData().getServiceSpan().getSpan();
                 respSCtx.setResponseHeader(THttpHeader.TRACE_ID.getKey(), span.getTraceId());
                 respSCtx.setResponseHeader(THttpHeader.PARENT_ID.getKey(), span.getParentId());
-                respSCtx.setResponseHeader(THttpHeader.OTEL_SPAN_ID.getKey(), span.getOtelSpanId());
-                respSCtx.setResponseHeader(THttpHeader.OTEL_TRACE_ID.getKey(), span.getOtelTraceId());
+                respSCtx.setResponseHeader(THttpHeader.TRACE_PARENT.getKey(),
+                        TraceParentUtils.initParentTrace(span.getOtelVersion(), span.getOtelTraceId(),
+                                span.getOtelSpanId(),
+                                span.getOtelTraceFlag()));
                 respSCtx.setResponseHeader(THttpHeader.SPAN_ID.getKey(), span.getId());
             }));
     public static final ExtensionBundle TRANSPORT_STATE_MAPPING_BUNDLE = createExtBundle(createCtxBundle(reqCCtx -> {

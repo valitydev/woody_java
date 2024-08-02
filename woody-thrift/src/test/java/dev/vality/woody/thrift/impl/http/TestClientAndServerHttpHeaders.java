@@ -77,8 +77,7 @@ public class TestClientAndServerHttpHeaders extends AbstractTest {
             protected void doPost(HttpServletRequest request, HttpServletResponse response)
                     throws ServletException, IOException {
                 for (THttpHeader tHttpHeader : Arrays.asList(THttpHeader.SPAN_ID, THttpHeader.TRACE_ID,
-                        THttpHeader.PARENT_ID, THttpHeader.OTEL_TRACE_ID,
-                        THttpHeader.OTEL_SPAN_ID)) {
+                        THttpHeader.PARENT_ID, THttpHeader.TRACE_PARENT)) {
                     assertNotNull(request.getHeader(tHttpHeader.getKey()));
                 }
                 writeResultMessage(request, response);
@@ -168,8 +167,7 @@ public class TestClientAndServerHttpHeaders extends AbstractTest {
                     httpRequest.removeHeader(httpRequest.getFirstHeader(THttpHeader.SPAN_ID.getKey()));
                     httpRequest.removeHeader(httpRequest.getFirstHeader(THttpHeader.TRACE_ID.getKey()));
                     httpRequest.removeHeader(httpRequest.getFirstHeader(THttpHeader.PARENT_ID.getKey()));
-                    httpRequest.removeHeader(httpRequest.getFirstHeader(THttpHeader.OTEL_TRACE_ID.getKey()));
-                    httpRequest.removeHeader(httpRequest.getFirstHeader(THttpHeader.OTEL_SPAN_ID.getKey()));
+                    httpRequest.removeHeader(httpRequest.getFirstHeader(THttpHeader.TRACE_PARENT.getKey()));
                 }).build();
 
         OwnerServiceSrv.Iface client =
