@@ -20,12 +20,14 @@ public class MDCUtils {
      *
      * @param span - service or client span
      */
-    public static void putSpanData(Span span) {
+    public static void putSpanData(Span span, io.opentelemetry.api.trace.Span otelSpan) {
         MDC.put(SPAN_ID, span.getId() != null ? span.getId() : "");
         MDC.put(TRACE_ID, span.getTraceId() != null ? span.getTraceId() : "");
         MDC.put(PARENT_ID, span.getParentId() != null ? span.getParentId() : "");
-        MDC.put(OTEL_TRACE_ID, span.getOtelTraceId() != null ? span.getOtelTraceId() : "");
-        MDC.put(OTEL_SPAN_ID, span.getOtelSpanId() != null ? span.getOtelSpanId() : "");
+        MDC.put(OTEL_TRACE_ID,
+                otelSpan.getSpanContext().getTraceId() != null ? otelSpan.getSpanContext().getTraceId() : "");
+        MDC.put(OTEL_SPAN_ID,
+                otelSpan.getSpanContext().getSpanId() != null ? otelSpan.getSpanContext().getSpanId() : "");
         if (span.hasDeadline()) {
             MDC.put(DEADLINE, span.getDeadline().toString());
         }

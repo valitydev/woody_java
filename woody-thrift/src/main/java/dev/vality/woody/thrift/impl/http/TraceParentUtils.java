@@ -2,6 +2,8 @@ package dev.vality.woody.thrift.impl.http;
 
 public class TraceParentUtils {
 
+    public static String DEFAULT_VERSION = "00";
+
     public static String initParentTrace(String version, String trace, String span, String flag) {
         return version + "-" + trace + "-" + span + "-" + flag;
     }

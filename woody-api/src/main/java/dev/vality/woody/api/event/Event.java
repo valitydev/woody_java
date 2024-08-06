@@ -46,14 +46,6 @@ public abstract class Event {
         return getActiveSpan().getSpan().getParentId();
     }
 
-    public String getOtelTraceId() {
-        return getActiveSpan().getSpan().getOtelTraceId();
-    }
-
-    public String getOtelSpanId() {
-        return getActiveSpan().getSpan().getOtelSpanId();
-    }
-
     public String getTraceId() {
         return getActiveSpan().getSpan().getTraceId();
     }

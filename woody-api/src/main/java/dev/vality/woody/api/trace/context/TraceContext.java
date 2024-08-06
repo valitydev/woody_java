@@ -6,6 +6,7 @@ import dev.vality.woody.api.trace.Span;
 import dev.vality.woody.api.trace.TraceData;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.sdk.resources.Resource;
 
 import java.util.Optional;
 
@@ -21,10 +22,6 @@ public class TraceContext {
     private final Runnable preErrDestroy;
     private final boolean isAuto;
     private final boolean isClient;
-
-    private static final OpenTelemetry openTelemetry = ExampleConfiguration.initOpenTelemetry();
-
-    private static final Tracer tracer = openTelemetry.getTracer(TraceContext.class.getName());
 
     public TraceContext(IdGenerator idGenerator) {
         this(idGenerator, idGenerator);
@@ -132,25 +129,12 @@ public class TraceContext {
         boolean root = traceData.isRoot();
         String traceId = root ? traceIdGenerator.generateId() : serviceSpan.getTraceId();
 
-        io.opentelemetry.api.trace.Span otelSpan = tracer.spanBuilder("otel span").startSpan();
-        if (root) {
-            initSpan.setOtelTraceId(otelSpan.getSpanContext().getTraceId());
-            initSpan.setOtelTraceFlag(otelSpan.getSpanContext().getTraceFlags().asHex());
-            initSpan.setOtelVersion("00");
-        } else {
-            initSpan.setOtelTraceId(serviceSpan.getOtelTraceId());
-            initSpan.setOtelTraceFlag(serviceSpan.getOtelTraceFlag());
-            initSpan.setOtelVersion(serviceSpan.getOtelVersion());
-        }
-
         if (root) {
             initSpan.setId(spanIdGenerator.generateId());
-            initSpan.setOtelSpanId(otelSpan.getSpanContext().getSpanId());
             initSpan.setParentId(NO_PARENT_ID);
         } else {
             initSpan.setId(spanIdGenerator.generateId("", traceData.getServiceSpan().getCounter().incrementAndGet()));
             initSpan.setParentId(serviceSpan.getId());
-            initSpan.setOtelSpanId(otelSpan.getSpanContext().getSpanId());
             if (!initSpan.hasDeadline()) {
                 initSpan.setDeadline(serviceSpan.getDeadline());
             }
@@ -158,7 +142,6 @@ public class TraceContext {
         initSpan.setTraceId(traceId);
         long timestamp = System.currentTimeMillis();
         initTime(initSpan, timestamp);
-        otelSpan.end();
         return traceData;
     }
 
@@ -177,7 +160,7 @@ public class TraceContext {
             traceData = initServiceContext(traceData);
         }
         setCurrentTraceData(traceData);
-        MDCUtils.putSpanData(traceData.getActiveSpan().getSpan());
+        MDCUtils.putSpanData(traceData.getActiveSpan().getSpan(), traceData.getOtelSpan());
 
         postInit.run();
     }
@@ -205,7 +188,7 @@ public class TraceContext {
             setCurrentTraceData(traceData);
 
             if (traceData.getServiceSpan().isFilled()) {
-                MDCUtils.putSpanData(traceData.getServiceSpan().getSpan());
+                MDCUtils.putSpanData(traceData.getServiceSpan().getSpan(), traceData.getOtelSpan());
             } else {
                 MDCUtils.removeSpanData();
             }

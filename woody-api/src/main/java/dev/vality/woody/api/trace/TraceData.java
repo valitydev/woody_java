@@ -1,14 +1,34 @@
 package dev.vality.woody.api.trace;
 
+import dev.vality.woody.api.trace.context.OtelConfiguration;
 import dev.vality.woody.api.trace.context.TraceContext;
+import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.context.Context;
+import io.opentelemetry.sdk.resources.Resource;
 
 public class TraceData {
+    public static final String OTEL_CHILD = "otel child";
+    public static final String OTEL_SPAN = "otel span";
     private final ClientSpan clientSpan;
     private final ServiceSpan serviceSpan;
+    private final io.opentelemetry.api.trace.Span otelSpan;
 
     public TraceData() {
         this.clientSpan = new ClientSpan();
         this.serviceSpan = new ServiceSpan();
+        OpenTelemetry openTelemetry = new OtelConfiguration().initOpenTelemetry();
+        this.otelSpan = openTelemetry.getTracer(TraceContext.class.getName()).spanBuilder(OTEL_SPAN)
+                .startSpan();
+    }
+
+    public TraceData(Resource resource) {
+        this.clientSpan = new ClientSpan();
+        this.serviceSpan = new ServiceSpan();
+        OpenTelemetry openTelemetry = new OtelConfiguration(resource).initOpenTelemetry();
+        this.otelSpan = openTelemetry.getTracer(TraceContext.class.getName()).spanBuilder(OTEL_SPAN)
+                .startSpan();
     }
 
     public TraceData(TraceData oldTraceData) {
@@ -20,6 +40,21 @@ public class TraceData {
                 ? new ClientSpan(oldTraceData.clientSpan, oldTraceData.serviceSpan.customMetadata) :
                 oldTraceData.clientSpan.cloneObject();
         this.serviceSpan = oldTraceData.serviceSpan.cloneObject();
+        OpenTelemetry openTelemetry = new OtelConfiguration().initOpenTelemetry();
+        this.otelSpan =
+                openTelemetry.getTracer(TraceContext.class.getName()).spanBuilder(OTEL_CHILD)
+                        .setParent(Context.current().with(oldTraceData.otelSpan)).startSpan();
+    }
+
+    public TraceData(TraceData oldTraceData, boolean copyCustomServiceMetadata, Resource resource) {
+        this.clientSpan = copyCustomServiceMetadata
+                ? new ClientSpan(oldTraceData.clientSpan, oldTraceData.serviceSpan.customMetadata) :
+                oldTraceData.clientSpan.cloneObject();
+        this.serviceSpan = oldTraceData.serviceSpan.cloneObject();
+        OpenTelemetry openTelemetry = new OtelConfiguration(resource).initOpenTelemetry();
+        Tracer tracer = openTelemetry.getTracer(TraceContext.class.getName());
+        this.otelSpan =
+                tracer.spanBuilder(OTEL_CHILD).setParent(Context.current().with(oldTraceData.otelSpan)).startSpan();
     }
 
     public ClientSpan getClientSpan() {
@@ -28,6 +63,10 @@ public class TraceData {
 
     public ServiceSpan getServiceSpan() {
         return serviceSpan;
+    }
+
+    public Span getOtelSpan() {
+        return otelSpan;
     }
 
     /**
@@ -87,6 +126,7 @@ public class TraceData {
     public void reset() {
         clientSpan.reset();
         serviceSpan.reset();
+        otelSpan.end();
     }
 
     public TraceData cloneObject() {
