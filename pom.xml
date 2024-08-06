@@ -12,7 +12,7 @@
     <packaging>pom</packaging>
     <groupId>dev.vality.woody</groupId>
     <artifactId>woody</artifactId>
-    <version>2.0.4-epic-4</version>
+    <version>2.0.4-epic-5</version>
 
     <name>Woody Java</name>
     <description>Java implementation for Woody spec</description>

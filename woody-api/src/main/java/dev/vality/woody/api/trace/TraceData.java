@@ -13,7 +13,7 @@ public class TraceData {
     public static final String OTEL_SPAN = "otel span";
     private final ClientSpan clientSpan;
     private final ServiceSpan serviceSpan;
-    private final io.opentelemetry.api.trace.Span otelSpan;
+    private final Span otelSpan;
 
     public TraceData() {
         this.clientSpan = new ClientSpan();
