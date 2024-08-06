@@ -32,23 +32,23 @@ public class OtelConfiguration {
      * @return A ready-to-use {@link OpenTelemetry} instance.
      */
     public OpenTelemetry initOpenTelemetry() {
-//        SdkTracerProvider sdkTracerProvider = null;
-//        if (this.resource != null) {
-//            sdkTracerProvider = SdkTracerProvider.builder()
-//                    .addSpanProcessor(BatchSpanProcessor.builder(OtlpGrpcSpanExporter.builder().build()).build())
-//                    .setResource(resource)
-//                    .build();
-//        } else {
-//            sdkTracerProvider = SdkTracerProvider.builder().build();
-//        }
+        SdkTracerProvider sdkTracerProvider = null;
+        if (this.resource != null) {
+            sdkTracerProvider = SdkTracerProvider.builder()
+                    .addSpanProcessor(BatchSpanProcessor.builder(OtlpGrpcSpanExporter.builder().build()).build())
+                    .setResource(resource)
+                    .build();
+        } else {
+            sdkTracerProvider = SdkTracerProvider.builder().build();
+        }
 
         OpenTelemetrySdk sdk =
                 OpenTelemetrySdk.builder()
-//                        .setTracerProvider(sdkTracerProvider)
+                        .setTracerProvider(sdkTracerProvider)
                         .setPropagators(ContextPropagators.create(W3CTraceContextPropagator.getInstance()))
                         .build();
 
-//        Runtime.getRuntime().addShutdownHook(new Thread(sdkTracerProvider::close));
+        Runtime.getRuntime().addShutdownHook(new Thread(sdkTracerProvider::close));
         return sdk;
     }
 }
