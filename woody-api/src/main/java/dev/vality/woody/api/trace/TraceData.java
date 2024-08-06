@@ -47,7 +47,6 @@ public class TraceData {
         this.serviceSpan = oldTraceData.serviceSpan.cloneObject();
         OpenTelemetry openTelemetry = new OtelConfiguration().initOpenTelemetry();
         this.otelSpan = openTelemetry.getTracer(TraceContext.class.getName()).spanBuilder(OTEL_CHILD)
-                .setParent(Context.current().with(oldTraceData.otelSpan))
                 .startSpan();
     }
 
@@ -59,7 +58,6 @@ public class TraceData {
         OpenTelemetry openTelemetry = new OtelConfiguration(resource).initOpenTelemetry();
         Tracer tracer = openTelemetry.getTracer(TraceContext.class.getName());
         this.otelSpan = tracer.spanBuilder(OTEL_CHILD)
-                .setParent(Context.current().with(oldTraceData.otelSpan))
                 .startSpan();
     }
 
