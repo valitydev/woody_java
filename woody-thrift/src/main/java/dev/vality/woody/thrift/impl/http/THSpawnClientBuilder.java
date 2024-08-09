@@ -7,6 +7,7 @@ import dev.vality.woody.api.generator.IdGenerator;
 import dev.vality.woody.api.proxy.InvocationTargetProvider;
 import dev.vality.woody.api.proxy.SpawnTargetProvider;
 import dev.vality.woody.api.trace.context.metadata.MetadataExtensionKit;
+import io.opentelemetry.sdk.resources.Resource;
 import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.BasicHttpClientConnectionManager;
@@ -33,6 +34,11 @@ public class THSpawnClientBuilder extends THClientBuilder {
     @Override
     public THSpawnClientBuilder withHttpClient(HttpClient httpClient) {
         return (THSpawnClientBuilder) super.withHttpClient(httpClient);
+    }
+
+    @Override
+    public THSpawnClientBuilder withOtelResource(Resource resource) {
+        return (THSpawnClientBuilder) super.withOtelResource(resource);
     }
 
     @Override
