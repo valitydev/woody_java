@@ -6,6 +6,7 @@ import dev.vality.woody.api.generator.ConfiguredSnowflakeIdGenerator;
 import dev.vality.woody.api.generator.IdGenerator;
 import dev.vality.woody.api.trace.TraceData;
 import dev.vality.woody.api.trace.context.TraceContext;
+import io.opentelemetry.sdk.resources.Resource;
 
 import java.util.concurrent.Callable;
 
@@ -47,38 +48,40 @@ public class WFlow {
         return new WCallable<>(callable, traceData);
     }
 
-    public static WRunnable createFork(Runnable runnable) {
-        return create(runnable, new TraceData());
+    public static WRunnable createFork(Runnable runnable, Resource resource) {
+        return create(runnable, new TraceData(resource));
     }
 
-    public static <T> WCallable<T> createFork(Callable<T> callable) {
-        return create(callable, new TraceData());
+    public static <T> WCallable<T> createFork(Callable<T> callable, Resource resource) {
+        return create(callable, new TraceData(resource));
     }
 
-    public static WRunnable createServiceFork(Runnable runnable, IdGenerator idGenerator) {
-        return create(runnable, TraceContext.initNewServiceTrace(new TraceData(), idGenerator, idGenerator));
+    public static WRunnable createServiceFork(Runnable runnable, IdGenerator idGenerator, Resource resource) {
+        return create(runnable, TraceContext.initNewServiceTrace(new TraceData(resource), idGenerator, idGenerator));
     }
 
     public static WRunnable createServiceFork(Runnable runnable, IdGenerator traceIdGenerator,
-                                              IdGenerator spanIdGenerator) {
-        return create(runnable, TraceContext.initNewServiceTrace(new TraceData(), traceIdGenerator, spanIdGenerator));
+                                              IdGenerator spanIdGenerator, Resource resource) {
+        return create(runnable,
+                TraceContext.initNewServiceTrace(new TraceData(resource), traceIdGenerator, spanIdGenerator));
     }
 
-    public static <T> WCallable<T> createServiceFork(Callable<T> callable, IdGenerator idGenerator) {
-        return create(callable, TraceContext.initNewServiceTrace(new TraceData(), idGenerator, idGenerator));
+    public static <T> WCallable<T> createServiceFork(Callable<T> callable, IdGenerator idGenerator, Resource resource) {
+        return create(callable, TraceContext.initNewServiceTrace(new TraceData(resource), idGenerator, idGenerator));
     }
 
     public static <T> WCallable<T> createServiceFork(Callable<T> callable, IdGenerator traceIdGenerator,
-                                                     IdGenerator spanIdGenerator) {
-        return create(callable, TraceContext.initNewServiceTrace(new TraceData(), traceIdGenerator, spanIdGenerator));
+                                                     IdGenerator spanIdGenerator, Resource resource) {
+        return create(callable,
+                TraceContext.initNewServiceTrace(new TraceData(resource), traceIdGenerator, spanIdGenerator));
     }
 
-    public WRunnable createServiceFork(Runnable runnable) {
-        return createServiceFork(runnable, traceIdGenerator, spanIdGenerator);
+    public WRunnable createServiceFork(Runnable runnable, Resource resource) {
+        return createServiceFork(runnable, traceIdGenerator, spanIdGenerator, resource);
     }
 
-    public <T> WCallable<T> createServiceFork(Callable<T> callable) {
-        return createServiceFork(callable, traceIdGenerator, spanIdGenerator);
+    public <T> WCallable<T> createServiceFork(Callable<T> callable, Resource resource) {
+        return createServiceFork(callable, traceIdGenerator, spanIdGenerator, resource);
     }
 
 }

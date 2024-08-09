@@ -122,7 +122,7 @@ public class TestCustomMetadataExtension extends AbstractTest {
                 e.printStackTrace();
                 fail();
             }
-        }).run();
+        }, null).run();
     }
 
     @Test
@@ -138,7 +138,7 @@ public class TestCustomMetadataExtension extends AbstractTest {
                 e.printStackTrace();
                 fail();
             }
-        }).run();
+        }, null).run();
     }
 
     @Test
@@ -158,7 +158,7 @@ public class TestCustomMetadataExtension extends AbstractTest {
                 assertTrue(e.getErrorDefinition().getErrorSource() == WErrorSource.INTERNAL);
                 assertTrue(e.getErrorDefinition().getErrorType() == WErrorType.UNEXPECTED_ERROR);
             }
-        }).run();
+        }, null).run();
     }
 
     @Test
@@ -173,7 +173,7 @@ public class TestCustomMetadataExtension extends AbstractTest {
                 e.printStackTrace();
                 fail();
             }
-        }).run();
+        }, null).run();
     }
 
     @Test
@@ -183,7 +183,7 @@ public class TestCustomMetadataExtension extends AbstractTest {
             ContextUtils.setCustomMetadataValue(1, IntExtension.instance.getExtension());
             ContextUtils.setCustomMetadataValue(StringExtension.KEY, "test");
             return rpcMetaMultiExtClientToMultiExtMetaSrv.getIntValue();
-        }).call();
+        }, null).call();
     }
 
     @Test
@@ -202,7 +202,7 @@ public class TestCustomMetadataExtension extends AbstractTest {
                 assertTrue(e.getErrorDefinition().getErrorSource() == WErrorSource.INTERNAL);
                 assertTrue(e.getErrorDefinition().getErrorType() == WErrorType.PROVIDER_ERROR);
             }
-        }).run();
+        }, null).run();
     }
 
     @Test
@@ -217,7 +217,7 @@ public class TestCustomMetadataExtension extends AbstractTest {
                 e.printStackTrace();
                 fail();
             }
-        }).run();
+        }, null).run();
     }
 
     @Test
@@ -236,7 +236,7 @@ public class TestCustomMetadataExtension extends AbstractTest {
                 assertEquals(WErrorSource.EXTERNAL, e.getErrorDefinition().getGenerationSource());
                 assertEquals(WErrorType.UNEXPECTED_ERROR, e.getErrorDefinition().getErrorType());
             }
-        }).run();
+        }, null).run();
     }
 
     static class IntExtension implements MetadataExtensionKit<Integer> {

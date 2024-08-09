@@ -1,6 +1,7 @@
 package dev.vality.woody.thrift.impl.http;
 
 import dev.vality.woody.api.AbstractServiceBuilder;
+import dev.vality.woody.api.ServiceBuilder;
 import dev.vality.woody.api.event.CompositeServiceEventListener;
 import dev.vality.woody.api.event.ServiceEventListener;
 import dev.vality.woody.api.flow.error.WErrorDefinition;
@@ -18,6 +19,7 @@ import dev.vality.woody.thrift.impl.http.event.THServiceEvent;
 import dev.vality.woody.thrift.impl.http.interceptor.THMessageInterceptor;
 import dev.vality.woody.thrift.impl.http.interceptor.THTransportInterceptor;
 import dev.vality.woody.thrift.impl.http.interceptor.ext.MetadataExtensionBundle;
+import io.opentelemetry.sdk.resources.Resource;
 import org.apache.thrift.TProcessor;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocolFactory;
@@ -35,9 +37,17 @@ public class THServiceBuilder extends AbstractServiceBuilder<Servlet> {
     private boolean logEnabled = true;
     private WErrorMapper errorMapper;
 
+    private Resource otelResource;
+
     @Override
     public THServiceBuilder withEventListener(ServiceEventListener listener) {
         return (THServiceBuilder) super.withEventListener(listener);
+    }
+
+    @Override
+    public THServiceBuilder withOtelResource(Resource otelResource) {
+        this.otelResource = otelResource;
+        return this;
     }
 
     public THServiceBuilder withMetaExtensions(List<MetadataExtensionKit> extensionKits) {
@@ -136,7 +146,7 @@ public class THServiceBuilder extends AbstractServiceBuilder<Servlet> {
 
         if (isTransportLevel) {
             //interceptors.add(new ProviderEventInterceptor(getOnSendEventListener(), null));
-            interceptors.add(new ContextInterceptor(TraceContext.forService(),
+            interceptors.add(new ContextInterceptor(TraceContext.forService(this.otelResource),
                     new TransportEventInterceptor(getOnReceiveEventListener(), getOnReceiveEventListener(),
                             getErrorListener())));
         }

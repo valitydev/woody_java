@@ -13,7 +13,7 @@ public class TestWFlow {
         new WFlow().createServiceFork(() -> {
             assertFalse(TraceContext.getCurrentTraceData().isRoot());
             assertFalse(TraceContext.getCurrentTraceData().isClient());
-        }).run();
+        }, null).run();
         assertTrue(TraceContext.getCurrentTraceData().isRoot());
     }
 
@@ -24,7 +24,7 @@ public class TestWFlow {
             assertFalse(TraceContext.getCurrentTraceData().isRoot());
             assertFalse(TraceContext.getCurrentTraceData().isClient());
             return true;
-        }).call());
+        }, null).call());
         assertTrue(TraceContext.getCurrentTraceData().isRoot());
     }
 
@@ -34,6 +34,6 @@ public class TestWFlow {
             Span activeSpan = TraceContext.getCurrentTraceData().getActiveSpan().getSpan();
             assertEquals(activeSpan.getParentId(), TraceContext.NO_PARENT_ID);
             assertNotEquals(activeSpan.getTraceId(), activeSpan.getId());
-        }).run();
+        }, null).run();
     }
 }

@@ -4,8 +4,6 @@ import dev.vality.woody.api.MDCUtils;
 import dev.vality.woody.api.generator.IdGenerator;
 import dev.vality.woody.api.trace.Span;
 import dev.vality.woody.api.trace.TraceData;
-import io.opentelemetry.api.OpenTelemetry;
-import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.sdk.resources.Resource;
 
 import java.util.Optional;
@@ -23,33 +21,36 @@ public class TraceContext {
     private final boolean isAuto;
     private final boolean isClient;
 
-    public TraceContext(IdGenerator idGenerator) {
-        this(idGenerator, idGenerator);
+    private final Resource resource;
+
+    public TraceContext(IdGenerator idGenerator, Resource resource) {
+        this(idGenerator, idGenerator, resource);
     }
 
-    public TraceContext(IdGenerator traceIdGenerator, IdGenerator spanIdGenerator) {
+    public TraceContext(IdGenerator traceIdGenerator, IdGenerator spanIdGenerator, Resource resource) {
         this(traceIdGenerator, spanIdGenerator, () -> {
         }, () -> {
         }, () -> {
-        });
-    }
-
-    public TraceContext(IdGenerator idGenerator, Runnable postInit, Runnable preDestroy, Runnable preErrDestroy) {
-        this(idGenerator, idGenerator, postInit, preDestroy, preErrDestroy);
-    }
-
-    public TraceContext(IdGenerator traceIdGenerator, IdGenerator spanIdGenerator, Runnable postInit,
-                        Runnable preDestroy, Runnable preErrDestroy) {
-        this(traceIdGenerator, spanIdGenerator, postInit, preDestroy, preErrDestroy, Optional.empty());
+        }, resource);
     }
 
     public TraceContext(IdGenerator idGenerator, Runnable postInit, Runnable preDestroy, Runnable preErrDestroy,
-                        boolean isClient) {
-        this(idGenerator, idGenerator, postInit, preDestroy, preErrDestroy, Optional.of(isClient));
+                        Resource resource) {
+        this(idGenerator, idGenerator, postInit, preDestroy, preErrDestroy, resource);
+    }
+
+    public TraceContext(IdGenerator traceIdGenerator, IdGenerator spanIdGenerator, Runnable postInit,
+                        Runnable preDestroy, Runnable preErrDestroy, Resource resource) {
+        this(traceIdGenerator, spanIdGenerator, postInit, preDestroy, preErrDestroy, Optional.empty(), resource);
+    }
+
+    public TraceContext(IdGenerator idGenerator, Runnable postInit, Runnable preDestroy, Runnable preErrDestroy,
+                        boolean isClient, Resource resource) {
+        this(idGenerator, idGenerator, postInit, preDestroy, preErrDestroy, Optional.of(isClient), resource);
     }
 
     private TraceContext(IdGenerator traceIdGenerator, IdGenerator spanIdGenerator, Runnable postInit,
-                         Runnable preDestroy, Runnable preErrDestroy, Optional<Boolean> isClient) {
+                         Runnable preDestroy, Runnable preErrDestroy, Optional<Boolean> isClient, Resource resource) {
         this.traceIdGenerator = traceIdGenerator;
         this.spanIdGenerator = spanIdGenerator;
         this.postInit = postInit;
@@ -62,6 +63,7 @@ public class TraceContext {
             this.isAuto = true;
             this.isClient = false;
         }
+        this.resource = resource;
     }
 
     public static TraceData getCurrentTraceData() {
@@ -99,21 +101,22 @@ public class TraceContext {
         }
     }
 
-    public static TraceContext forClient(IdGenerator idGenerator) {
-        return new TraceContext(idGenerator);
+    public static TraceContext forClient(IdGenerator idGenerator, Resource otelResource) {
+        return new TraceContext(idGenerator, otelResource);
     }
 
     public static TraceContext forClient(IdGenerator idGenerator, Runnable postInit, Runnable preDestroy,
-                                         Runnable preErrDestroy) {
-        return new TraceContext(idGenerator, postInit, preDestroy, preErrDestroy);
+                                         Runnable preErrDestroy, Resource otelResource) {
+        return new TraceContext(idGenerator, postInit, preDestroy, preErrDestroy, otelResource);
     }
 
-    public static TraceContext forService() {
-        return new TraceContext(null);
+    public static TraceContext forService(Resource otelResource) {
+        return new TraceContext(null, otelResource);
     }
 
-    public static TraceContext forService(Runnable postInit, Runnable preDestroy, Runnable preErrDestroy) {
-        return new TraceContext(null, postInit, preDestroy, preErrDestroy);
+    public static TraceContext forService(Runnable postInit, Runnable preDestroy, Runnable preErrDestroy,
+                                          Resource otelResource) {
+        return new TraceContext(null, postInit, preDestroy, preErrDestroy, otelResource);
     }
 
     private static TraceData createNewTraceData(TraceData oldTraceData) {

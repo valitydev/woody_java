@@ -11,6 +11,7 @@ public class MDCUtils {
     public static final String SPAN_ID = "span_id";
     public static final String OTEL_TRACE_ID = "otel_trace_id";
     public static final String OTEL_SPAN_ID = "otel_span_id";
+    public static final String OTEL_TRACE_FLAGS = "otel_trace_flags";
     public static final String TRACE_ID = "trace_id";
     public static final String PARENT_ID = "parent_id";
     public static final String DEADLINE = "deadline";
@@ -28,6 +29,9 @@ public class MDCUtils {
                 otelSpan.getSpanContext().getTraceId() != null ? otelSpan.getSpanContext().getTraceId() : "");
         MDC.put(OTEL_SPAN_ID,
                 otelSpan.getSpanContext().getSpanId() != null ? otelSpan.getSpanContext().getSpanId() : "");
+        MDC.put(OTEL_TRACE_FLAGS,
+                otelSpan.getSpanContext().getTraceFlags() != null ? otelSpan.getSpanContext().getTraceFlags().asHex() :
+                        "");
         if (span.hasDeadline()) {
             MDC.put(DEADLINE, span.getDeadline().toString());
         }

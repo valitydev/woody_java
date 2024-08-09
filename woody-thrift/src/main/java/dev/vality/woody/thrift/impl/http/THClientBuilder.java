@@ -24,6 +24,7 @@ import dev.vality.woody.thrift.impl.http.event.THClientEvent;
 import dev.vality.woody.thrift.impl.http.interceptor.THMessageInterceptor;
 import dev.vality.woody.thrift.impl.http.interceptor.THTransportInterceptor;
 import dev.vality.woody.thrift.impl.http.interceptor.ext.MetadataExtensionBundle;
+import io.opentelemetry.sdk.resources.Resource;
 import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
@@ -46,7 +47,6 @@ import java.util.Optional;
 import java.util.function.BiConsumer;
 
 public class THClientBuilder extends AbstractClientBuilder {
-
 
     private HttpClient httpClient;
     private WErrorMapper errorMapper;

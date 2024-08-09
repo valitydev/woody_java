@@ -12,6 +12,7 @@ import dev.vality.woody.api.proxy.SingleTargetProvider;
 import dev.vality.woody.api.trace.ContextSpan;
 import dev.vality.woody.api.proxy.tracer.*;
 import dev.vality.woody.api.trace.context.TraceContext;
+import io.opentelemetry.sdk.resources.Resource;
 
 import java.net.URI;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -27,6 +28,8 @@ public abstract class AbstractClientBuilder implements ClientBuilder {
     private boolean allowObjectProxyOverriding = false;
     private final AtomicBoolean used = new AtomicBoolean(false);
 
+    private Resource otelResource;
+
 
     public ClientBuilder withNetworkTimeout(int timeout) {
         this.networkTimeout = timeout;
@@ -36,6 +39,12 @@ public abstract class AbstractClientBuilder implements ClientBuilder {
     @Override
     public ClientBuilder withAddress(URI address) {
         this.address = address;
+        return this;
+    }
+
+    @Override
+    public ClientBuilder withOtelResource(Resource otelResource) {
+        this.otelResource = otelResource;
         return this;
     }
 
@@ -118,7 +127,7 @@ public abstract class AbstractClientBuilder implements ClientBuilder {
     }
 
     protected TraceContext createTraceContext() {
-        return TraceContext.forClient(idGenerator);
+        return TraceContext.forClient(idGenerator, otelResource);
     }
 
     protected abstract BiConsumer<WErrorDefinition, ContextSpan> getErrorDefinitionConsumer();
