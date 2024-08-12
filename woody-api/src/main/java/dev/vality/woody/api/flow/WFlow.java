@@ -6,7 +6,6 @@ import dev.vality.woody.api.generator.ConfiguredSnowflakeIdGenerator;
 import dev.vality.woody.api.generator.IdGenerator;
 import dev.vality.woody.api.trace.TraceData;
 import dev.vality.woody.api.trace.context.TraceContext;
-import io.opentelemetry.sdk.resources.Resource;
 
 import java.util.concurrent.Callable;
 
@@ -57,23 +56,25 @@ public class WFlow {
     }
 
     public static WRunnable createServiceFork(Runnable runnable, IdGenerator idGenerator, String resource) {
-        return create(runnable, TraceContext.initNewServiceTrace(new TraceData(resource), idGenerator, idGenerator));
+        return create(runnable,
+                TraceContext.initNewServiceTrace(new TraceData(resource), idGenerator, idGenerator, resource));
     }
 
     public static WRunnable createServiceFork(Runnable runnable, IdGenerator traceIdGenerator,
                                               IdGenerator spanIdGenerator, String resource) {
         return create(runnable,
-                TraceContext.initNewServiceTrace(new TraceData(resource), traceIdGenerator, spanIdGenerator));
+                TraceContext.initNewServiceTrace(new TraceData(resource), traceIdGenerator, spanIdGenerator, resource));
     }
 
     public static <T> WCallable<T> createServiceFork(Callable<T> callable, IdGenerator idGenerator, String resource) {
-        return create(callable, TraceContext.initNewServiceTrace(new TraceData(resource), idGenerator, idGenerator));
+        return create(callable,
+                TraceContext.initNewServiceTrace(new TraceData(resource), idGenerator, idGenerator, resource));
     }
 
     public static <T> WCallable<T> createServiceFork(Callable<T> callable, IdGenerator traceIdGenerator,
                                                      IdGenerator spanIdGenerator, String resource) {
         return create(callable,
-                TraceContext.initNewServiceTrace(new TraceData(resource), traceIdGenerator, spanIdGenerator));
+                TraceContext.initNewServiceTrace(new TraceData(resource), traceIdGenerator, spanIdGenerator, resource));
     }
 
     public WRunnable createServiceFork(Runnable runnable, String resource) {

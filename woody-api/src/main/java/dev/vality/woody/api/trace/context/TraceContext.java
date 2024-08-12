@@ -4,8 +4,11 @@ import dev.vality.woody.api.MDCUtils;
 import dev.vality.woody.api.generator.IdGenerator;
 import dev.vality.woody.api.trace.Span;
 import dev.vality.woody.api.trace.TraceData;
+import io.opentelemetry.api.OpenTelemetry;
 
 import java.util.Optional;
+
+import static dev.vality.woody.api.trace.TraceData.OTEL_SPAN;
 
 public class TraceContext {
     public static final String NO_PARENT_ID = "undefined";
@@ -78,14 +81,14 @@ public class TraceContext {
     }
 
     public static TraceData initNewServiceTrace(TraceData traceData, IdGenerator traceIdGenerator,
-                                                IdGenerator spanIdGenerator) {
-        return initServiceTraceData(traceData, traceIdGenerator, spanIdGenerator);
+                                                IdGenerator spanIdGenerator, String resource) {
+        return initServiceTraceData(traceData, traceIdGenerator, spanIdGenerator, resource);
     }
 
     public static TraceData initServiceTraceData(TraceData traceData, IdGenerator traceIdGenerator,
-                                                 IdGenerator spanIdGenerator) {
+                                                 IdGenerator spanIdGenerator, String resource) {
         if ((traceData.isRoot())) {
-            initSpan(traceIdGenerator, spanIdGenerator, traceData, false);
+            initSpan(traceIdGenerator, spanIdGenerator, traceData, false, resource);
         }
         return traceData;
     }
@@ -123,11 +126,13 @@ public class TraceContext {
     }
 
     private static TraceData initSpan(IdGenerator traceIdGenerator, IdGenerator spanIdGenerator, TraceData traceData,
-                                      boolean isClient) {
+                                      boolean isClient, String resource) {
         Span clientSpan = traceData.getClientSpan().getSpan();
         Span serviceSpan = traceData.getServiceSpan().getSpan();
         Span initSpan = isClient ? clientSpan : serviceSpan;
-
+        OpenTelemetry openTelemetry = new OtelConfiguration(resource).initOpenTelemetry();
+        traceData.setOtelSpan(openTelemetry.getTracer(TraceContext.class.getName()).spanBuilder(OTEL_SPAN)
+                .startSpan());
         boolean root = traceData.isRoot();
         String traceId = root ? traceIdGenerator.generateId() : serviceSpan.getTraceId();
         if (root) {
@@ -209,7 +214,7 @@ public class TraceContext {
     private TraceData initClientContext(TraceData traceData) {
         savedTraceData.set(traceData);
         traceData = createNewTraceData(traceData, this.resource);
-        initSpan(traceIdGenerator, spanIdGenerator, traceData, true);
+        initSpan(traceIdGenerator, spanIdGenerator, traceData, true, this.resource);
         return traceData;
     }
 
