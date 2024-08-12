@@ -28,7 +28,7 @@ public class TraceData {
                 .startSpan();
     }
 
-    public TraceData(Resource resource) {
+    public TraceData(String resource) {
         this.clientSpan = new ClientSpan();
         this.serviceSpan = new ServiceSpan();
         OpenTelemetry openTelemetry = new OtelConfiguration(resource).initOpenTelemetry();
@@ -50,7 +50,7 @@ public class TraceData {
                 .startSpan();
     }
 
-    public TraceData(TraceData oldTraceData, boolean copyCustomServiceMetadata, Resource resource) {
+    public TraceData(TraceData oldTraceData, boolean copyCustomServiceMetadata, String resource) {
         this.clientSpan = copyCustomServiceMetadata
                 ? new ClientSpan(oldTraceData.clientSpan, oldTraceData.serviceSpan.customMetadata) :
                 oldTraceData.clientSpan.cloneObject();

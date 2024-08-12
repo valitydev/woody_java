@@ -28,7 +28,7 @@ public abstract class AbstractClientBuilder implements ClientBuilder {
     private boolean allowObjectProxyOverriding = false;
     private final AtomicBoolean used = new AtomicBoolean(false);
 
-    private Resource otelResource;
+    private String otelResource;
 
 
     public ClientBuilder withNetworkTimeout(int timeout) {
@@ -43,7 +43,7 @@ public abstract class AbstractClientBuilder implements ClientBuilder {
     }
 
     @Override
-    public ClientBuilder withOtelResource(Resource otelResource) {
+    public ClientBuilder withOtelResource(String otelResource) {
         this.otelResource = otelResource;
         return this;
     }

@@ -15,13 +15,13 @@ import io.opentelemetry.sdk.trace.export.BatchSpanProcessor;
  */
 public class OtelConfiguration {
 
-    private final Resource resource;
+    private final String resource;
 
     public OtelConfiguration() {
         this.resource = null;
     }
 
-    public OtelConfiguration(Resource resource) {
+    public OtelConfiguration(String resource) {
         this.resource = resource;
     }
 
@@ -35,8 +35,9 @@ public class OtelConfiguration {
         SdkTracerProvider sdkTracerProvider = null;
         if (this.resource != null) {
             sdkTracerProvider = SdkTracerProvider.builder()
-                    .addSpanProcessor(BatchSpanProcessor.builder(OtlpGrpcSpanExporter.builder().build()).build())
-                    .setResource(resource)
+                    .addSpanProcessor(BatchSpanProcessor.builder(OtlpGrpcSpanExporter.builder()
+                            .setEndpoint(resource)
+                            .build()).build())
                     .build();
         } else {
             sdkTracerProvider = SdkTracerProvider.builder().build();

@@ -9,7 +9,7 @@ import java.net.URI;
 public interface ClientBuilder {
     ClientBuilder withAddress(URI address);
 
-    ClientBuilder withOtelResource(Resource otelResource);
+    ClientBuilder withOtelResource(String otelResource);
 
     ClientBuilder withEventListener(ClientEventListener listener);
 

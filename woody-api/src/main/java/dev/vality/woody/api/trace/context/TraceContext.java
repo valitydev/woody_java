@@ -21,13 +21,13 @@ public class TraceContext {
     private final boolean isAuto;
     private final boolean isClient;
 
-    private final Resource resource;
+    private final String resource;
 
-    public TraceContext(IdGenerator idGenerator, Resource resource) {
+    public TraceContext(IdGenerator idGenerator, String resource) {
         this(idGenerator, idGenerator, resource);
     }
 
-    public TraceContext(IdGenerator traceIdGenerator, IdGenerator spanIdGenerator, Resource resource) {
+    public TraceContext(IdGenerator traceIdGenerator, IdGenerator spanIdGenerator, String resource) {
         this(traceIdGenerator, spanIdGenerator, () -> {
         }, () -> {
         }, () -> {
@@ -35,22 +35,22 @@ public class TraceContext {
     }
 
     public TraceContext(IdGenerator idGenerator, Runnable postInit, Runnable preDestroy, Runnable preErrDestroy,
-                        Resource resource) {
+                        String resource) {
         this(idGenerator, idGenerator, postInit, preDestroy, preErrDestroy, resource);
     }
 
     public TraceContext(IdGenerator traceIdGenerator, IdGenerator spanIdGenerator, Runnable postInit,
-                        Runnable preDestroy, Runnable preErrDestroy, Resource resource) {
+                        Runnable preDestroy, Runnable preErrDestroy, String resource) {
         this(traceIdGenerator, spanIdGenerator, postInit, preDestroy, preErrDestroy, Optional.empty(), resource);
     }
 
     public TraceContext(IdGenerator idGenerator, Runnable postInit, Runnable preDestroy, Runnable preErrDestroy,
-                        boolean isClient, Resource resource) {
+                        boolean isClient, String resource) {
         this(idGenerator, idGenerator, postInit, preDestroy, preErrDestroy, Optional.of(isClient), resource);
     }
 
     private TraceContext(IdGenerator traceIdGenerator, IdGenerator spanIdGenerator, Runnable postInit,
-                         Runnable preDestroy, Runnable preErrDestroy, Optional<Boolean> isClient, Resource resource) {
+                         Runnable preDestroy, Runnable preErrDestroy, Optional<Boolean> isClient, String resource) {
         this.traceIdGenerator = traceIdGenerator;
         this.spanIdGenerator = spanIdGenerator;
         this.postInit = postInit;
@@ -101,21 +101,21 @@ public class TraceContext {
         }
     }
 
-    public static TraceContext forClient(IdGenerator idGenerator, Resource otelResource) {
+    public static TraceContext forClient(IdGenerator idGenerator, String otelResource) {
         return new TraceContext(idGenerator, otelResource);
     }
 
     public static TraceContext forClient(IdGenerator idGenerator, Runnable postInit, Runnable preDestroy,
-                                         Runnable preErrDestroy, Resource otelResource) {
+                                         Runnable preErrDestroy, String otelResource) {
         return new TraceContext(idGenerator, postInit, preDestroy, preErrDestroy, otelResource);
     }
 
-    public static TraceContext forService(Resource otelResource) {
+    public static TraceContext forService(String otelResource) {
         return new TraceContext(null, otelResource);
     }
 
     public static TraceContext forService(Runnable postInit, Runnable preDestroy, Runnable preErrDestroy,
-                                          Resource otelResource) {
+                                          String otelResource) {
         return new TraceContext(null, postInit, preDestroy, preErrDestroy, otelResource);
     }
 

@@ -37,15 +37,14 @@ public class THServiceBuilder extends AbstractServiceBuilder<Servlet> {
     private boolean logEnabled = true;
     private WErrorMapper errorMapper;
 
-    private Resource otelResource;
+    private String otelResource;
 
     @Override
     public THServiceBuilder withEventListener(ServiceEventListener listener) {
         return (THServiceBuilder) super.withEventListener(listener);
     }
 
-    @Override
-    public THServiceBuilder withOtelResource(Resource otelResource) {
+    public THServiceBuilder withOtelResource(String otelResource) {
         this.otelResource = otelResource;
         return this;
     }
