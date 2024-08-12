@@ -4,7 +4,6 @@ import dev.vality.woody.api.MDCUtils;
 import dev.vality.woody.api.generator.IdGenerator;
 import dev.vality.woody.api.trace.Span;
 import dev.vality.woody.api.trace.TraceData;
-import io.opentelemetry.sdk.resources.Resource;
 
 import java.util.Optional;
 
@@ -119,8 +118,8 @@ public class TraceContext {
         return new TraceContext(null, postInit, preDestroy, preErrDestroy, otelResource);
     }
 
-    private static TraceData createNewTraceData(TraceData oldTraceData) {
-        return new TraceData(oldTraceData, true);
+    private static TraceData createNewTraceData(TraceData oldTraceData, String resource) {
+        return new TraceData(oldTraceData, true, resource);
     }
 
     private static TraceData initSpan(IdGenerator traceIdGenerator, IdGenerator spanIdGenerator, TraceData traceData,
@@ -131,7 +130,6 @@ public class TraceContext {
 
         boolean root = traceData.isRoot();
         String traceId = root ? traceIdGenerator.generateId() : serviceSpan.getTraceId();
-
         if (root) {
             initSpan.setId(spanIdGenerator.generateId());
             initSpan.setParentId(NO_PARENT_ID);
@@ -210,7 +208,7 @@ public class TraceContext {
 
     private TraceData initClientContext(TraceData traceData) {
         savedTraceData.set(traceData);
-        traceData = createNewTraceData(traceData);
+        traceData = createNewTraceData(traceData, this.resource);
         initSpan(traceIdGenerator, spanIdGenerator, traceData, true);
         return traceData;
     }

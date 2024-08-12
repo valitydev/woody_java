@@ -52,4 +52,6 @@ public class OtelConfiguration {
         Runtime.getRuntime().addShutdownHook(new Thread(sdkTracerProvider::close));
         return sdk;
     }
+
+
 }
