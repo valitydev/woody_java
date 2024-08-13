@@ -125,9 +125,6 @@ public class TraceContext {
         Span clientSpan = traceData.getClientSpan().getSpan();
         Span serviceSpan = traceData.getServiceSpan().getSpan();
         Span initSpan = isClient ? clientSpan : serviceSpan;
-        traceData.setOtelSpan(GlobalOpenTelemetry.getTracer(TraceData.class.getName())
-                .spanBuilder(OTEL_SPAN)
-                .startSpan());
         boolean root = traceData.isRoot();
         String traceId = root ? traceIdGenerator.generateId() : serviceSpan.getTraceId();
         if (root) {
