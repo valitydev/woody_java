@@ -18,6 +18,12 @@ import dev.vality.woody.rpc.Owner;
 import dev.vality.woody.rpc.OwnerServiceSrv;
 import dev.vality.woody.thrift.impl.http.AbstractTest;
 import dev.vality.woody.thrift.impl.http.OwnerServiceStub;
+import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
+import io.opentelemetry.context.propagation.ContextPropagators;
+import io.opentelemetry.exporter.otlp.trace.OtlpGrpcSpanExporter;
+import io.opentelemetry.sdk.OpenTelemetrySdk;
+import io.opentelemetry.sdk.trace.SdkTracerProvider;
+import io.opentelemetry.sdk.trace.export.BatchSpanProcessor;
 import jakarta.servlet.Servlet;
 import org.apache.thrift.TException;
 import org.junit.Before;
@@ -28,6 +34,7 @@ import java.util.Arrays;
 import static org.junit.Assert.*;
 
 public class TestCustomMetadataExtension extends AbstractTest {
+
     OwnerServiceSrv.Iface rpcMetaClientToMetaSrv =
             createThriftRPCClient(OwnerServiceSrv.Iface.class, new TimestampIdGenerator(),
                     new CompositeClientEventListener(), Arrays.asList(IntExtension.instance),
@@ -122,7 +129,7 @@ public class TestCustomMetadataExtension extends AbstractTest {
                 e.printStackTrace();
                 fail();
             }
-        }, null).run();
+        }).run();
     }
 
     @Test
@@ -138,7 +145,7 @@ public class TestCustomMetadataExtension extends AbstractTest {
                 e.printStackTrace();
                 fail();
             }
-        }, null).run();
+        }).run();
     }
 
     @Test
@@ -158,7 +165,7 @@ public class TestCustomMetadataExtension extends AbstractTest {
                 assertTrue(e.getErrorDefinition().getErrorSource() == WErrorSource.INTERNAL);
                 assertTrue(e.getErrorDefinition().getErrorType() == WErrorType.UNEXPECTED_ERROR);
             }
-        }, null).run();
+        }).run();
     }
 
     @Test
@@ -173,7 +180,7 @@ public class TestCustomMetadataExtension extends AbstractTest {
                 e.printStackTrace();
                 fail();
             }
-        }, null).run();
+        }).run();
     }
 
     @Test
@@ -183,7 +190,7 @@ public class TestCustomMetadataExtension extends AbstractTest {
             ContextUtils.setCustomMetadataValue(1, IntExtension.instance.getExtension());
             ContextUtils.setCustomMetadataValue(StringExtension.KEY, "test");
             return rpcMetaMultiExtClientToMultiExtMetaSrv.getIntValue();
-        }, null).call();
+        }).call();
     }
 
     @Test
@@ -202,7 +209,7 @@ public class TestCustomMetadataExtension extends AbstractTest {
                 assertTrue(e.getErrorDefinition().getErrorSource() == WErrorSource.INTERNAL);
                 assertTrue(e.getErrorDefinition().getErrorType() == WErrorType.PROVIDER_ERROR);
             }
-        }, null).run();
+        }).run();
     }
 
     @Test
@@ -217,7 +224,7 @@ public class TestCustomMetadataExtension extends AbstractTest {
                 e.printStackTrace();
                 fail();
             }
-        }, null).run();
+        }).run();
     }
 
     @Test
@@ -236,7 +243,7 @@ public class TestCustomMetadataExtension extends AbstractTest {
                 assertEquals(WErrorSource.EXTERNAL, e.getErrorDefinition().getGenerationSource());
                 assertEquals(WErrorType.UNEXPECTED_ERROR, e.getErrorDefinition().getErrorType());
             }
-        }, null).run();
+        }).run();
     }
 
     static class IntExtension implements MetadataExtensionKit<Integer> {

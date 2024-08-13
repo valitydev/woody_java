@@ -37,11 +37,6 @@ public class THSpawnClientBuilder extends THClientBuilder {
     }
 
     @Override
-    public THSpawnClientBuilder withOtelResource(String resource) {
-        return (THSpawnClientBuilder) super.withOtelResource(resource);
-    }
-
-    @Override
     public THSpawnClientBuilder withMetaExtensions(List<MetadataExtensionKit> extensionKits) {
         return (THSpawnClientBuilder) super.withMetaExtensions(extensionKits);
     }

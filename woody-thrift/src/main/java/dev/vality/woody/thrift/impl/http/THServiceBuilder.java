@@ -37,16 +37,9 @@ public class THServiceBuilder extends AbstractServiceBuilder<Servlet> {
     private boolean logEnabled = true;
     private WErrorMapper errorMapper;
 
-    private String otelResource;
-
     @Override
     public THServiceBuilder withEventListener(ServiceEventListener listener) {
         return (THServiceBuilder) super.withEventListener(listener);
-    }
-
-    public THServiceBuilder withOtelResource(String otelResource) {
-        this.otelResource = otelResource;
-        return this;
     }
 
     public THServiceBuilder withMetaExtensions(List<MetadataExtensionKit> extensionKits) {
@@ -145,7 +138,7 @@ public class THServiceBuilder extends AbstractServiceBuilder<Servlet> {
 
         if (isTransportLevel) {
             //interceptors.add(new ProviderEventInterceptor(getOnSendEventListener(), null));
-            interceptors.add(new ContextInterceptor(TraceContext.forService(this.otelResource),
+            interceptors.add(new ContextInterceptor(TraceContext.forService(),
                     new TransportEventInterceptor(getOnReceiveEventListener(), getOnReceiveEventListener(),
                             getErrorListener())));
         }

@@ -28,9 +28,6 @@ public abstract class AbstractClientBuilder implements ClientBuilder {
     private boolean allowObjectProxyOverriding = false;
     private final AtomicBoolean used = new AtomicBoolean(false);
 
-    private String otelResource;
-
-
     public ClientBuilder withNetworkTimeout(int timeout) {
         this.networkTimeout = timeout;
         return this;
@@ -39,12 +36,6 @@ public abstract class AbstractClientBuilder implements ClientBuilder {
     @Override
     public ClientBuilder withAddress(URI address) {
         this.address = address;
-        return this;
-    }
-
-    @Override
-    public ClientBuilder withOtelResource(String otelResource) {
-        this.otelResource = otelResource;
         return this;
     }
 
@@ -127,7 +118,7 @@ public abstract class AbstractClientBuilder implements ClientBuilder {
     }
 
     protected TraceContext createTraceContext() {
-        return TraceContext.forClient(idGenerator, otelResource);
+        return TraceContext.forClient(idGenerator);
     }
 
     protected abstract BiConsumer<WErrorDefinition, ContextSpan> getErrorDefinitionConsumer();

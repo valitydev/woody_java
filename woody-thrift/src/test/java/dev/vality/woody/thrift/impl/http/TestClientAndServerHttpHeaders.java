@@ -156,7 +156,7 @@ public class TestClientAndServerHttpHeaders extends AbstractTest {
                 e.printStackTrace();
                 fail();
             }
-        }, null).run();
+        }).run();
     }
 
     @Test

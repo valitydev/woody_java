@@ -1,10 +1,8 @@
 package dev.vality.woody.api.trace;
 
 import dev.vality.woody.api.trace.context.TraceContext;
-import dev.vality.woody.api.trace.utils.OpenTelemetrySupport;
-import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.api.trace.Tracer;
 
 public class TraceData {
     public static final String OTEL_CHILD = "otel child";
@@ -21,14 +19,14 @@ public class TraceData {
     public TraceData() {
         this.clientSpan = new ClientSpan();
         this.serviceSpan = new ServiceSpan();
-        this.otelSpan = OpenTelemetrySupport.getTracer().spanBuilder(OTEL_SPAN)
+        this.otelSpan = GlobalOpenTelemetry.getTracer(TraceData.class.getName()).spanBuilder(OTEL_SPAN)
                 .startSpan();
     }
 
     public TraceData(String resource) {
         this.clientSpan = new ClientSpan();
         this.serviceSpan = new ServiceSpan();
-        this.otelSpan = OpenTelemetrySupport.getTracer().spanBuilder(OTEL_SPAN)
+        this.otelSpan = GlobalOpenTelemetry.getTracer(TraceData.class.getName()).spanBuilder(OTEL_SPAN)
                 .startSpan();
     }
 
@@ -41,7 +39,7 @@ public class TraceData {
                 ? new ClientSpan(oldTraceData.clientSpan, oldTraceData.serviceSpan.customMetadata) :
                 oldTraceData.clientSpan.cloneObject();
         this.serviceSpan = oldTraceData.serviceSpan.cloneObject();
-        this.otelSpan = OpenTelemetrySupport.getTracer().spanBuilder(OTEL_CHILD)
+        this.otelSpan = GlobalOpenTelemetry.getTracer(TraceData.class.getName()).spanBuilder(OTEL_CHILD)
                 .startSpan();
     }
 
@@ -50,7 +48,7 @@ public class TraceData {
                 ? new ClientSpan(oldTraceData.clientSpan, oldTraceData.serviceSpan.customMetadata) :
                 oldTraceData.clientSpan.cloneObject();
         this.serviceSpan = oldTraceData.serviceSpan.cloneObject();
-        this.otelSpan = OpenTelemetrySupport.getTracer().spanBuilder(OTEL_CHILD)
+        this.otelSpan = GlobalOpenTelemetry.getTracer(TraceData.class.getName()).spanBuilder(OTEL_CHILD)
                 .startSpan();
     }
 

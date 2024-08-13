@@ -5,8 +5,6 @@ import dev.vality.woody.api.flow.error.WErrorType;
 import dev.vality.woody.api.interceptor.ext.ExtensionBundle;
 import dev.vality.woody.api.interceptor.ext.InterceptorExtension;
 import dev.vality.woody.api.trace.*;
-import dev.vality.woody.api.trace.context.TraceContext;
-import dev.vality.woody.api.trace.utils.OpenTelemetrySupport;
 import dev.vality.woody.thrift.impl.http.THMetadataProperties;
 import dev.vality.woody.thrift.impl.http.THResponseInfo;
 import dev.vality.woody.thrift.impl.http.TraceParentUtils;
@@ -15,7 +13,7 @@ import dev.vality.woody.thrift.impl.http.interceptor.THRequestInterceptionExcept
 import dev.vality.woody.thrift.impl.http.transport.THttpHeader;
 import dev.vality.woody.thrift.impl.http.transport.TTransportErrorType;
 import dev.vality.woody.thrift.impl.http.transport.UrlStringEndpoint;
-import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.TraceFlags;
 import io.opentelemetry.api.trace.TraceState;
@@ -135,7 +133,7 @@ public class TransportExtensionBundles {
                                 new SimpleEntry<>(THttpHeader.SPAN_ID, span::setId),
                                 new SimpleEntry<>(THttpHeader.TRACE_PARENT, (t) -> {
                                     reqSCtx.getTraceData().setOtelSpan(
-                                            OpenTelemetrySupport.getTracer()
+                                            GlobalOpenTelemetry.getTracer(TraceData.class.getName())
                                                     .spanBuilder(OTEL_SPAN)
                                                     .setParent(Context.current().with(
                                                             io.opentelemetry.api.trace.Span.wrap(

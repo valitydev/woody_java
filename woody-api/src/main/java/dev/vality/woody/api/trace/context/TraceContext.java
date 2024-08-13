@@ -4,8 +4,7 @@ import dev.vality.woody.api.MDCUtils;
 import dev.vality.woody.api.generator.IdGenerator;
 import dev.vality.woody.api.trace.Span;
 import dev.vality.woody.api.trace.TraceData;
-import dev.vality.woody.api.trace.utils.OpenTelemetrySupport;
-import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.GlobalOpenTelemetry;
 
 import java.util.Optional;
 
@@ -24,36 +23,33 @@ public class TraceContext {
     private final boolean isAuto;
     private final boolean isClient;
 
-    private final String resource;
-
-    public TraceContext(IdGenerator idGenerator, String resource) {
-        this(idGenerator, idGenerator, resource);
+    public TraceContext(IdGenerator idGenerator) {
+        this(idGenerator, idGenerator);
     }
 
-    public TraceContext(IdGenerator traceIdGenerator, IdGenerator spanIdGenerator, String resource) {
+    public TraceContext(IdGenerator traceIdGenerator, IdGenerator spanIdGenerator) {
         this(traceIdGenerator, spanIdGenerator, () -> {
         }, () -> {
         }, () -> {
-        }, resource);
+        });
     }
 
-    public TraceContext(IdGenerator idGenerator, Runnable postInit, Runnable preDestroy, Runnable preErrDestroy,
-                        String resource) {
-        this(idGenerator, idGenerator, postInit, preDestroy, preErrDestroy, resource);
+    public TraceContext(IdGenerator idGenerator, Runnable postInit, Runnable preDestroy, Runnable preErrDestroy) {
+        this(idGenerator, idGenerator, postInit, preDestroy, preErrDestroy);
     }
 
     public TraceContext(IdGenerator traceIdGenerator, IdGenerator spanIdGenerator, Runnable postInit,
-                        Runnable preDestroy, Runnable preErrDestroy, String resource) {
-        this(traceIdGenerator, spanIdGenerator, postInit, preDestroy, preErrDestroy, Optional.empty(), resource);
+                        Runnable preDestroy, Runnable preErrDestroy) {
+        this(traceIdGenerator, spanIdGenerator, postInit, preDestroy, preErrDestroy, Optional.empty());
     }
 
     public TraceContext(IdGenerator idGenerator, Runnable postInit, Runnable preDestroy, Runnable preErrDestroy,
-                        boolean isClient, String resource) {
-        this(idGenerator, idGenerator, postInit, preDestroy, preErrDestroy, Optional.of(isClient), resource);
+                        boolean isClient) {
+        this(idGenerator, idGenerator, postInit, preDestroy, preErrDestroy, Optional.of(isClient));
     }
 
     private TraceContext(IdGenerator traceIdGenerator, IdGenerator spanIdGenerator, Runnable postInit,
-                         Runnable preDestroy, Runnable preErrDestroy, Optional<Boolean> isClient, String resource) {
+                         Runnable preDestroy, Runnable preErrDestroy, Optional<Boolean> isClient) {
         this.traceIdGenerator = traceIdGenerator;
         this.spanIdGenerator = spanIdGenerator;
         this.postInit = postInit;
@@ -66,7 +62,6 @@ public class TraceContext {
             this.isAuto = true;
             this.isClient = false;
         }
-        this.resource = resource;
     }
 
     public static TraceData getCurrentTraceData() {
@@ -82,14 +77,14 @@ public class TraceContext {
     }
 
     public static TraceData initNewServiceTrace(TraceData traceData, IdGenerator traceIdGenerator,
-                                                IdGenerator spanIdGenerator, String resource) {
-        return initServiceTraceData(traceData, traceIdGenerator, spanIdGenerator, resource);
+                                                IdGenerator spanIdGenerator) {
+        return initServiceTraceData(traceData, traceIdGenerator, spanIdGenerator);
     }
 
     public static TraceData initServiceTraceData(TraceData traceData, IdGenerator traceIdGenerator,
-                                                 IdGenerator spanIdGenerator, String resource) {
+                                                 IdGenerator spanIdGenerator) {
         if ((traceData.isRoot())) {
-            initSpan(traceIdGenerator, spanIdGenerator, traceData, false, resource);
+            initSpan(traceIdGenerator, spanIdGenerator, traceData, false);
         }
         return traceData;
     }
@@ -104,34 +99,34 @@ public class TraceContext {
         }
     }
 
-    public static TraceContext forClient(IdGenerator idGenerator, String otelResource) {
-        return new TraceContext(idGenerator, otelResource);
+    public static TraceContext forClient(IdGenerator idGenerator) {
+        return new TraceContext(idGenerator);
     }
 
     public static TraceContext forClient(IdGenerator idGenerator, Runnable postInit, Runnable preDestroy,
-                                         Runnable preErrDestroy, String otelResource) {
-        return new TraceContext(idGenerator, postInit, preDestroy, preErrDestroy, otelResource);
+                                         Runnable preErrDestroy) {
+        return new TraceContext(idGenerator, postInit, preDestroy, preErrDestroy);
     }
 
-    public static TraceContext forService(String otelResource) {
-        return new TraceContext(null, otelResource);
+    public static TraceContext forService() {
+        return new TraceContext(null);
     }
 
-    public static TraceContext forService(Runnable postInit, Runnable preDestroy, Runnable preErrDestroy,
-                                          String otelResource) {
-        return new TraceContext(null, postInit, preDestroy, preErrDestroy, otelResource);
+    public static TraceContext forService(Runnable postInit, Runnable preDestroy, Runnable preErrDestroy) {
+        return new TraceContext(null, postInit, preDestroy, preErrDestroy);
     }
 
-    private static TraceData createNewTraceData(TraceData oldTraceData, String resource) {
-        return new TraceData(oldTraceData, true, resource);
+    private static TraceData createNewTraceData(TraceData oldTraceData) {
+        return new TraceData(oldTraceData, true);
     }
 
     private static TraceData initSpan(IdGenerator traceIdGenerator, IdGenerator spanIdGenerator, TraceData traceData,
-                                      boolean isClient, String resource) {
+                                      boolean isClient) {
         Span clientSpan = traceData.getClientSpan().getSpan();
         Span serviceSpan = traceData.getServiceSpan().getSpan();
         Span initSpan = isClient ? clientSpan : serviceSpan;
-        traceData.setOtelSpan(OpenTelemetrySupport.getTracer().spanBuilder(OTEL_SPAN)
+        traceData.setOtelSpan(GlobalOpenTelemetry.getTracer(TraceData.class.getName())
+                .spanBuilder(OTEL_SPAN)
                 .startSpan());
         boolean root = traceData.isRoot();
         String traceId = root ? traceIdGenerator.generateId() : serviceSpan.getTraceId();
@@ -213,8 +208,8 @@ public class TraceContext {
 
     private TraceData initClientContext(TraceData traceData) {
         savedTraceData.set(traceData);
-        traceData = createNewTraceData(traceData, this.resource);
-        initSpan(traceIdGenerator, spanIdGenerator, traceData, true, this.resource);
+        traceData = createNewTraceData(traceData);
+        initSpan(traceIdGenerator, spanIdGenerator, traceData, true);
         return traceData;
     }
 

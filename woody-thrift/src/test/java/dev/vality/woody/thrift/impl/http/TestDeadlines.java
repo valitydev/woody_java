@@ -125,7 +125,7 @@ public class TestDeadlines extends AbstractTest {
             OwnerServiceSrv.Iface client =
                     createThriftRPCClient(OwnerServiceSrv.Iface.class, getUrlString("/check_deadline_header"));
             return client.getIntValue();
-        }, null).call();
+        }).call();
     }
 
     @Test
@@ -159,7 +159,7 @@ public class TestDeadlines extends AbstractTest {
         new WFlow().createServiceFork(() -> {
             ContextUtils.setDeadline(deadline);
             return client.getIntValue();
-        }, null).call();
+        }).call();
     }
 
     @Test
@@ -191,7 +191,7 @@ public class TestDeadlines extends AbstractTest {
             new WFlow().createServiceFork(() -> {
                 ContextUtils.setDeadline(deadline);
                 return client.getIntValue();
-            }, null).call();
+            }).call();
             fail();
         } catch (WRuntimeException ex) {
             WErrorDefinition errorDefinition = ex.getErrorDefinition();
@@ -286,7 +286,7 @@ public class TestDeadlines extends AbstractTest {
                                 ContextUtils.getDeadline(TraceContext.getCurrentTraceData().getClientSpan()),
                                 Instant.now()).abs().toMillis();
                     }
-                }, null).call();
+                }).call();
             } catch (Exception ex) {
                 throw new RuntimeException(ex);
             }
@@ -311,7 +311,7 @@ public class TestDeadlines extends AbstractTest {
             } catch (TException ex) {
                 throw new RuntimeException(ex);
             }
-        }, null).run();
+        }).run();
         new WFlow().createServiceFork(() -> {
             try {
                 ContextUtils.setDeadline(deadline);
@@ -321,7 +321,7 @@ public class TestDeadlines extends AbstractTest {
             } catch (TException ex) {
                 throw new RuntimeException(ex);
             }
-        }, null).run();
+        }).run();
     }
 
 }

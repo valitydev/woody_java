@@ -9,8 +9,6 @@ import java.net.URI;
 public interface ClientBuilder {
     ClientBuilder withAddress(URI address);
 
-    ClientBuilder withOtelResource(String otelResource);
-
     ClientBuilder withEventListener(ClientEventListener listener);
 
     ClientBuilder withIdGenerator(IdGenerator generator);
