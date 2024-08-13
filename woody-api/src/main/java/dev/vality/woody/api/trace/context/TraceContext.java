@@ -4,6 +4,7 @@ import dev.vality.woody.api.MDCUtils;
 import dev.vality.woody.api.generator.IdGenerator;
 import dev.vality.woody.api.trace.Span;
 import dev.vality.woody.api.trace.TraceData;
+import dev.vality.woody.api.trace.utils.OpenTelemetrySupport;
 import io.opentelemetry.api.OpenTelemetry;
 
 import java.util.Optional;
@@ -130,8 +131,7 @@ public class TraceContext {
         Span clientSpan = traceData.getClientSpan().getSpan();
         Span serviceSpan = traceData.getServiceSpan().getSpan();
         Span initSpan = isClient ? clientSpan : serviceSpan;
-        OpenTelemetry openTelemetry = new OtelConfiguration(resource).initOpenTelemetry();
-        traceData.setOtelSpan(openTelemetry.getTracer(TraceContext.class.getName()).spanBuilder(OTEL_SPAN)
+        traceData.setOtelSpan(OpenTelemetrySupport.getTracer().spanBuilder(OTEL_SPAN)
                 .startSpan());
         boolean root = traceData.isRoot();
         String traceId = root ? traceIdGenerator.generateId() : serviceSpan.getTraceId();
