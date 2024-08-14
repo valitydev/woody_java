@@ -47,7 +47,7 @@ public class MDCLogTest extends AbstractTest {
         SpanContext spanContext = event.getTraceData().getOtelSpan().getSpanContext();
         assertEquals(MDC.get(MDCUtils.OTEL_SPAN_ID), spanContext.getSpanId());
         assertEquals(MDC.get(MDCUtils.OTEL_TRACE_ID), spanContext.getTraceId());
-        assertEquals(MDC.get(MDCUtils.OTEL_TRACE_FLAGS), spanContext.getTraceFlags());
+        assertEquals(MDC.get(MDCUtils.OTEL_TRACE_FLAGS), spanContext.getTraceFlags().asHex());
     };
 
     ServiceEventListener serviceEventListener = (ServiceEventListener<THServiceEvent>) event -> {
@@ -64,7 +64,7 @@ public class MDCLogTest extends AbstractTest {
         SpanContext spanContext = event.getTraceData().getOtelSpan().getSpanContext();
         assertEquals(MDC.get(MDCUtils.OTEL_SPAN_ID), spanContext.getSpanId());
         assertEquals(MDC.get(MDCUtils.OTEL_TRACE_ID), spanContext.getTraceId());
-        assertEquals(MDC.get(MDCUtils.OTEL_TRACE_FLAGS), spanContext.getTraceFlags());
+        assertEquals(MDC.get(MDCUtils.OTEL_TRACE_FLAGS), spanContext.getTraceFlags().asHex());
     };
 
     OwnerServiceSrv.Iface client1 = createThriftRPCClient(OwnerServiceSrv.Iface.class, new TimestampIdGenerator(),
