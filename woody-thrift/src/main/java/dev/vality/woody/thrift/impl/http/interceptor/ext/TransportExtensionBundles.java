@@ -133,16 +133,7 @@ public class TransportExtensionBundles {
                                 new SimpleEntry<>(THttpHeader.SPAN_ID, span::setId),
                                 new SimpleEntry<>(THttpHeader.TRACE_PARENT, (t) -> {
                                     reqSCtx.getTraceData().setOtelSpan(
-                                            GlobalOpenTelemetry.getTracer(TraceData.class.getName())
-                                                    .spanBuilder(OTEL_SPAN)
-                                                    .setParent(Context.current().with(
-                                                            io.opentelemetry.api.trace.Span.wrap(
-                                                                    SpanContext.createFromRemoteParent(
-                                                                            TraceParentUtils.parseTraceId(t),
-                                                                            TraceParentUtils.parseSpanId(t),
-                                                                            TraceFlags.getDefault(),
-                                                                            TraceState.builder().build()))))
-                                                    .startSpan()
+                                            initSpan(t)
                                     );
                                 })
                         );
@@ -158,6 +149,22 @@ public class TransportExtensionBundles {
                                 spanContext.getSpanId(), spanContext.getTraceFlags().asHex()));
                 respSCtx.setResponseHeader(THttpHeader.SPAN_ID.getKey(), span.getId());
             }));
+
+    private static io.opentelemetry.api.trace.Span initSpan(String t) {
+        io.opentelemetry.api.trace.Span span = GlobalOpenTelemetry.getTracer(TraceData.class.getName())
+                .spanBuilder(OTEL_SPAN)
+                .setParent(Context.current().with(
+                        io.opentelemetry.api.trace.Span.wrap(
+                                SpanContext.createFromRemoteParent(
+                                        TraceParentUtils.parseTraceId(t),
+                                        TraceParentUtils.parseSpanId(t),
+                                        TraceFlags.getDefault(),
+                                        TraceState.builder().build()))))
+                .startSpan();
+        span.makeCurrent();
+        return span;
+    }
+
     public static final ExtensionBundle TRANSPORT_STATE_MAPPING_BUNDLE = createExtBundle(createCtxBundle(reqCCtx -> {
     }, (InterceptorExtension<THCExtensionContext>) respCCtx -> {
         int status = respCCtx.getResponseStatus();

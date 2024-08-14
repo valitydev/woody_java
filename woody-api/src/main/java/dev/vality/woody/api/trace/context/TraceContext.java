@@ -4,11 +4,8 @@ import dev.vality.woody.api.MDCUtils;
 import dev.vality.woody.api.generator.IdGenerator;
 import dev.vality.woody.api.trace.Span;
 import dev.vality.woody.api.trace.TraceData;
-import io.opentelemetry.api.GlobalOpenTelemetry;
 
 import java.util.Optional;
-
-import static dev.vality.woody.api.trace.TraceData.OTEL_SPAN;
 
 public class TraceContext {
     public static final String NO_PARENT_ID = "undefined";
@@ -190,7 +187,7 @@ public class TraceContext {
             } else {
                 MDCUtils.removeSpanData();
             }
-
+            traceData.getOtelSpan().end();
         }
     }
 

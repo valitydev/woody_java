@@ -21,13 +21,7 @@ public class TraceData {
         this.serviceSpan = new ServiceSpan();
         this.otelSpan = GlobalOpenTelemetry.getTracer(TraceData.class.getName()).spanBuilder(OTEL_SPAN)
                 .startSpan();
-    }
-
-    public TraceData(String resource) {
-        this.clientSpan = new ClientSpan();
-        this.serviceSpan = new ServiceSpan();
-        this.otelSpan = GlobalOpenTelemetry.getTracer(TraceData.class.getName()).spanBuilder(OTEL_SPAN)
-                .startSpan();
+        this.otelSpan.makeCurrent();
     }
 
     public TraceData(TraceData oldTraceData) {
@@ -41,6 +35,7 @@ public class TraceData {
         this.serviceSpan = oldTraceData.serviceSpan.cloneObject();
         this.otelSpan = GlobalOpenTelemetry.getTracer(TraceData.class.getName()).spanBuilder(OTEL_CHILD)
                 .startSpan();
+        this.otelSpan.makeCurrent();
     }
 
     public TraceData(TraceData oldTraceData, boolean copyCustomServiceMetadata, String resource) {
@@ -50,6 +45,7 @@ public class TraceData {
         this.serviceSpan = oldTraceData.serviceSpan.cloneObject();
         this.otelSpan = GlobalOpenTelemetry.getTracer(TraceData.class.getName()).spanBuilder(OTEL_CHILD)
                 .startSpan();
+        this.otelSpan.makeCurrent();
     }
 
     public ClientSpan getClientSpan() {
