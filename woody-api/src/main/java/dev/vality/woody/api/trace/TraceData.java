@@ -1,14 +1,27 @@
 package dev.vality.woody.api.trace;
 
 import dev.vality.woody.api.trace.context.TraceContext;
+import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.api.trace.Span;
 
 public class TraceData {
+    public static final String OTEL_CHILD = "otel child";
+    public static final String OTEL_SPAN = "otel span";
     private final ClientSpan clientSpan;
     private final ServiceSpan serviceSpan;
+
+    public void setOtelSpan(Span otelSpan) {
+        this.otelSpan = otelSpan;
+    }
+
+    private Span otelSpan;
 
     public TraceData() {
         this.clientSpan = new ClientSpan();
         this.serviceSpan = new ServiceSpan();
+        this.otelSpan = GlobalOpenTelemetry.getTracer(TraceData.class.getName()).spanBuilder(OTEL_SPAN)
+                .startSpan();
+        this.otelSpan.makeCurrent();
     }
 
     public TraceData(TraceData oldTraceData) {
@@ -20,6 +33,19 @@ public class TraceData {
                 ? new ClientSpan(oldTraceData.clientSpan, oldTraceData.serviceSpan.customMetadata) :
                 oldTraceData.clientSpan.cloneObject();
         this.serviceSpan = oldTraceData.serviceSpan.cloneObject();
+        this.otelSpan = GlobalOpenTelemetry.getTracer(TraceData.class.getName()).spanBuilder(OTEL_CHILD)
+                .startSpan();
+        this.otelSpan.makeCurrent();
+    }
+
+    public TraceData(TraceData oldTraceData, boolean copyCustomServiceMetadata, String resource) {
+        this.clientSpan = copyCustomServiceMetadata
+                ? new ClientSpan(oldTraceData.clientSpan, oldTraceData.serviceSpan.customMetadata) :
+                oldTraceData.clientSpan.cloneObject();
+        this.serviceSpan = oldTraceData.serviceSpan.cloneObject();
+        this.otelSpan = GlobalOpenTelemetry.getTracer(TraceData.class.getName()).spanBuilder(OTEL_CHILD)
+                .startSpan();
+        this.otelSpan.makeCurrent();
     }
 
     public ClientSpan getClientSpan() {
@@ -28,6 +54,10 @@ public class TraceData {
 
     public ServiceSpan getServiceSpan() {
         return serviceSpan;
+    }
+
+    public Span getOtelSpan() {
+        return otelSpan;
     }
 
     /**
@@ -87,6 +117,7 @@ public class TraceData {
     public void reset() {
         clientSpan.reset();
         serviceSpan.reset();
+        otelSpan.end();
     }
 
     public TraceData cloneObject() {

@@ -119,13 +119,9 @@ public class TraceContext {
 
     private static TraceData initSpan(IdGenerator traceIdGenerator, IdGenerator spanIdGenerator, TraceData traceData,
                                       boolean isClient) {
-
-        long timestamp = System.currentTimeMillis();
         Span clientSpan = traceData.getClientSpan().getSpan();
         Span serviceSpan = traceData.getServiceSpan().getSpan();
-
         Span initSpan = isClient ? clientSpan : serviceSpan;
-
         boolean root = traceData.isRoot();
         String traceId = root ? traceIdGenerator.generateId() : serviceSpan.getTraceId();
         if (root) {
@@ -139,6 +135,7 @@ public class TraceContext {
             }
         }
         initSpan.setTraceId(traceId);
+        long timestamp = System.currentTimeMillis();
         initTime(initSpan, timestamp);
         return traceData;
     }
@@ -158,7 +155,7 @@ public class TraceContext {
             traceData = initServiceContext(traceData);
         }
         setCurrentTraceData(traceData);
-        MDCUtils.putSpanData(traceData.getActiveSpan().getSpan());
+        MDCUtils.putSpanData(traceData.getActiveSpan().getSpan(), traceData.getOtelSpan());
 
         postInit.run();
     }
@@ -186,11 +183,11 @@ public class TraceContext {
             setCurrentTraceData(traceData);
 
             if (traceData.getServiceSpan().isFilled()) {
-                MDCUtils.putSpanData(traceData.getServiceSpan().getSpan());
+                MDCUtils.putSpanData(traceData.getServiceSpan().getSpan(), traceData.getOtelSpan());
             } else {
                 MDCUtils.removeSpanData();
             }
-
+            traceData.getOtelSpan().end();
         }
     }
 

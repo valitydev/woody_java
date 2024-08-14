@@ -1,6 +1,11 @@
 package dev.vality.woody.api.trace;
 
+import io.opentelemetry.api.trace.SpanKind;
+import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.api.OpenTelemetry;
+
 public class ContextSpan {
+
     protected final Span span;
     protected final Metadata metadata;
     protected final Metadata customMetadata;

@@ -5,6 +5,7 @@ import dev.vality.woody.api.event.ServiceEventListener;
 import dev.vality.woody.api.proxy.ProxyFactory;
 import dev.vality.woody.api.proxy.SingleTargetProvider;
 import dev.vality.woody.api.proxy.tracer.*;
+import io.opentelemetry.sdk.resources.Resource;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -15,6 +16,8 @@ public abstract class AbstractServiceBuilder<Srv> implements ServiceBuilder<Srv>
     private boolean allowObjectProxyOverriding = false;
 
     private ServiceEventListener eventListener = DEFAULT_EVENT_LISTENER;
+
+
     private final AtomicBoolean used = new AtomicBoolean(false);
 
     @Override
@@ -54,7 +57,7 @@ public abstract class AbstractServiceBuilder<Srv> implements ServiceBuilder<Srv>
                 new EventTracer(getOnCallStartEventListener(),
                         getOnCallEndEventListener(),
                         getErrorListener()
-                        ));
+                ));
     }
 
     public void setAllowObjectProxyOverriding(boolean allowObjectProxyOverriding) {

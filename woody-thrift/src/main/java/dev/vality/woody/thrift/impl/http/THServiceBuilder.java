@@ -1,6 +1,7 @@
 package dev.vality.woody.thrift.impl.http;
 
 import dev.vality.woody.api.AbstractServiceBuilder;
+import dev.vality.woody.api.ServiceBuilder;
 import dev.vality.woody.api.event.CompositeServiceEventListener;
 import dev.vality.woody.api.event.ServiceEventListener;
 import dev.vality.woody.api.flow.error.WErrorDefinition;
@@ -18,6 +19,7 @@ import dev.vality.woody.thrift.impl.http.event.THServiceEvent;
 import dev.vality.woody.thrift.impl.http.interceptor.THMessageInterceptor;
 import dev.vality.woody.thrift.impl.http.interceptor.THTransportInterceptor;
 import dev.vality.woody.thrift.impl.http.interceptor.ext.MetadataExtensionBundle;
+import io.opentelemetry.sdk.resources.Resource;
 import org.apache.thrift.TProcessor;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocolFactory;

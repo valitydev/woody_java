@@ -12,6 +12,7 @@ import dev.vality.woody.rpc.test_error;
 import dev.vality.woody.api.generator.TimestampIdGenerator;
 import dev.vality.woody.thrift.impl.http.event.THClientEvent;
 import dev.vality.woody.thrift.impl.http.event.THServiceEvent;
+import io.opentelemetry.api.trace.SpanContext;
 import org.apache.thrift.TException;
 import org.junit.Assert;
 import org.junit.Before;
@@ -36,20 +37,34 @@ public class MDCLogTest extends AbstractTest {
         assertNotNull(MDC.get(MDCUtils.SPAN_ID));
         assertNotNull(MDC.get(MDCUtils.TRACE_ID));
         assertNotNull(MDC.get(MDCUtils.PARENT_ID));
+        assertNotNull(MDC.get(MDCUtils.OTEL_SPAN_ID));
+        assertNotNull(MDC.get(MDCUtils.OTEL_TRACE_ID));
+        assertNotNull(MDC.get(MDCUtils.OTEL_TRACE_FLAGS));
 
         assertEquals(MDC.get(MDCUtils.SPAN_ID), event.getSpanId());
         assertEquals(MDC.get(MDCUtils.TRACE_ID), event.getTraceId());
         assertEquals(MDC.get(MDCUtils.PARENT_ID), event.getParentId());
+        SpanContext spanContext = event.getTraceData().getOtelSpan().getSpanContext();
+        assertEquals(MDC.get(MDCUtils.OTEL_SPAN_ID), spanContext.getSpanId());
+        assertEquals(MDC.get(MDCUtils.OTEL_TRACE_ID), spanContext.getTraceId());
+        assertEquals(MDC.get(MDCUtils.OTEL_TRACE_FLAGS), spanContext.getTraceFlags().asHex());
     };
 
     ServiceEventListener serviceEventListener = (ServiceEventListener<THServiceEvent>) event -> {
         assertNotNull(MDC.get(MDCUtils.SPAN_ID));
         assertNotNull(MDC.get(MDCUtils.TRACE_ID));
         assertNotNull(MDC.get(MDCUtils.PARENT_ID));
+        assertNotNull(MDC.get(MDCUtils.OTEL_SPAN_ID));
+        assertNotNull(MDC.get(MDCUtils.OTEL_TRACE_FLAGS));
+        assertNotNull(MDC.get(MDCUtils.OTEL_TRACE_ID));
 
         assertEquals(MDC.get(MDCUtils.SPAN_ID), event.getSpanId());
         assertEquals(MDC.get(MDCUtils.TRACE_ID), event.getTraceId());
         assertEquals(MDC.get(MDCUtils.PARENT_ID), event.getParentId());
+        SpanContext spanContext = event.getTraceData().getOtelSpan().getSpanContext();
+        assertEquals(MDC.get(MDCUtils.OTEL_SPAN_ID), spanContext.getSpanId());
+        assertEquals(MDC.get(MDCUtils.OTEL_TRACE_ID), spanContext.getTraceId());
+        assertEquals(MDC.get(MDCUtils.OTEL_TRACE_FLAGS), spanContext.getTraceFlags().asHex());
     };
 
     OwnerServiceSrv.Iface client1 = createThriftRPCClient(OwnerServiceSrv.Iface.class, new TimestampIdGenerator(),

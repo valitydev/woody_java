@@ -56,21 +56,25 @@ public class WFlow {
     }
 
     public static WRunnable createServiceFork(Runnable runnable, IdGenerator idGenerator) {
-        return create(runnable, TraceContext.initNewServiceTrace(new TraceData(), idGenerator, idGenerator));
+        return create(runnable,
+                TraceContext.initNewServiceTrace(new TraceData(), idGenerator, idGenerator));
     }
 
     public static WRunnable createServiceFork(Runnable runnable, IdGenerator traceIdGenerator,
                                               IdGenerator spanIdGenerator) {
-        return create(runnable, TraceContext.initNewServiceTrace(new TraceData(), traceIdGenerator, spanIdGenerator));
+        return create(runnable,
+                TraceContext.initNewServiceTrace(new TraceData(), traceIdGenerator, spanIdGenerator));
     }
 
     public static <T> WCallable<T> createServiceFork(Callable<T> callable, IdGenerator idGenerator) {
-        return create(callable, TraceContext.initNewServiceTrace(new TraceData(), idGenerator, idGenerator));
+        return create(callable,
+                TraceContext.initNewServiceTrace(new TraceData(), idGenerator, idGenerator));
     }
 
     public static <T> WCallable<T> createServiceFork(Callable<T> callable, IdGenerator traceIdGenerator,
                                                      IdGenerator spanIdGenerator) {
-        return create(callable, TraceContext.initNewServiceTrace(new TraceData(), traceIdGenerator, spanIdGenerator));
+        return create(callable,
+                TraceContext.initNewServiceTrace(new TraceData(), traceIdGenerator, spanIdGenerator));
     }
 
     public WRunnable createServiceFork(Runnable runnable) {

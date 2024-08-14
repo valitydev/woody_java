@@ -2,6 +2,7 @@ package dev.vality.woody.api;
 
 import dev.vality.woody.api.event.ClientEventListener;
 import dev.vality.woody.api.generator.IdGenerator;
+import io.opentelemetry.sdk.resources.Resource;
 
 import java.net.URI;
 

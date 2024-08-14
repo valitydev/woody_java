@@ -15,21 +15,16 @@ import dev.vality.woody.rpc.Owner;
 import dev.vality.woody.rpc.OwnerServiceSrv;
 import dev.vality.woody.rpc.test_error;
 import dev.vality.woody.thrift.impl.http.transport.THttpHeader;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
-import org.apache.hc.core5.http.EntityDetails;
-import org.apache.hc.core5.http.HttpException;
-import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.HttpRequestInterceptor;
-import org.apache.hc.core5.http.protocol.HttpContext;
-import org.apache.thrift.TException;
-import org.junit.Test;
-
 import jakarta.servlet.Servlet;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.thrift.TException;
+import org.junit.Test;
+
 import java.io.IOException;
 import java.util.AbstractMap;
 import java.util.Arrays;
@@ -82,7 +77,7 @@ public class TestClientAndServerHttpHeaders extends AbstractTest {
             protected void doPost(HttpServletRequest request, HttpServletResponse response)
                     throws ServletException, IOException {
                 for (THttpHeader tHttpHeader : Arrays.asList(THttpHeader.SPAN_ID, THttpHeader.TRACE_ID,
-                        THttpHeader.PARENT_ID)) {
+                        THttpHeader.PARENT_ID, THttpHeader.TRACE_PARENT)) {
                     assertNotNull(request.getHeader(tHttpHeader.getKey()));
                 }
                 writeResultMessage(request, response);
@@ -172,6 +167,7 @@ public class TestClientAndServerHttpHeaders extends AbstractTest {
                     httpRequest.removeHeader(httpRequest.getFirstHeader(THttpHeader.SPAN_ID.getKey()));
                     httpRequest.removeHeader(httpRequest.getFirstHeader(THttpHeader.TRACE_ID.getKey()));
                     httpRequest.removeHeader(httpRequest.getFirstHeader(THttpHeader.PARENT_ID.getKey()));
+                    httpRequest.removeHeader(httpRequest.getFirstHeader(THttpHeader.TRACE_PARENT.getKey()));
                 }).build();
 
         OwnerServiceSrv.Iface client =

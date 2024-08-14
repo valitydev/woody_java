@@ -28,6 +28,7 @@ import java.util.Arrays;
 import static org.junit.Assert.*;
 
 public class TestCustomMetadataExtension extends AbstractTest {
+
     OwnerServiceSrv.Iface rpcMetaClientToMetaSrv =
             createThriftRPCClient(OwnerServiceSrv.Iface.class, new TimestampIdGenerator(),
                     new CompositeClientEventListener(), Arrays.asList(IntExtension.instance),

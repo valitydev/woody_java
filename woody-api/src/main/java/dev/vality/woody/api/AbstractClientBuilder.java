@@ -12,6 +12,7 @@ import dev.vality.woody.api.proxy.SingleTargetProvider;
 import dev.vality.woody.api.trace.ContextSpan;
 import dev.vality.woody.api.proxy.tracer.*;
 import dev.vality.woody.api.trace.context.TraceContext;
+import io.opentelemetry.sdk.resources.Resource;
 
 import java.net.URI;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -26,7 +27,6 @@ public abstract class AbstractClientBuilder implements ClientBuilder {
     private ClientEventListener eventListener = DEFAULT_EVENT_LISTENER;
     private boolean allowObjectProxyOverriding = false;
     private final AtomicBoolean used = new AtomicBoolean(false);
-
 
     public ClientBuilder withNetworkTimeout(int timeout) {
         this.networkTimeout = timeout;

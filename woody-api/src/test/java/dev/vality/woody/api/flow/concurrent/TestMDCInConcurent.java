@@ -4,6 +4,7 @@ import dev.vality.woody.api.MDCUtils;
 import dev.vality.woody.api.trace.Span;
 import dev.vality.woody.api.trace.TraceData;
 import dev.vality.woody.api.trace.context.TraceContext;
+import io.opentelemetry.api.trace.SpanContext;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,23 +26,33 @@ public class TestMDCInConcurent {
     Runnable runnable = () -> {
         try {
             Span span = TraceContext.getCurrentTraceData().getActiveSpan().getSpan();
-            log.info("Runnable {} {} {}", span.getId(), span.getParentId(), span.getTraceId());
+            io.opentelemetry.api.trace.Span otelSpan = TraceContext.getCurrentTraceData().getOtelSpan();
+            SpanContext spanContext = otelSpan.getSpanContext();
+            log.info("Runnable {} {} {} {} {}", span.getId(), span.getParentId(), span.getTraceId(),
+                    spanContext.getSpanId(), spanContext.getTraceId());
             assertEquals(MDC.get(MDCUtils.SPAN_ID), span.getId());
             assertEquals(MDC.get(MDCUtils.TRACE_ID), span.getTraceId());
             assertEquals(MDC.get(MDCUtils.PARENT_ID), span.getParentId());
+            assertEquals(MDC.get(MDCUtils.OTEL_SPAN_ID), spanContext.getSpanId());
+            assertEquals(MDC.get(MDCUtils.OTEL_TRACE_ID), spanContext.getTraceId());
         } catch (Throwable t) {
-            t.printStackTrace();
+            log.error("Error: ", t);
         }
     };
     Callable callable = () -> {
         try {
             Span span = TraceContext.getCurrentTraceData().getActiveSpan().getSpan();
-            log.info("Callable {} {} {}", span.getId(), span.getParentId(), span.getTraceId());
+            io.opentelemetry.api.trace.Span otelSpan = TraceContext.getCurrentTraceData().getOtelSpan();
+            SpanContext spanContext = otelSpan.getSpanContext();
+            log.info("Callable {} {} {} {} {}", span.getId(), span.getParentId(), span.getTraceId(),
+                    spanContext.getSpanId(), spanContext.getTraceId());
             assertEquals(MDC.get(MDCUtils.SPAN_ID), span.getId());
             assertEquals(MDC.get(MDCUtils.TRACE_ID), span.getTraceId());
             assertEquals(MDC.get(MDCUtils.PARENT_ID), span.getParentId());
+            assertEquals(MDC.get(MDCUtils.OTEL_TRACE_ID), spanContext.getTraceId());
+            assertEquals(MDC.get(MDCUtils.OTEL_SPAN_ID), spanContext.getSpanId());
         } catch (Throwable t) {
-            t.printStackTrace();
+            log.error("Error: ", t);
         }
         return null;
     };
