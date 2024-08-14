@@ -5,6 +5,7 @@ on:
     branches:
       - 'master'
       - 'main'
+
 jobs:
   deploy:
     uses: valitydev/java-workflow/.github/workflows/maven-library-deploy.yml@v2
