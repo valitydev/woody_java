@@ -45,6 +45,7 @@ public class MDCUtils {
         MDC.remove(TRACE_ID);
         MDC.remove(OTEL_TRACE_ID);
         MDC.remove(OTEL_SPAN_ID);
+        MDC.remove(OTEL_TRACE_FLAGS);
         MDC.remove(DEADLINE);
     }
 
