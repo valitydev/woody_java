@@ -109,7 +109,7 @@ public class TraceData {
      * initialization
      *
      * @return true - if call is running as root client or child client call for server request handling;
-     * false - if call is running in server request handing
+     *         false - if call is running in server request handing
      */
     public boolean isClient() {
         return !serviceSpan.isFilled() || clientSpan.isFilled();
