@@ -3,10 +3,12 @@ package dev.vality.woody.api.trace;
 import dev.vality.woody.api.trace.context.TraceContext;
 import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.SpanKind;
 
 public class TraceData {
-    public static final String OTEL_CHILD = "otel child";
-    public static final String OTEL_SPAN = "otel span";
+    public static final String OTEL_SERVER = "server";
+    public static final String OTEL_CLIENT = "client";
+    public static final String WOODY = "woody";
     private final ClientSpan clientSpan;
     private final ServiceSpan serviceSpan;
 
@@ -19,7 +21,9 @@ public class TraceData {
     public TraceData() {
         this.clientSpan = new ClientSpan();
         this.serviceSpan = new ServiceSpan();
-        this.otelSpan = GlobalOpenTelemetry.getTracer(TraceData.class.getName()).spanBuilder(OTEL_SPAN)
+        this.otelSpan = GlobalOpenTelemetry.getTracer(WOODY)
+                .spanBuilder(OTEL_CLIENT)
+                .setSpanKind(SpanKind.CLIENT)
                 .startSpan();
         this.otelSpan.makeCurrent();
     }
@@ -33,7 +37,10 @@ public class TraceData {
                 ? new ClientSpan(oldTraceData.clientSpan, oldTraceData.serviceSpan.customMetadata) :
                 oldTraceData.clientSpan.cloneObject();
         this.serviceSpan = oldTraceData.serviceSpan.cloneObject();
-        this.otelSpan = GlobalOpenTelemetry.getTracer(TraceData.class.getName()).spanBuilder(OTEL_CHILD)
+        this.otelSpan = GlobalOpenTelemetry
+                .getTracer(WOODY)
+                .spanBuilder(OTEL_SERVER)
+                .setSpanKind(SpanKind.CLIENT)
                 .startSpan();
         this.otelSpan.makeCurrent();
     }
@@ -43,7 +50,9 @@ public class TraceData {
                 ? new ClientSpan(oldTraceData.clientSpan, oldTraceData.serviceSpan.customMetadata) :
                 oldTraceData.clientSpan.cloneObject();
         this.serviceSpan = oldTraceData.serviceSpan.cloneObject();
-        this.otelSpan = GlobalOpenTelemetry.getTracer(TraceData.class.getName()).spanBuilder(OTEL_CHILD)
+        this.otelSpan = GlobalOpenTelemetry.getTracer(WOODY)
+                .spanBuilder(OTEL_SERVER)
+                .setSpanKind(SpanKind.CLIENT)
                 .startSpan();
         this.otelSpan.makeCurrent();
     }
@@ -63,11 +72,11 @@ public class TraceData {
     /**
      * Checks if {@link ServiceSpan} is filled to determine root:
      * - request initialized by server: span must be filled by server with data referred from client:
-     *      has filled server span, it's not root by default -> false
+     * has filled server span, it's not root by default -> false
      * - request initialized by client, produced by any server request handling event:
-     *      has filled server span, it's not root -> false
+     * has filled server span, it's not root -> false
      * - request initialized by client, not produced by any server request handling event:
-     *      server span not filled, it's root -> true
+     * server span not filled, it's root -> true
      *
      * @return true - if root call is running; false - otherwise
      */
@@ -78,7 +87,7 @@ public class TraceData {
     /**
      * Checks combination of client and server spans to determine current state:
      * Consider this states scheme (S - server span, C - client span; 1 - if it's set,
-     *      0 - if not set, determined by checking traceId existence in corresponding span):
+     * 0 - if not set, determined by checking traceId existence in corresponding span):
      * <p>
      * S | C
      * -----
@@ -88,19 +97,19 @@ public class TraceData {
      * 1 | 1
      * <p>
      * 0,0 and 0,1 combinations don't have server span and context in the state can't be server by default
-     *      (no server span is set) - it's client state -> true
+     * (no server span is set) - it's client state -> true
      * 1,0 means that server span is created and no client span exists - it's server state -> false
      * 1,1 means that both spans exist and child client call is active now because for any client request client span
-     *      is cleared after call completion, so after child call state returns to (1,0)
-     *      case - (1,1) is child client state -> true
+     * is cleared after call completion, so after child call state returns to (1,0)
+     * case - (1,1) is child client state -> true
      * <p>
      * This allows to eliminate the necessity for call processing code to be explicitly configured with expected
-     *      call state. This can be figured out directly from the context in runtime.
+     * call state. This can be figured out directly from the context in runtime.
      * The only exclusion is {@link TraceContext} itself. It uses already filled trace id field for server state
-     *      initialization
+     * initialization
      *
      * @return true - if call is running as root client or child client call for server request handling;
-     *      false - if call is running in server request handing
+     *         false - if call is running in server request handing
      */
     public boolean isClient() {
         return !serviceSpan.isFilled() || clientSpan.isFilled();
