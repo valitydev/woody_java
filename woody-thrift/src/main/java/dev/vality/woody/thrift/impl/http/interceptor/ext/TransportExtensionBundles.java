@@ -158,7 +158,7 @@ public class TransportExtensionBundles {
                                 SpanContext.createFromRemoteParent(
                                         TraceParentUtils.parseTraceId(t),
                                         TraceParentUtils.parseSpanId(t),
-                                        TraceFlags.getDefault(),
+                                        TraceFlags.getSampled(),
                                         TraceState.builder().build()))))
                 .startSpan();
         span.makeCurrent();
