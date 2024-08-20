@@ -15,6 +15,7 @@ import dev.vality.woody.thrift.impl.http.transport.TTransportErrorType;
 import dev.vality.woody.thrift.impl.http.transport.UrlStringEndpoint;
 import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.trace.SpanContext;
+import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.TraceFlags;
 import io.opentelemetry.api.trace.TraceState;
 import io.opentelemetry.context.Context;
@@ -34,7 +35,8 @@ import java.util.stream.Collectors;
 import static dev.vality.woody.api.interceptor.ext.ExtensionBundle.ContextBundle.createCtxBundle;
 import static dev.vality.woody.api.interceptor.ext.ExtensionBundle.createExtBundle;
 import static dev.vality.woody.api.interceptor.ext.ExtensionBundle.createServiceExtBundle;
-import static dev.vality.woody.api.trace.TraceData.OTEL_SPAN;
+import static dev.vality.woody.api.trace.TraceData.OTEL_CLIENT;
+import static dev.vality.woody.api.trace.TraceData.WOODY;
 import static java.util.AbstractMap.SimpleEntry;
 
 public class TransportExtensionBundles {
@@ -151,8 +153,9 @@ public class TransportExtensionBundles {
             }));
 
     private static io.opentelemetry.api.trace.Span initSpan(String t) {
-        io.opentelemetry.api.trace.Span span = GlobalOpenTelemetry.getTracer(TraceData.class.getName())
-                .spanBuilder(OTEL_SPAN)
+        return GlobalOpenTelemetry.getTracer(WOODY)
+                .spanBuilder(OTEL_CLIENT)
+                .setSpanKind(SpanKind.SERVER)
                 .setParent(Context.current().with(
                         io.opentelemetry.api.trace.Span.wrap(
                                 SpanContext.createFromRemoteParent(
@@ -161,8 +164,6 @@ public class TransportExtensionBundles {
                                         TraceFlags.getSampled(),
                                         TraceState.builder().build()))))
                 .startSpan();
-        span.makeCurrent();
-        return span;
     }
 
     public static final ExtensionBundle TRANSPORT_STATE_MAPPING_BUNDLE = createExtBundle(createCtxBundle(reqCCtx -> {
