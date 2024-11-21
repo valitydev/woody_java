@@ -121,35 +121,33 @@ public class TransportExtensionBundles {
                 reqCCtx.setRequestHeader(THttpHeader.SPAN_ID.getKey(), span.getId());
                 reqCCtx.setRequestHeader(THttpHeader.PARENT_ID.getKey(), span.getParentId());
                 io.opentelemetry.api.trace.Span otelSpan = reqCCtx.getTraceData().getOtelSpan();
-                SpanContext spanContext = otelSpan.getSpanContext();
-                reqCCtx.setRequestHeader(THttpHeader.TRACE_PARENT.getKey(),
-                        TraceParentUtils.initParentTrace(TraceParentUtils.DEFAULT_VERSION, spanContext.getTraceId(),
-                                spanContext.getSpanId(), spanContext.getTraceFlags().asHex()));
+                if (otelSpan.getSpanContext().isValid()) {
+                    reqCCtx.setRequestHeader(THttpHeader.TRACE_PARENT.getKey(), initParentTraceFromSpan(otelSpan));
+                }
             }, respCCtx -> {
             }), createCtxBundle((InterceptorExtension<THSExtensionContext>) reqSCtx -> {
                 HttpServletRequest request = reqSCtx.getProviderRequest();
                 Span span = reqSCtx.getTraceData().getServiceSpan().getSpan();
                 List<Map.Entry<THttpHeader, Consumer<String>>> headerConsumers =
-                        Arrays.asList(new SimpleEntry<>(THttpHeader.TRACE_ID, span::setTraceId),
+                        Arrays.asList(
+                                new SimpleEntry<>(THttpHeader.TRACE_ID, span::setTraceId),
                                 new SimpleEntry<>(THttpHeader.PARENT_ID, span::setParentId),
                                 new SimpleEntry<>(THttpHeader.SPAN_ID, span::setId),
-                                new SimpleEntry<>(THttpHeader.TRACE_PARENT, (t) -> {
-                                    reqSCtx.getTraceData().setOtelSpan(
-                                            initSpan(t)
-                                    );
-                                })
+                                new SimpleEntry<>(THttpHeader.TRACE_PARENT, (t) ->
+                                        reqSCtx.getTraceData().setOtelSpan(initSpan(t))
+                                )
                         );
                 validateAndProcessTraceHeaders(request, THttpHeader::getKey, headerConsumers);
             }, (InterceptorExtension<THSExtensionContext>) respSCtx -> {
                 Span span = respSCtx.getTraceData().getServiceSpan().getSpan();
-                io.opentelemetry.api.trace.Span otelSpan = respSCtx.getTraceData().getOtelSpan();
-                SpanContext spanContext = otelSpan.getSpanContext();
                 respSCtx.setResponseHeader(THttpHeader.TRACE_ID.getKey(), span.getTraceId());
                 respSCtx.setResponseHeader(THttpHeader.PARENT_ID.getKey(), span.getParentId());
-                respSCtx.setResponseHeader(THttpHeader.TRACE_PARENT.getKey(),
-                        TraceParentUtils.initParentTrace(TraceParentUtils.DEFAULT_VERSION, spanContext.getTraceId(),
-                                spanContext.getSpanId(), spanContext.getTraceFlags().asHex()));
                 respSCtx.setResponseHeader(THttpHeader.SPAN_ID.getKey(), span.getId());
+                io.opentelemetry.api.trace.Span otelSpan = respSCtx.getTraceData().getOtelSpan();
+                if (otelSpan.getSpanContext().isValid()) {
+                    respSCtx.setResponseHeader(THttpHeader.TRACE_PARENT.getKey(), initParentTraceFromSpan(otelSpan));
+                }
+
             }));
 
     private static io.opentelemetry.api.trace.Span initSpan(String t) {
@@ -164,6 +162,16 @@ public class TransportExtensionBundles {
                                         TraceFlags.getSampled(),
                                         TraceState.builder().build()))))
                 .startSpan();
+    }
+
+    private static String initParentTraceFromSpan(io.opentelemetry.api.trace.Span otelSpan) {
+        SpanContext spanContext = otelSpan.getSpanContext();
+        return TraceParentUtils.initParentTrace(
+                TraceParentUtils.DEFAULT_VERSION,
+                spanContext.getTraceId(),
+                spanContext.getSpanId(),
+                spanContext.getTraceFlags().asHex()
+        );
     }
 
     public static final ExtensionBundle TRANSPORT_STATE_MAPPING_BUNDLE = createExtBundle(createCtxBundle(reqCCtx -> {
@@ -244,7 +252,7 @@ public class TransportExtensionBundles {
         List<String> missingHeaders = headerConsumers.stream().filter(entry -> {
             String id = Optional.ofNullable(request.getHeader(getHeaderKeyFunction.apply(entry.getKey()))).orElse("");
             entry.getValue().accept(id);
-            return id.isEmpty();
+            return id.isEmpty() && !entry.getKey().isOptional();
         }).map(entry -> getHeaderKeyFunction.apply(entry.getKey())).collect(Collectors.toList());
 
         if (!missingHeaders.isEmpty()) {
@@ -254,7 +262,6 @@ public class TransportExtensionBundles {
     }
 
     private static void printHeader(HttpServletRequest request) {
-        Enumeration<String> headerNames = request.getHeaderNames();
         Map<String, List<String>> headersMap = Collections.list(request.getHeaderNames()).stream().collect(
                 Collectors.toMap(Function.identity(), headerName -> Collections.list(request.getHeaders(headerName))));
         log.debug("Request headers: {}", headersMap);
