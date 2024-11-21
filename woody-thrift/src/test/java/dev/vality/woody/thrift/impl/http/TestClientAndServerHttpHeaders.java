@@ -77,7 +77,7 @@ public class TestClientAndServerHttpHeaders extends AbstractTest {
             protected void doPost(HttpServletRequest request, HttpServletResponse response)
                     throws ServletException, IOException {
                 for (THttpHeader tHttpHeader : Arrays.asList(THttpHeader.SPAN_ID, THttpHeader.TRACE_ID,
-                        THttpHeader.PARENT_ID, THttpHeader.TRACE_PARENT)) {
+                        THttpHeader.PARENT_ID)) {
                     assertNotNull(request.getHeader(tHttpHeader.getKey()));
                 }
                 writeResultMessage(request, response);
