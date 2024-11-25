@@ -1,23 +1,28 @@
 package dev.vality.woody.thrift.impl.http.transport;
 
 public enum THttpHeader {
-    TRACE_ID("woody.trace-id"),
-    SPAN_ID("woody.span-id"),
-    TRACE_PARENT("traceparent"),
-    PARENT_ID("woody.parent-id"),
-    DEADLINE("woody.deadline"),
-    ERROR_CLASS("woody.error-class"),
-    ERROR_REASON("woody.error-reason"),
-    META("woody.meta.");
+    TRACE_ID("woody.trace-id", false),
+    SPAN_ID("woody.span-id", false),
+    TRACE_PARENT("traceparent", true),
+    PARENT_ID("woody.parent-id", false),
+    DEADLINE("woody.deadline", false),
+    ERROR_CLASS("woody.error-class", false),
+    ERROR_REASON("woody.error-reason", false),
+    META("woody.meta.", false);
 
-    private String key;
+    private final String key;
+    private final boolean optional;
 
-    THttpHeader(String key) {
+    THttpHeader(String key, boolean optional) {
         this.key = key;
+        this.optional = optional;
     }
 
     public String getKey() {
         return key;
     }
 
+    public boolean isOptional() {
+        return optional;
+    }
 }

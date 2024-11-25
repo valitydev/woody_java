@@ -77,7 +77,7 @@ public class TestClientAndServerHttpHeaders extends AbstractTest {
             protected void doPost(HttpServletRequest request, HttpServletResponse response)
                     throws ServletException, IOException {
                 for (THttpHeader tHttpHeader : Arrays.asList(THttpHeader.SPAN_ID, THttpHeader.TRACE_ID,
-                        THttpHeader.PARENT_ID, THttpHeader.TRACE_PARENT)) {
+                        THttpHeader.PARENT_ID)) {
                     assertNotNull(request.getHeader(tHttpHeader.getKey()));
                 }
                 writeResultMessage(request, response);
@@ -167,7 +167,6 @@ public class TestClientAndServerHttpHeaders extends AbstractTest {
                     httpRequest.removeHeader(httpRequest.getFirstHeader(THttpHeader.SPAN_ID.getKey()));
                     httpRequest.removeHeader(httpRequest.getFirstHeader(THttpHeader.TRACE_ID.getKey()));
                     httpRequest.removeHeader(httpRequest.getFirstHeader(THttpHeader.PARENT_ID.getKey()));
-                    httpRequest.removeHeader(httpRequest.getFirstHeader(THttpHeader.TRACE_PARENT.getKey()));
                 }).build();
 
         OwnerServiceSrv.Iface client =
@@ -182,6 +181,69 @@ public class TestClientAndServerHttpHeaders extends AbstractTest {
             assertEquals(WErrorSource.INTERNAL, errorDefinition.getErrorSource());
             assertEquals("Bad Request", errorDefinition.getErrorMessage());
         }
+    }
+
+    @Test
+    public void testTraceDataOtel() throws TException {
+        addServlet(testServlet, servletContextPath);
+        CloseableHttpClient httpClient =
+                HttpClients.custom().addRequestInterceptorFirst((httpRequest, entityDetails, httpContext) ->
+                                httpRequest.setHeader(
+                                        THttpHeader.TRACE_PARENT.getKey(),
+                                        "00-80e1afed08e019fc1110464cfa66635c-7a085853722dc6d2-01"
+                                )
+                        )
+                        .addResponseInterceptorLast((httpResponse, entityDetails, httpContext) ->
+                                assertEquals(
+                                        "00-80e1afed08e019fc1110464cfa66635c-7a085853722dc6d2-01",
+                                        httpResponse.getHeader(THttpHeader.TRACE_PARENT.getKey()).getValue()
+                                )
+                        )
+                        .build();
+
+        OwnerServiceSrv.Iface client = createThriftRPCClient(
+                OwnerServiceSrv.Iface.class, getUrlString(servletContextPath), httpClient
+        );
+        client.getIntValue();
+    }
+
+    @Test
+    public void testWhenTraceDataOtelIsEmpty() throws TException {
+        addServlet(testServlet, servletContextPath);
+        CloseableHttpClient httpClient =
+                HttpClients.custom().addRequestInterceptorFirst((httpRequest, entityDetails, httpContext) ->
+                                assertNull(httpRequest.getHeader(THttpHeader.TRACE_PARENT.getKey()))
+                        )
+                        .addResponseInterceptorLast((httpResponse, entityDetails, httpContext) ->
+                                assertNull(httpResponse.getHeader(THttpHeader.TRACE_PARENT.getKey()))
+                        )
+                        .build();
+
+        OwnerServiceSrv.Iface client = createThriftRPCClient(
+                OwnerServiceSrv.Iface.class, getUrlString(servletContextPath), httpClient
+        );
+        client.getIntValue();
+    }
+
+    @Test
+    public void testWhenTraceDataOtelIsInvalid() throws TException {
+        addServlet(testServlet, servletContextPath);
+        CloseableHttpClient httpClient =
+                HttpClients.custom().addRequestInterceptorFirst((httpRequest, entityDetails, httpContext) ->
+                                httpRequest.setHeader(
+                                        THttpHeader.TRACE_PARENT.getKey(),
+                                        "invalid"
+                                )
+                        )
+                        .addResponseInterceptorLast((httpResponse, entityDetails, httpContext) ->
+                                assertNull(httpResponse.getHeader(THttpHeader.TRACE_PARENT.getKey()))
+                        )
+                        .build();
+
+        OwnerServiceSrv.Iface client = createThriftRPCClient(
+                OwnerServiceSrv.Iface.class, getUrlString(servletContextPath), httpClient
+        );
+        client.getIntValue();
     }
 
 }
