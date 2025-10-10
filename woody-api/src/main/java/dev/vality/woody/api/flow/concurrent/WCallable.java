@@ -40,7 +40,11 @@ public class WCallable<T> implements Callable<T> {
             return getWrappedCallable().call();
         } finally {
             TraceContext.setCurrentTraceData(originalTraceData);
-            MDCUtils.putTraceData(originalTraceData, originalTraceData.getActiveSpan());
+            if (originalTraceData != null) {
+                MDCUtils.putTraceData(originalTraceData, originalTraceData.getActiveSpan());
+            } else {
+                MDCUtils.removeTraceData();
+            }
         }
     }
 
