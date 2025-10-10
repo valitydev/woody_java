@@ -1,7 +1,7 @@
 name: Maven Build Artifact
 
 on:
-  pull_request:
+  push:
     branches:
       - '*'
 
