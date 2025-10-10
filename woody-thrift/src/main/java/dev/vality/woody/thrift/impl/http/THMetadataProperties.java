@@ -9,6 +9,7 @@ public class THMetadataProperties {
 
     public static final String TH_RESPONSE_STATUS = TH_PROPERTY_PREFIX + "response_status";
     public static final String TH_RESPONSE_MESSAGE = TH_PROPERTY_PREFIX + "response_message";
+    public static final String TH_RESPONSE_INFO = TH_PROPERTY_PREFIX + "response_info";
 
     public static final String TH_CALL_MSG_TYPE = TH_PROPERTY_PREFIX + "call_msg_type";
     public static final String TH_CALL_RESULT_MSG_TYPE = TH_PROPERTY_PREFIX + "call_result_msg_type";
