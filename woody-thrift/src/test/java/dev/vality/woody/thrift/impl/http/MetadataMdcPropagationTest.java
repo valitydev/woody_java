@@ -1,8 +1,10 @@
 package dev.vality.woody.thrift.impl.http;
 
+import dev.vality.woody.api.event.ServiceEventListener;
 import dev.vality.woody.api.generator.TimestampIdGenerator;
 import dev.vality.woody.api.trace.ContextUtils;
 import dev.vality.woody.api.trace.context.TraceContext;
+import dev.vality.woody.api.trace.context.metadata.MetadataExtensionKit;
 import dev.vality.woody.rpc.Owner;
 import dev.vality.woody.rpc.OwnerServiceSrv;
 import jakarta.servlet.Servlet;
@@ -28,8 +30,8 @@ public class MetadataMdcPropagationTest extends AbstractTest {
 
     @Override
     protected <T> Servlet createThriftRPCService(Class<T> iface, T handler,
-                                                 dev.vality.woody.api.event.ServiceEventListener eventListener,
-                                                 List<dev.vality.woody.api.trace.context.metadata.MetadataExtensionKit> extensionKits) {
+                                                 ServiceEventListener eventListener,
+                                                 List<MetadataExtensionKit> extensionKits) {
         THServiceBuilder serviceBuilder = new THServiceBuilder();
         serviceBuilder.withLogEnabled(false);
         if (eventListener != null) {
