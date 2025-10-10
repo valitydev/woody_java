@@ -8,8 +8,8 @@ import dev.vality.woody.api.trace.context.metadata.MetadataExtensionKit;
 import dev.vality.woody.thrift.impl.http.interceptor.THRequestInterceptionException;
 import dev.vality.woody.thrift.impl.http.transport.THttpHeader;
 import dev.vality.woody.thrift.impl.http.transport.TTransportErrorType;
-
 import jakarta.servlet.http.HttpServletRequest;
+
 import java.util.Enumeration;
 import java.util.LinkedHashSet;
 import java.util.List;

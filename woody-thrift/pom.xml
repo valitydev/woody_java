@@ -56,6 +56,11 @@
         </dependency>
         <!--Thirdparty libs-->
         <dependency>
+            <groupId>org.apache.httpcomponents.core5</groupId>
+            <artifactId>httpcore5</artifactId>
+            <version>5.3.6</version>
+        </dependency>
+        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
         </dependency>
@@ -83,6 +88,11 @@
             <artifactId>slf4j-reload4j</artifactId>
             <version>1.7.36</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents.client5</groupId>
+            <artifactId>httpclient5</artifactId>
+            <version>5.5.1</version>
         </dependency>
         <dependency>
             <groupId>org.easymock</groupId>
