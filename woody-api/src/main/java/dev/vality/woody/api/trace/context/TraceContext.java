@@ -155,7 +155,7 @@ public class TraceContext {
             traceData = initServiceContext(traceData);
         }
         setCurrentTraceData(traceData);
-        MDCUtils.putSpanData(traceData.getActiveSpan().getSpan(), traceData.getOtelSpan());
+        MDCUtils.putSpanData(traceData, traceData.getActiveSpan());
 
         postInit.run();
     }
@@ -194,7 +194,7 @@ public class TraceContext {
             setCurrentTraceData(restored);
 
             if (restored.getServiceSpan().isFilled()) {
-                MDCUtils.putSpanData(restored.getServiceSpan().getSpan(), restored.getOtelSpan());
+                MDCUtils.putSpanData(restored, restored.getServiceSpan());
             } else {
                 MDCUtils.removeSpanData();
             }
