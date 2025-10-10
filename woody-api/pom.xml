@@ -2,15 +2,43 @@
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
     <parent>
         <artifactId>woody</artifactId>
         <groupId>dev.vality.woody</groupId>
         <version>${revision}</version>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
 
     <artifactId>woody-api</artifactId>
     <packaging>jar</packaging>
+
+    <name>Woody API</name>
+    <description>Core Woody API utilities and tracing infrastructure.</description>
+    <url>https://github.com/valitydev/woody_java</url>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>vality</id>
+            <name>Vality Developers</name>
+            <email>devs@vality.dev</email>
+            <organization>Vality</organization>
+            <organizationUrl>https://vality.dev</organizationUrl>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git://github.com/valitydev/woody_java.git</connection>
+        <developerConnection>scm:git:ssh://github.com/valitydev/woody_java.git</developerConnection>
+        <url>https://github.com/valitydev/woody_java/tree/master</url>
+    </scm>
 
     <dependencies>
         <!--Thirdparty libs-->
@@ -55,7 +83,7 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-reload4j</artifactId>
-            <version>2.0.17</version>
+            <version>1.7.36</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
