@@ -40,6 +40,8 @@ import static dev.vality.woody.api.trace.TraceData.WOODY;
 import static java.util.AbstractMap.SimpleEntry;
 
 public class TransportExtensionBundles {
+    private static final Logger log = LoggerFactory.getLogger(TransportExtensionBundles.class);
+
     public static final ExtensionBundle TRANSPORT_CONFIG_BUNDLE =
             createServiceExtBundle(createCtxBundle((InterceptorExtension<THSExtensionContext>) reqSCtx -> {
                 String reqMethod = reqSCtx.getProviderRequest().getMethod();
@@ -52,6 +54,7 @@ public class TransportExtensionBundles {
                 }
             }, respSCtx -> {
             }));
+
     public static final ExtensionBundle DEADLINE_BUNDLE =
             createExtBundle(createCtxBundle((InterceptorExtension<THCExtensionContext>) reqCCtx -> {
                 ClientSpan clientSpan = reqCCtx.getTraceData().getClientSpan();
@@ -79,6 +82,7 @@ public class TransportExtensionBundles {
                     respSCtx.setResponseHeader(THttpHeader.DEADLINE.getKey(), deadline.toString());
                 }
             }));
+
     public static final ExtensionBundle CALL_ENDPOINT_BUNDLE =
             createExtBundle(createCtxBundle((InterceptorExtension<THCExtensionContext>) reqCCtx -> {
                 ContextSpan contextSpan = reqCCtx.getTraceData().getClientSpan();
@@ -97,6 +101,7 @@ public class TransportExtensionBundles {
                         .putValue(MetadataProperties.CALL_ENDPOINT, new UrlStringEndpoint(sb.toString()));
             }, reqSCtx -> {
             }));
+
     public static final ExtensionBundle TRANSPORT_INJECTION_BUNDLE =
             createExtBundle(createCtxBundle((InterceptorExtension<THCExtensionContext>) reqCCtx -> {
                 reqCCtx.getTraceData().getClientSpan().getMetadata()
@@ -113,7 +118,7 @@ public class TransportExtensionBundles {
                 serviceSpan.getMetadata().putValue(THMetadataProperties.TH_TRANSPORT_RESPONSE, response);
             }, respSCtx -> {
             }));
-    private static final Logger log = LoggerFactory.getLogger(TransportExtensionBundles.class);
+
     public static final ExtensionBundle RPC_ID_BUNDLE =
             createExtBundle(createCtxBundle((InterceptorExtension<THCExtensionContext>) reqCCtx -> {
                 Span span = reqCCtx.getTraceData().getClientSpan().getSpan();
@@ -150,30 +155,6 @@ public class TransportExtensionBundles {
 
             }));
 
-    private static io.opentelemetry.api.trace.Span initSpan(String t) {
-        return GlobalOpenTelemetry.getTracer(WOODY)
-                .spanBuilder(OTEL_CLIENT)
-                .setSpanKind(SpanKind.SERVER)
-                .setParent(Context.current().with(
-                        io.opentelemetry.api.trace.Span.wrap(
-                                SpanContext.createFromRemoteParent(
-                                        TraceParentUtils.parseTraceId(t),
-                                        TraceParentUtils.parseSpanId(t),
-                                        TraceFlags.getSampled(),
-                                        TraceState.builder().build()))))
-                .startSpan();
-    }
-
-    private static String initParentTraceFromSpan(io.opentelemetry.api.trace.Span otelSpan) {
-        SpanContext spanContext = otelSpan.getSpanContext();
-        return TraceParentUtils.initParentTrace(
-                TraceParentUtils.DEFAULT_VERSION,
-                spanContext.getTraceId(),
-                spanContext.getSpanId(),
-                spanContext.getTraceFlags().asHex()
-        );
-    }
-
     public static final ExtensionBundle TRANSPORT_STATE_MAPPING_BUNDLE = createExtBundle(createCtxBundle(reqCCtx -> {
     }, (InterceptorExtension<THCExtensionContext>) respCCtx -> {
         int status = respCCtx.getResponseStatus();
@@ -189,6 +170,7 @@ public class TransportExtensionBundles {
             throw new THRequestInterceptionException(TTransportErrorType.BAD_HEADER, errorClassHeaderKey);
         });
 
+        metadata.putValue(THMetadataProperties.TH_RESPONSE_INFO, thResponseInfo);
         metadata.putValue(MetadataProperties.ERROR_DEFINITION, errorDefinition);
         if (errorDefinition != null && errorDefinition.getErrorType() != WErrorType.BUSINESS_ERROR) {
             metadata.putValue(MetadataProperties.RESPONSE_SKIP_READING_FLAG, true);
@@ -234,6 +216,30 @@ public class TransportExtensionBundles {
 
     public static List<ExtensionBundle> getExtensions(boolean isClient) {
         return isClient ? getClientExtensions() : getServiceExtensions();
+    }
+
+    public static io.opentelemetry.api.trace.Span initSpan(String t) {
+        return GlobalOpenTelemetry.getTracer(WOODY)
+                .spanBuilder(OTEL_CLIENT)
+                .setSpanKind(SpanKind.SERVER)
+                .setParent(Context.current().with(
+                        io.opentelemetry.api.trace.Span.wrap(
+                                SpanContext.createFromRemoteParent(
+                                        TraceParentUtils.parseTraceId(t),
+                                        TraceParentUtils.parseSpanId(t),
+                                        TraceFlags.getSampled(),
+                                        TraceState.builder().build()))))
+                .startSpan();
+    }
+
+    public static String initParentTraceFromSpan(io.opentelemetry.api.trace.Span otelSpan) {
+        SpanContext spanContext = otelSpan.getSpanContext();
+        return TraceParentUtils.initParentTrace(
+                TraceParentUtils.DEFAULT_VERSION,
+                spanContext.getTraceId(),
+                spanContext.getSpanId(),
+                spanContext.getTraceFlags().asHex()
+        );
     }
 
     private static void logIfError(ContextSpan contextSpan) {

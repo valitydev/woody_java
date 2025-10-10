@@ -166,6 +166,10 @@ public class TraceContext {
 
     public void destroy(boolean onError) {
         TraceData traceData = getCurrentTraceData();
+        if (traceData == null) {
+            MDCUtils.removeSpanData();
+            return;
+        }
         boolean isClient = isClientDestroy(traceData);
         setDuration(traceData, isClient);
         try {
@@ -175,15 +179,22 @@ public class TraceContext {
                 preDestroy.run();
             }
         } finally {
+            TraceData restored;
             if (isClient) {
-                traceData = destroyClientContext(traceData);
+                restored = destroyClientContext(traceData);
+                if (restored == null) {
+                    setCurrentTraceData(null);
+                    MDCUtils.removeSpanData();
+                    traceData.getOtelSpan().end();
+                    return;
+                }
             } else {
-                traceData = destroyServiceContext(traceData);
+                restored = destroyServiceContext(traceData);
             }
-            setCurrentTraceData(traceData);
+            setCurrentTraceData(restored);
 
-            if (traceData.getServiceSpan().isFilled()) {
-                MDCUtils.putSpanData(traceData.getServiceSpan().getSpan(), traceData.getOtelSpan());
+            if (restored.getServiceSpan().isFilled()) {
+                MDCUtils.putSpanData(restored.getServiceSpan().getSpan(), restored.getOtelSpan());
             } else {
                 MDCUtils.removeSpanData();
             }
