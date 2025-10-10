@@ -37,62 +37,83 @@ public class THProviderErrorMapper implements WErrorMapper {
     private static final String UNKNOWN_ERROR_MESSAGE = "internal thrift application error";
 
     public static WErrorDefinition createErrorDefinition(THResponseInfo responseInfo, Supplier invalidErrClass) {
-        WErrorDefinition errorDefinition = null;
-        WErrorSource errorSource = null;
+        WErrorDefinition definition = buildDefinition(responseInfo, invalidErrClass);
+        if (definition == null) {
+            return null;
+        }
+        definition.setErrorMessage(resolveMessage(responseInfo));
+        return definition;
+    }
+
+    private static WErrorDefinition buildDefinition(THResponseInfo responseInfo, Supplier invalidErrClass) {
         int status = responseInfo.getStatus();
-        if (status == 200) {
-            if (WErrorType.getValueByKey(responseInfo.getErrClass()) == WErrorType.BUSINESS_ERROR) {
-                errorDefinition = new WErrorDefinition(WErrorSource.EXTERNAL);
-                errorDefinition.setErrorType(WErrorType.BUSINESS_ERROR);
-                errorSource = WErrorSource.INTERNAL;
-                errorDefinition.setErrorReason(responseInfo.getErrReason());
-                errorDefinition.setErrorName(responseInfo.getErrReason());
-            }
-        } else if (status == 503) {
-            errorDefinition = new WErrorDefinition(WErrorSource.EXTERNAL);
-            errorDefinition.setErrorType(WErrorType.UNAVAILABLE_RESULT);
-            errorSource = WErrorSource.INTERNAL;
-            errorDefinition.setErrorReason(responseInfo.getErrReason());
-        } else if (status == 504) {
-            errorDefinition = new WErrorDefinition(WErrorSource.EXTERNAL);
-            errorDefinition.setErrorType(WErrorType.UNDEFINED_RESULT);
-            errorSource = WErrorSource.INTERNAL;
-            errorDefinition.setErrorReason(responseInfo.getErrReason());
-        } else if (status == 502) {
-            errorDefinition = new WErrorDefinition(WErrorSource.EXTERNAL);
-            errorDefinition.setErrorType(Optional.ofNullable(WErrorType.getValueByKey(responseInfo.getErrClass()))
-                    .orElse(WErrorType.UNEXPECTED_ERROR));
-            errorSource = WErrorSource.EXTERNAL;
-            errorDefinition.setErrorReason(responseInfo.getErrReason());
-            if (errorDefinition.getErrorType() == WErrorType.BUSINESS_ERROR) {
-                invalidErrClass.get();
-            }
-        } else {
-            errorDefinition = new WErrorDefinition(WErrorSource.EXTERNAL);
-            errorDefinition.setErrorType(WErrorType.UNEXPECTED_ERROR);
-            errorSource = WErrorSource.INTERNAL;
-            errorDefinition.setErrorReason(responseInfo.getErrReason());
+        switch (status) {
+            case 200:
+                return businessErrorDefinition(responseInfo);
+            case 503:
+                return availabilityDefinition(WErrorType.UNAVAILABLE_RESULT, responseInfo);
+            case 504:
+                return availabilityDefinition(WErrorType.UNDEFINED_RESULT, responseInfo);
+            case 502:
+                return gatewayErrorDefinition(responseInfo, invalidErrClass);
+            default:
+                return unexpectedDefinition(responseInfo);
         }
-        if (errorDefinition != null) {
-            if (errorSource != null) {
-                errorDefinition.setErrorSource(errorSource);
-            }
-            int messageStatus = status;
-            if (status >= 500
-                    && (responseInfo.getErrClass() == null || responseInfo.getErrClass().isEmpty())
-                    && responseInfo.getErrReason() != null) {
-                messageStatus = 400;
-            }
-            String message = responseInfo.getMessage();
-            if (messageStatus >= 400 && messageStatus < 500) {
-                message = defaultReasonPhrase(messageStatus);
-            }
-            if (message == null || message.isEmpty()) {
-                message = defaultReasonPhrase(messageStatus);
-            }
-            errorDefinition.setErrorMessage(message);
+    }
+
+    private static WErrorDefinition businessErrorDefinition(THResponseInfo responseInfo) {
+        if (WErrorType.getValueByKey(responseInfo.getErrClass()) != WErrorType.BUSINESS_ERROR) {
+            return null;
         }
-        return errorDefinition;
+        WErrorDefinition definition = baseDefinition(WErrorType.BUSINESS_ERROR, responseInfo.getErrReason(),
+                WErrorSource.INTERNAL);
+        definition.setErrorName(responseInfo.getErrReason());
+        return definition;
+    }
+
+    private static WErrorDefinition availabilityDefinition(WErrorType type, THResponseInfo responseInfo) {
+        return baseDefinition(type, responseInfo.getErrReason(), WErrorSource.INTERNAL);
+    }
+
+    private static WErrorDefinition gatewayErrorDefinition(THResponseInfo responseInfo, Supplier invalidErrClass) {
+        WErrorType errorType = Optional.ofNullable(WErrorType.getValueByKey(responseInfo.getErrClass()))
+                .orElse(WErrorType.UNEXPECTED_ERROR);
+        if (errorType == WErrorType.BUSINESS_ERROR) {
+            invalidErrClass.get();
+        }
+        return baseDefinition(errorType, responseInfo.getErrReason(), WErrorSource.EXTERNAL);
+    }
+
+    private static WErrorDefinition unexpectedDefinition(THResponseInfo responseInfo) {
+        return baseDefinition(WErrorType.UNEXPECTED_ERROR, responseInfo.getErrReason(), WErrorSource.INTERNAL);
+    }
+
+    private static WErrorDefinition baseDefinition(WErrorType type, String reason, WErrorSource errorSource) {
+        WErrorDefinition definition = new WErrorDefinition(WErrorSource.EXTERNAL);
+        definition.setErrorType(type);
+        if (errorSource != null) {
+            definition.setErrorSource(errorSource);
+        }
+        definition.setErrorReason(reason);
+        return definition;
+    }
+
+    private static String resolveMessage(THResponseInfo responseInfo) {
+        int status = responseInfo.getStatus();
+        int messageStatus = status;
+        if (status >= 500
+                && (responseInfo.getErrClass() == null || responseInfo.getErrClass().isEmpty())
+                && responseInfo.getErrReason() != null) {
+            messageStatus = 400;
+        }
+        String message = responseInfo.getMessage();
+        if (messageStatus >= 400 && messageStatus < 500) {
+            message = defaultReasonPhrase(messageStatus);
+        }
+        if (message == null || message.isEmpty()) {
+            message = defaultReasonPhrase(messageStatus);
+        }
+        return message;
     }
 
     public static THResponseInfo getResponseInfo(ContextSpan contextSpan) {
@@ -123,15 +144,13 @@ public class THProviderErrorMapper implements WErrorMapper {
                             !contextSpan.getMetadata().containsKey(MetadataProperties.CALL_REQUEST_PROCESSED_FLAG);
                     if (isRequest) {
                         switch (tErrorType) {
-                            case PROTOCOL:
-                                status = 400;
-                                break;
                             case TRANSPORT:
                                 TTransportErrorType tTransportErrorType =
                                         ContextUtils.getMetadataValue(contextSpan, TTransportErrorType.class,
                                                 THMetadataProperties.TH_ERROR_SUBTYPE);
                                 status = mapTransportErrorStatus(tTransportErrorType);
                                 break;
+                            case PROTOCOL:
                             case UNKNOWN_CALL:
                             case UNKNOWN:
                             default:
@@ -217,97 +236,120 @@ public class THProviderErrorMapper implements WErrorMapper {
     }
 
     private WErrorDefinition createDefFromWrappedError(Metadata metadata, Throwable err) {
-        WErrorDefinition existingDefinition = metadata.getValue(MetadataProperties.ERROR_DEFINITION);
-        if (existingDefinition == null) {
-            THResponseInfo storedResponse = metadata.getValue(THMetadataProperties.TH_RESPONSE_INFO);
-            if (storedResponse != null) {
-                existingDefinition = createErrorDefinition(storedResponse, () -> null);
-                if (existingDefinition != null) {
-                    metadata.putValue(MetadataProperties.ERROR_DEFINITION, existingDefinition);
-                }
-            }
-        }
-        if (existingDefinition != null && !(err instanceof THRequestInterceptionException)) {
+        WErrorDefinition existingDefinition = resolveExistingDefinition(metadata, err);
+        if (existingDefinition != null) {
             return existingDefinition;
         }
-        WErrorType errorType = WErrorType.PROVIDER_ERROR;
-        TErrorType tErrorType;
-        String errReason;
-        WErrorSource generationSource = WErrorSource.INTERNAL;
-        WErrorSource errorSource = generationSource;
-        if (err instanceof TApplicationException) {
-            TApplicationException appError = (TApplicationException) err;
-            switch (appError.getType()) {
-                case TApplicationException.PROTOCOL_ERROR:
-                    tErrorType = TErrorType.PROTOCOL;
-                    errReason = THRIFT_PROTOCOL_ERROR_REASON_FUNC.apply(appError);
-                    break;
-                case TApplicationException.UNKNOWN_METHOD:
-                    tErrorType = TErrorType.UNKNOWN_CALL;
-                    errReason = UNKNOWN_CALL_REASON_FUNC.apply(metadata.getValue(MetadataProperties.CALL_NAME));
-                    break;
-                case TApplicationException.INTERNAL_ERROR:
-                default:
-                    tErrorType = TErrorType.UNKNOWN;
-                    errReason = UNKNOWN_PROVIDER_ERROR_REASON_FUNC.apply(err.getMessage());
-                    break;
-            }
-        } else if (err instanceof TProtocolException) {
-            tErrorType = TErrorType.PROTOCOL;
-            errReason = THRIFT_PROTOCOL_ERROR_REASON_FUNC.apply(err);
-        } else if (err instanceof TTransportException) {
-            tErrorType = TErrorType.TRANSPORT;
-            errReason = THRIFT_TRANSPORT_ERROR_REASON_FUNC.apply(err);
-            Integer httpStatus = metadata.getValue(THMetadataProperties.TH_RESPONSE_STATUS);
-            if (httpStatus != null && httpStatus >= 400 && httpStatus < 500) {
-                generationSource = WErrorSource.EXTERNAL;
-                errorSource = generationSource;
-            } else if (httpStatus == null && isNoPayloadTransportError(err)) {
-                generationSource = WErrorSource.EXTERNAL;
-                errorSource = generationSource;
-            }
-        } else if (err instanceof THRequestInterceptionException) {
-            tErrorType = TErrorType.TRANSPORT;
-            TTransportErrorType ttErrType = ((THRequestInterceptionException) err).getErrorType();
-            ttErrType = ttErrType == null ? TTransportErrorType.UNKNOWN : ttErrType;
 
-            metadata.putValue(THMetadataProperties.TH_ERROR_SUBTYPE, ttErrType);
-            boolean isClientContext = TraceContext.getCurrentTraceData().isClient();
-            generationSource = isClientContext ? WErrorSource.INTERNAL : WErrorSource.EXTERNAL;
-            errorSource = generationSource;
-            String reason = String.valueOf(((THRequestInterceptionException) err).getReason());
-            switch (ttErrType) {
-                case BAD_CONTENT_TYPE:
-                    errReason = BAD_CONTENT_TYPE_REASON_FUNC.apply(reason);
-                    break;
-                case BAD_REQUEST_TYPE:
-                    errReason = BAD_REQUEST_TYPE_REASON_FUNC.apply(reason);
-                    break;
-                case BAD_TRACE_HEADER:
-                    errReason = RPC_ID_HEADER_MISSING_REASON_FUNC.apply(reason);
-                    break;
-                case BAD_HEADER:
-                    errReason = BAD_HEADER_REASON_FUNC.apply(reason);
-                    break;
-                case UNKNOWN:
-                default:
-                    errReason = THRIFT_TRANSPORT_ERROR_REASON_FUNC.apply(reason);
-                    break;
-            }
-
-        } else {
-            tErrorType = TErrorType.UNKNOWN;
-            errReason = UNKNOWN_ERROR_MESSAGE;
-        }
-        WErrorDefinition errorDefinition = new WErrorDefinition(generationSource);
-        errorDefinition.setErrorType(errorType);
-        errorDefinition.setErrorSource(errorSource);
-        errorDefinition.setErrorReason(errReason);
+        ErrorAttributes attributes = buildErrorAttributes(metadata, err);
+        WErrorDefinition errorDefinition = new WErrorDefinition(attributes.getSource());
+        errorDefinition.setErrorType(WErrorType.PROVIDER_ERROR);
+        errorDefinition.setErrorSource(attributes.getSource());
+        errorDefinition.setErrorReason(attributes.getReason());
         errorDefinition.setErrorName(err.getClass().getSimpleName());
         errorDefinition.setErrorMessage(err.getMessage());
 
-        metadata.putValue(THMetadataProperties.TH_ERROR_TYPE, tErrorType);
+        metadata.putValue(THMetadataProperties.TH_ERROR_TYPE, attributes.getTransportType());
         return errorDefinition;
+    }
+
+    private WErrorDefinition resolveExistingDefinition(Metadata metadata, Throwable err) {
+        WErrorDefinition definition = metadata.getValue(MetadataProperties.ERROR_DEFINITION);
+        if (definition == null) {
+            definition = restoreDefinitionFromResponse(metadata);
+        }
+        if (definition != null && !(err instanceof THRequestInterceptionException)) {
+            return definition;
+        }
+        return null;
+    }
+
+    private WErrorDefinition restoreDefinitionFromResponse(Metadata metadata) {
+        THResponseInfo storedResponse = metadata.getValue(THMetadataProperties.TH_RESPONSE_INFO);
+        if (storedResponse == null) {
+            return null;
+        }
+        WErrorDefinition definition = createErrorDefinition(storedResponse, () -> null);
+        if (definition != null) {
+            metadata.putValue(MetadataProperties.ERROR_DEFINITION, definition);
+        }
+        return definition;
+    }
+
+    private ErrorAttributes buildErrorAttributes(Metadata metadata, Throwable err) {
+        if (err instanceof TApplicationException) {
+            return fromApplicationException(metadata, (TApplicationException) err);
+        }
+        if (err instanceof TProtocolException) {
+            return attributes(TErrorType.PROTOCOL, THRIFT_PROTOCOL_ERROR_REASON_FUNC.apply(err),
+                    WErrorSource.INTERNAL);
+        }
+        if (err instanceof TTransportException) {
+            return fromTransportException(metadata, (TTransportException) err);
+        }
+        if (err instanceof THRequestInterceptionException) {
+            return fromInterceptionException(metadata, (THRequestInterceptionException) err);
+        }
+        return attributes(TErrorType.UNKNOWN, UNKNOWN_ERROR_MESSAGE, WErrorSource.INTERNAL);
+    }
+
+    private ErrorAttributes fromApplicationException(Metadata metadata, TApplicationException appError) {
+        switch (appError.getType()) {
+            case TApplicationException.PROTOCOL_ERROR:
+                return attributes(TErrorType.PROTOCOL, THRIFT_PROTOCOL_ERROR_REASON_FUNC.apply(appError),
+                        WErrorSource.INTERNAL);
+            case TApplicationException.UNKNOWN_METHOD:
+                return attributes(TErrorType.UNKNOWN_CALL,
+                        UNKNOWN_CALL_REASON_FUNC.apply(metadata.getValue(MetadataProperties.CALL_NAME)),
+                        WErrorSource.INTERNAL);
+            case TApplicationException.INTERNAL_ERROR:
+            default:
+                return attributes(TErrorType.UNKNOWN,
+                        UNKNOWN_PROVIDER_ERROR_REASON_FUNC.apply(appError.getMessage()), WErrorSource.INTERNAL);
+        }
+    }
+
+    private ErrorAttributes fromTransportException(Metadata metadata, TTransportException transportError) {
+        Integer httpStatus = metadata.getValue(THMetadataProperties.TH_RESPONSE_STATUS);
+        boolean isExternal = httpStatus != null && httpStatus >= 400 && httpStatus < 500;
+        if (!isExternal && httpStatus == null && isNoPayloadTransportError(transportError)) {
+            isExternal = true;
+        }
+        WErrorSource source = isExternal ? WErrorSource.EXTERNAL : WErrorSource.INTERNAL;
+        return attributes(TErrorType.TRANSPORT, THRIFT_TRANSPORT_ERROR_REASON_FUNC.apply(transportError), source);
+    }
+
+    private ErrorAttributes fromInterceptionException(Metadata metadata,
+                                                      THRequestInterceptionException interceptionError) {
+        TTransportErrorType errorType = interceptionError.getErrorType();
+        TTransportErrorType resolvedType = errorType == null ? TTransportErrorType.UNKNOWN : errorType;
+        metadata.putValue(THMetadataProperties.TH_ERROR_SUBTYPE, resolvedType);
+
+        WErrorSource source = TraceContext.getCurrentTraceData().isClient()
+                ? WErrorSource.INTERNAL
+                : WErrorSource.EXTERNAL;
+        String reason = mapInterceptionReason(resolvedType, String.valueOf(interceptionError.getReason()));
+        return attributes(TErrorType.TRANSPORT, reason, source);
+    }
+
+    private String mapInterceptionReason(TTransportErrorType errorType, String rawReason) {
+        switch (errorType) {
+            case BAD_CONTENT_TYPE:
+                return BAD_CONTENT_TYPE_REASON_FUNC.apply(rawReason);
+            case BAD_REQUEST_TYPE:
+                return BAD_REQUEST_TYPE_REASON_FUNC.apply(rawReason);
+            case BAD_TRACE_HEADER:
+                return RPC_ID_HEADER_MISSING_REASON_FUNC.apply(rawReason);
+            case BAD_HEADER:
+                return BAD_HEADER_REASON_FUNC.apply(rawReason);
+            case UNKNOWN:
+            default:
+                return THRIFT_TRANSPORT_ERROR_REASON_FUNC.apply(rawReason);
+        }
+    }
+
+    private static ErrorAttributes attributes(TErrorType tErrorType, String reason, WErrorSource source) {
+        return new ErrorAttributes(tErrorType, reason, source);
     }
 
     private static boolean isNoPayloadTransportError(Throwable err) {
@@ -322,6 +364,30 @@ public class THProviderErrorMapper implements WErrorMapper {
         return normalized.equals("No more data available.")
                 || normalized.contains("HTTP response code:")
                 || normalized.contains("HTTP Response code:");
+    }
+
+    private static final class ErrorAttributes {
+        private final TErrorType transportType;
+        private final String reason;
+        private final WErrorSource source;
+
+        private ErrorAttributes(TErrorType transportType, String reason, WErrorSource source) {
+            this.transportType = transportType;
+            this.reason = reason;
+            this.source = source;
+        }
+
+        private TErrorType getTransportType() {
+            return transportType;
+        }
+
+        private String getReason() {
+            return reason;
+        }
+
+        private WErrorSource getSource() {
+            return source;
+        }
     }
 
     private static String defaultReasonPhrase(int status) {
