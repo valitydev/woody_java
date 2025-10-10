@@ -132,6 +132,9 @@ public class MetadataMdcPropagationTest extends AbstractTest {
 
     private void injectHeaders(HttpRequest request, EntityDetails entity, HttpContext context)
             throws HttpException, IOException {
+        if (entity != null) {
+            entity.getContentLength();
+        }
         if (context != null) {
             context.hashCode();
         }
