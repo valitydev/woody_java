@@ -172,6 +172,8 @@ public class TraceContext {
         }
         boolean isClient = isClientDestroy(traceData);
         setDuration(traceData, isClient);
+        TraceData restored;
+        boolean clearContext = false;
         try {
             if (onError) {
                 preErrDestroy.run();
@@ -179,31 +181,26 @@ public class TraceContext {
                 preDestroy.run();
             }
         } finally {
-            TraceData restored;
             if (isClient) {
                 restored = destroyClientContext(traceData);
-                if (restored == null) {
-                    setCurrentTraceData(null);
-                    MDCUtils.removeSpanData();
-                    traceData.getOtelSpan().end();
-                    return;
-                }
+                clearContext = restored == null;
             } else {
                 restored = destroyServiceContext(traceData);
             }
-            setCurrentTraceData(restored);
-
-            if (restored.getServiceSpan().isFilled()) {
-                MDCUtils.putSpanData(restored, restored.getServiceSpan());
-            } else {
+            if (clearContext) {
+                setCurrentTraceData(null);
                 MDCUtils.removeSpanData();
+            } else {
+                setCurrentTraceData(restored);
+
+                if (restored.getServiceSpan().isFilled()) {
+                    MDCUtils.putSpanData(restored, restored.getServiceSpan());
+                } else {
+                    MDCUtils.removeSpanData();
+                }
             }
             traceData.getOtelSpan().end();
         }
-    }
-
-    public void setDuration() {
-        setDuration(getCurrentTraceData(), isClient);
     }
 
     private void setDuration(TraceData traceData, boolean isClient) {
