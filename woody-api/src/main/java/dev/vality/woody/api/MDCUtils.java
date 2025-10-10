@@ -45,17 +45,8 @@ public class MDCUtils {
         io.opentelemetry.api.trace.Span otelSpan = traceData.getOtelSpan();
         io.opentelemetry.api.trace.SpanContext spanContext = otelSpan != null ? otelSpan.getSpanContext() : null;
 
-        MDC.put(SPAN_ID, span.getId() != null ? span.getId() : "");
-        MDC.put(TRACE_ID, span.getTraceId() != null ? span.getTraceId() : "");
-        MDC.put(PARENT_ID, span.getParentId() != null ? span.getParentId() : "");
-        MDC.put(OTEL_TRACE_ID,
-                spanContext != null && spanContext.getTraceId() != null ? spanContext.getTraceId() : "");
-        MDC.put(OTEL_SPAN_ID,
-                spanContext != null && spanContext.getSpanId() != null ? spanContext.getSpanId() : "");
-        MDC.put(OTEL_TRACE_FLAGS,
-                spanContext != null && spanContext.getTraceFlags() != null
-                        ? spanContext.getTraceFlags().asHex()
-                        : "");
+        populateSpanIdentifiers(span);
+        populateOtelIdentifiers(spanContext);
 
         clearExtendedEntries(false);
         if (isExtendedFieldsEnabled()) {
@@ -63,6 +54,25 @@ public class MDCUtils {
         }
 
         updateDeadlineEntries(traceData, contextSpan);
+    }
+
+    private static void populateSpanIdentifiers(Span span) {
+        putMdcValue(SPAN_ID, span.getId());
+        putMdcValue(TRACE_ID, span.getTraceId());
+        putMdcValue(PARENT_ID, span.getParentId());
+    }
+
+    private static void populateOtelIdentifiers(io.opentelemetry.api.trace.SpanContext spanContext) {
+        if (spanContext == null) {
+            putMdcValue(OTEL_TRACE_ID, null);
+            putMdcValue(OTEL_SPAN_ID, null);
+            putMdcValue(OTEL_TRACE_FLAGS, null);
+            return;
+        }
+        putMdcValue(OTEL_TRACE_ID, spanContext.getTraceId());
+        putMdcValue(OTEL_SPAN_ID, spanContext.getSpanId());
+        putMdcValue(OTEL_TRACE_FLAGS,
+                spanContext.getTraceFlags() != null ? spanContext.getTraceFlags().asHex() : null);
     }
 
     public static void removeTraceData() {
@@ -205,6 +215,10 @@ public class MDCUtils {
         }
         MDC.put(key, value);
         EXTENDED_MDC_KEYS.get().add(key);
+    }
+
+    private static void putMdcValue(String key, String value) {
+        MDC.put(key, value != null ? value : "");
     }
 
     private static void removeExtendedEntry(String key) {

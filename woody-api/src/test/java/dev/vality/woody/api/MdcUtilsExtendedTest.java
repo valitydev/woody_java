@@ -146,9 +146,11 @@ public class MdcUtilsExtendedTest {
 
     private static class SampleService {
         public void serverMethod() {
+            // no-op: stub implementation for InstanceMethodCaller tests
         }
 
         public void clientMethod() {
+            // no-op: stub implementation for InstanceMethodCaller tests
         }
     }
 }

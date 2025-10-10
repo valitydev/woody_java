@@ -28,19 +28,6 @@ import static org.junit.Assert.assertNotNull;
 
 public class MetadataMdcPropagationTest extends AbstractTest {
 
-    @Override
-    protected <T> Servlet createThriftRPCService(Class<T> iface, T handler,
-                                                 ServiceEventListener eventListener,
-                                                 List<MetadataExtensionKit> extensionKits) {
-        THServiceBuilder serviceBuilder = new THServiceBuilder();
-        serviceBuilder.withLogEnabled(false);
-        if (eventListener != null) {
-            serviceBuilder.withEventListener(eventListener);
-        }
-        serviceBuilder.withMetaExtensions(extensionKits);
-        return serviceBuilder.build(iface, handler);
-    }
-
     private static final String X_REQUEST_ID = "068e67b4-74bc-4333-9c14-090e6acc3227";
     private static final String X_REQUEST_DEADLINE = "2025-01-01T12:30:00Z";
     private static final String TRACE_ID = "GZzfNSaAAAA";
@@ -56,6 +43,19 @@ public class MetadataMdcPropagationTest extends AbstractTest {
     private final AtomicReference<String> downstreamMdcDeadline = new AtomicReference<>();
 
     private OwnerServiceSrv.Iface downstreamClient;
+
+    @Override
+    protected <T> Servlet createThriftRPCService(Class<T> iface, T handler,
+                                                 ServiceEventListener eventListener,
+                                                 List<MetadataExtensionKit> extensionKits) {
+        THServiceBuilder serviceBuilder = new THServiceBuilder();
+        serviceBuilder.withLogEnabled(false);
+        if (eventListener != null) {
+            serviceBuilder.withEventListener(eventListener);
+        }
+        serviceBuilder.withMetaExtensions(extensionKits);
+        return serviceBuilder.build(iface, handler);
+    }
 
     @Before
     public void setUpServices() throws Exception {
@@ -132,6 +132,9 @@ public class MetadataMdcPropagationTest extends AbstractTest {
 
     private void injectHeaders(HttpRequest request, EntityDetails entity, HttpContext context)
             throws HttpException, IOException {
+        if (context != null) {
+            context.hashCode();
+        }
         request.addHeader("woody.meta.user-identity.x-request-id", X_REQUEST_ID);
         request.addHeader("woody.meta.user-identity.x-request-deadline", X_REQUEST_DEADLINE);
         request.addHeader("woody.trace-id", TRACE_ID);
