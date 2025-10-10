@@ -30,15 +30,15 @@ public class MDCUtils {
     private static volatile boolean extendedFieldsEnabled =
             Boolean.parseBoolean(System.getProperty(EXTENDED_MDC_PROPERTY, "true"));
 
-    public static void putSpanData(TraceData traceData, ContextSpan contextSpan) {
+    public static void putTraceData(TraceData traceData, ContextSpan contextSpan) {
         if (traceData == null || contextSpan == null) {
-            removeSpanData();
+            removeTraceData();
             return;
         }
 
         Span span = contextSpan.getSpan();
         if (span == null) {
-            removeSpanData();
+            removeTraceData();
             return;
         }
 
@@ -65,7 +65,7 @@ public class MDCUtils {
         updateDeadlineEntries(traceData, contextSpan);
     }
 
-    public static void removeSpanData() {
+    public static void removeTraceData() {
         MDC.remove(SPAN_ID);
         MDC.remove(TRACE_ID);
         MDC.remove(OTEL_TRACE_ID);

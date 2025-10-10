@@ -155,7 +155,7 @@ public class TraceContext {
             traceData = initServiceContext(traceData);
         }
         setCurrentTraceData(traceData);
-        MDCUtils.putSpanData(traceData, traceData.getActiveSpan());
+        MDCUtils.putTraceData(traceData, traceData.getActiveSpan());
 
         postInit.run();
     }
@@ -167,7 +167,7 @@ public class TraceContext {
     public void destroy(boolean onError) {
         TraceData traceData = getCurrentTraceData();
         if (traceData == null) {
-            MDCUtils.removeSpanData();
+            MDCUtils.removeTraceData();
             return;
         }
         boolean isClient = isClientDestroy(traceData);
@@ -189,14 +189,14 @@ public class TraceContext {
             }
             if (clearContext) {
                 setCurrentTraceData(null);
-                MDCUtils.removeSpanData();
+                MDCUtils.removeTraceData();
             } else {
                 setCurrentTraceData(restored);
 
                 if (restored.getServiceSpan().isFilled()) {
-                    MDCUtils.putSpanData(restored, restored.getServiceSpan());
+                    MDCUtils.putTraceData(restored, restored.getServiceSpan());
                 } else {
-                    MDCUtils.removeSpanData();
+                    MDCUtils.removeTraceData();
                 }
             }
             traceData.getOtelSpan().end();

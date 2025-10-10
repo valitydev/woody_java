@@ -29,7 +29,7 @@ public class MdcUtilsExtendedTest {
     @After
     public void tearDown() {
         MDCUtils.setExtendedFieldsEnabled(true);
-        MDCUtils.removeSpanData();
+        MDCUtils.removeTraceData();
         TraceContext.setCurrentTraceData(originalTraceData);
     }
 
@@ -38,7 +38,7 @@ public class MdcUtilsExtendedTest {
         TraceData traceData = buildTraceData();
         TraceContext.setCurrentTraceData(traceData);
 
-        MDCUtils.putSpanData(traceData, traceData.getClientSpan());
+        MDCUtils.putTraceData(traceData, traceData.getClientSpan());
 
         assertEquals("SampleService", MDC.get("rpc.server.service"));
         assertEquals("ServerCall", MDC.get("rpc.server.function"));
@@ -70,7 +70,7 @@ public class MdcUtilsExtendedTest {
         TraceContext.setCurrentTraceData(traceData);
 
         MDCUtils.setExtendedFieldsEnabled(false);
-        MDCUtils.putSpanData(traceData, traceData.getClientSpan());
+        MDCUtils.putTraceData(traceData, traceData.getClientSpan());
 
         assertNull(MDC.get("rpc.client.service"));
         assertNull(MDC.get("rpc.client.metadata.user-identity.x-request-id"));

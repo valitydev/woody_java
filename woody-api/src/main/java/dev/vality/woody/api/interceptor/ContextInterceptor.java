@@ -50,7 +50,7 @@ public class ContextInterceptor implements CommonInterceptor {
                     traceContext.destroy(ContextUtils.hasCallErrors(traceData.getActiveSpan()));
                 } else {
                     TraceContext.reset();
-                    MDCUtils.removeSpanData();
+                    MDCUtils.removeTraceData();
                 }
             } finally {
                 contextInitialized.remove();

@@ -31,14 +31,14 @@ public class WRunnable implements Runnable {
         TraceContext.setCurrentTraceData(getTraceData().cloneObject());
 
         if (traceData != originalTraceData) {
-            MDCUtils.putSpanData(traceData, traceData.getActiveSpan());
+            MDCUtils.putTraceData(traceData, traceData.getActiveSpan());
         }
 
         try {
             geWrappedRunnable().run();
         } finally {
             TraceContext.setCurrentTraceData(originalTraceData);
-            MDCUtils.putSpanData(originalTraceData, originalTraceData.getActiveSpan());
+            MDCUtils.putTraceData(originalTraceData, originalTraceData.getActiveSpan());
         }
     }
 }
