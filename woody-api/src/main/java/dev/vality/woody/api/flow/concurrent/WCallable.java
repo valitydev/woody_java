@@ -30,13 +30,11 @@ public class WCallable<T> implements Callable<T> {
     @Override
     public T call() throws Exception {
         TraceData originalTraceData = TraceContext.getCurrentTraceData();
-        TraceContext.setCurrentTraceData(getTraceData().cloneObject());
+        TraceData clonedTraceData = getTraceData().cloneObject();
+        TraceContext.setCurrentTraceData(clonedTraceData);
 
-        if (traceData != originalTraceData) {
-            MDCUtils.putTraceData(traceData, traceData.getActiveSpan());
-        }
-
-        try {
+        try (var scope = clonedTraceData.attachOtelContext()) {
+            MDCUtils.putTraceData(clonedTraceData, clonedTraceData.getActiveSpan());
             return getWrappedCallable().call();
         } finally {
             TraceContext.setCurrentTraceData(originalTraceData);

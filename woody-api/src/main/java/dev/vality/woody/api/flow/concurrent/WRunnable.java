@@ -28,13 +28,11 @@ public class WRunnable implements Runnable {
     @Override
     public void run() {
         TraceData originalTraceData = TraceContext.getCurrentTraceData();
-        TraceContext.setCurrentTraceData(getTraceData().cloneObject());
+        TraceData clonedTraceData = getTraceData().cloneObject();
+        TraceContext.setCurrentTraceData(clonedTraceData);
 
-        if (traceData != originalTraceData) {
-            MDCUtils.putTraceData(traceData, traceData.getActiveSpan());
-        }
-
-        try {
+        try (var scope = clonedTraceData.attachOtelContext()) {
+            MDCUtils.putTraceData(clonedTraceData, clonedTraceData.getActiveSpan());
             geWrappedRunnable().run();
         } finally {
             TraceContext.setCurrentTraceData(originalTraceData);

@@ -5,6 +5,11 @@ import dev.vality.woody.api.event.ServiceEventListener;
 import dev.vality.woody.api.generator.IdGenerator;
 import dev.vality.woody.api.trace.context.metadata.MetadataExtensionKit;
 import dev.vality.woody.rpc.OwnerServiceSrv;
+import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
+import io.opentelemetry.context.propagation.ContextPropagators;
+import io.opentelemetry.sdk.OpenTelemetrySdk;
+import io.opentelemetry.sdk.trace.SdkTracerProvider;
+import io.opentelemetry.sdk.trace.samplers.Sampler;
 import jakarta.servlet.Servlet;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
@@ -39,6 +44,13 @@ public class AbstractTest {
     protected int serverPort = 8080;
     protected TProcessor tProcessor;
     private HandlerCollection handlerCollection;
+
+    static {
+        OpenTelemetrySdk.builder()
+                .setTracerProvider(SdkTracerProvider.builder().setSampler(Sampler.alwaysOn()).build())
+                .setPropagators(ContextPropagators.create(W3CTraceContextPropagator.getInstance()))
+                .buildAndRegisterGlobal();
+    }
 
     @Before
     public void startJetty() throws Exception {

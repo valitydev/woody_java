@@ -23,15 +23,14 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 public class MetadataMdcPropagationTest extends AbstractTest {
 
     private static final String X_REQUEST_ID = "068e67b4-74bc-4333-9c14-090e6acc3227";
     private static final String X_REQUEST_DEADLINE = "2025-01-01T12:30:00Z";
-    private static final String TRACE_ID = "GZzfNSaAAAA";
-    private static final String SPAN_ID = "1823351624202973184";
+    private static final String TRACE_ID = "4e0e9f8d8d8044f9b65a3b0f5cdfc2d1";
+    private static final String SPAN_ID = "1a2b3c4d5e6f7081";
 
     private final AtomicReference<String> upstreamMetadataId = new AtomicReference<>();
     private final AtomicReference<String> upstreamMetadataDeadline = new AtomicReference<>();
@@ -41,6 +40,8 @@ public class MetadataMdcPropagationTest extends AbstractTest {
     private final AtomicReference<String> downstreamMetadataDeadline = new AtomicReference<>();
     private final AtomicReference<String> downstreamMdcId = new AtomicReference<>();
     private final AtomicReference<String> downstreamMdcDeadline = new AtomicReference<>();
+    private final AtomicReference<String> upstreamOtelTraceId = new AtomicReference<>();
+    private final AtomicReference<String> downstreamOtelTraceId = new AtomicReference<>();
 
     private OwnerServiceSrv.Iface downstreamClient;
 
@@ -68,6 +69,8 @@ public class MetadataMdcPropagationTest extends AbstractTest {
                         "user-identity.x-request-deadline"));
                 downstreamMdcId.set(MDC.get("rpc.server.metadata.user-identity.x-request-id"));
                 downstreamMdcDeadline.set(MDC.get("rpc.server.metadata.user-identity.x-request-deadline"));
+                downstreamOtelTraceId.set(
+                        TraceContext.getCurrentTraceData().getOtelSpan().getSpanContext().getTraceId());
                 return new Owner(id, "downstream");
             }
         };
@@ -83,6 +86,8 @@ public class MetadataMdcPropagationTest extends AbstractTest {
                         "user-identity.x-request-deadline"));
                 upstreamMdcId.set(MDC.get("rpc.server.metadata.user-identity.x-request-id"));
                 upstreamMdcDeadline.set(MDC.get("rpc.server.metadata.user-identity.x-request-deadline"));
+                upstreamOtelTraceId.set(
+                        TraceContext.getCurrentTraceData().getOtelSpan().getSpanContext().getTraceId());
 
                 Owner result = downstreamClient.getOwner(id);
 
@@ -128,6 +133,13 @@ public class MetadataMdcPropagationTest extends AbstractTest {
         assertEquals(X_REQUEST_DEADLINE, downstreamMetadataDeadline.get());
         assertEquals(X_REQUEST_ID, downstreamMdcId.get());
         assertEquals(X_REQUEST_DEADLINE, downstreamMdcDeadline.get());
+        String upstreamTraceId = upstreamOtelTraceId.get();
+        String downstreamTraceId = downstreamOtelTraceId.get();
+        assertNotNull(upstreamTraceId);
+        assertNotNull(downstreamTraceId);
+        assertEquals(upstreamTraceId, downstreamTraceId);
+        assertEquals(32, upstreamTraceId.length());
+        assertNotEquals("00000000000000000000000000000000", upstreamTraceId);
     }
 
     private void injectHeaders(HttpRequest request, EntityDetails entity, HttpContext context)
@@ -143,8 +155,7 @@ public class MetadataMdcPropagationTest extends AbstractTest {
         request.addHeader("woody.trace-id", TRACE_ID);
         request.addHeader("woody.span-id", SPAN_ID);
         request.addHeader("woody.parent-id", TraceContext.NO_PARENT_ID);
-        request.addHeader("traceparent", String.format("00-%s-%s-01", TRACE_ID.toLowerCase(),
-                SPAN_ID.substring(0, 16)));
+        request.addHeader("traceparent", String.format("00-%s-%s-01", TRACE_ID, SPAN_ID));
     }
 
     private void clearCapturedValues() {
@@ -156,5 +167,7 @@ public class MetadataMdcPropagationTest extends AbstractTest {
         downstreamMetadataDeadline.set(null);
         downstreamMdcId.set(null);
         downstreamMdcDeadline.set(null);
+        upstreamOtelTraceId.set(null);
+        downstreamOtelTraceId.set(null);
     }
 }
