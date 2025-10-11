@@ -64,34 +64,32 @@ public class TransportExtensionBundles {
         }
     };
 
-    private static final TextMapSetter<THSExtensionContext> SERVER_RESPONSE_SETTER = (carrier, key, value) -> {
-        if (carrier != null && key != null && value != null) {
-            carrier.setResponseHeader(key, value);
-        }
-    };
-
-    public static final ExtensionBundle TRANSPORT_CONFIG_BUNDLE =
-            createServiceExtBundle(createCtxBundle((InterceptorExtension<THSExtensionContext>) reqSCtx -> {
+    public static final ExtensionBundle TRANSPORT_CONFIG_BUNDLE = createServiceExtBundle(createCtxBundle(
+            (InterceptorExtension<THSExtensionContext>) reqSCtx -> {
                 String reqMethod = reqSCtx.getProviderRequest().getMethod();
                 if (!"POST".equals(reqMethod)) {
-                    throw new THRequestInterceptionException(TTransportErrorType.BAD_REQUEST_TYPE, reqMethod);
+                    throw new THRequestInterceptionException(TTransportErrorType.BAD_REQUEST_TYPE,
+                            reqMethod);
                 }
                 String cType = reqSCtx.getProviderRequest().getContentType();
                 if (!"application/x-thrift".equalsIgnoreCase(cType)) {
-                    throw new THRequestInterceptionException(TTransportErrorType.BAD_CONTENT_TYPE, cType);
+                    throw new THRequestInterceptionException(TTransportErrorType.BAD_CONTENT_TYPE,
+                            cType);
                 }
-            }, respSCtx -> {
+            },
+            respSCtx -> {
             }));
 
-    public static final ExtensionBundle DEADLINE_BUNDLE =
-            createExtBundle(createCtxBundle((InterceptorExtension<THCExtensionContext>) reqCCtx -> {
+    public static final ExtensionBundle DEADLINE_BUNDLE = createExtBundle(createCtxBundle(
+            (InterceptorExtension<THCExtensionContext>) reqCCtx -> {
                 ClientSpan clientSpan = reqCCtx.getTraceData().getClientSpan();
                 Instant deadline = ContextUtils.getDeadline(clientSpan);
                 if (deadline != null) {
                     reqCCtx.setRequestHeader(THttpHeader.DEADLINE.getKey(), deadline.toString());
                 }
             }, respCCtx -> {
-            }), createCtxBundle((InterceptorExtension<THSExtensionContext>) reqSCtx -> {
+            }), createCtxBundle(
+            (InterceptorExtension<THSExtensionContext>) reqSCtx -> {
                 HttpServletRequest request = reqSCtx.getProviderRequest();
                 ServiceSpan serviceSpan = reqSCtx.getTraceData().getServiceSpan();
                 String deadlineHeader = THttpHeader.DEADLINE.getKey();
@@ -101,24 +99,29 @@ public class TransportExtensionBundles {
                         Instant deadline = Instant.parse(deadlineHeaderValue);
                         ContextUtils.setDeadline(serviceSpan, deadline);
                     } catch (DateTimeParseException ex) {
-                        throw new THRequestInterceptionException(TTransportErrorType.BAD_HEADER, deadlineHeader, ex);
+                        throw new THRequestInterceptionException(TTransportErrorType.BAD_HEADER,
+                                deadlineHeader,
+                                ex);
                     }
                 }
-            }, (InterceptorExtension<THSExtensionContext>) respSCtx -> {
+            },
+            (InterceptorExtension<THSExtensionContext>) respSCtx -> {
                 Instant deadline = ContextUtils.getDeadline(respSCtx.getTraceData().getServiceSpan());
                 if (deadline != null) {
                     respSCtx.setResponseHeader(THttpHeader.DEADLINE.getKey(), deadline.toString());
                 }
             }));
 
-    public static final ExtensionBundle CALL_ENDPOINT_BUNDLE =
-            createExtBundle(createCtxBundle((InterceptorExtension<THCExtensionContext>) reqCCtx -> {
+    public static final ExtensionBundle CALL_ENDPOINT_BUNDLE = createExtBundle(createCtxBundle(
+            (InterceptorExtension<THCExtensionContext>) reqCCtx -> {
                 ContextSpan contextSpan = reqCCtx.getTraceData().getClientSpan();
                 URL url = reqCCtx.getRequestCallEndpoint();
                 contextSpan.getMetadata().putValue(MetadataProperties.CALL_ENDPOINT,
                         new UrlStringEndpoint(url == null ? null : url.toString()));
-            }, respCCtx -> {
-            }), createCtxBundle((InterceptorExtension<THSExtensionContext>) reqSCtx -> {
+            },
+            respCCtx -> {
+            }), createCtxBundle(
+            (InterceptorExtension<THSExtensionContext>) reqSCtx -> {
                 HttpServletRequest request = reqSCtx.getProviderRequest();
                 String queryString = request.getQueryString();
                 StringBuffer sb = request.getRequestURL();
@@ -126,20 +129,23 @@ public class TransportExtensionBundles {
                     sb.append('?').append(request.getQueryString());
                 }
                 reqSCtx.getTraceData().getServiceSpan().getMetadata()
-                        .putValue(MetadataProperties.CALL_ENDPOINT, new UrlStringEndpoint(sb.toString()));
+                        .putValue(MetadataProperties.CALL_ENDPOINT,
+                                new UrlStringEndpoint(sb.toString()));
             }, reqSCtx -> {
             }));
 
-    public static final ExtensionBundle TRANSPORT_INJECTION_BUNDLE =
-            createExtBundle(createCtxBundle((InterceptorExtension<THCExtensionContext>) reqCCtx -> {
+    public static final ExtensionBundle TRANSPORT_INJECTION_BUNDLE = createExtBundle(createCtxBundle(
+            (InterceptorExtension<THCExtensionContext>) reqCCtx -> {
                 reqCCtx.getTraceData().getClientSpan().getMetadata()
                         .putValue(THMetadataProperties.TH_TRANSPORT_REQUEST, reqCCtx.getProviderContext());
             }, (InterceptorExtension<THCExtensionContext>) respCCtx -> {
                 respCCtx.getTraceData().getClientSpan().getMetadata()
                         .putValue(THMetadataProperties.TH_TRANSPORT_RESPONSE, respCCtx.getProviderContext());
-            }), createCtxBundle((InterceptorExtension<THSExtensionContext>) reqSCtx -> {
+            }), createCtxBundle(
+            (InterceptorExtension<THSExtensionContext>) reqSCtx -> {
                 HttpServletResponse response =
-                        ContextUtils.getContextValue(HttpServletResponse.class, reqSCtx.getContextParameters(), 0);
+                        ContextUtils.getContextValue(HttpServletResponse.class, reqSCtx.getContextParameters(),
+                                0);
                 ServiceSpan serviceSpan = reqSCtx.getTraceData().getServiceSpan();
                 serviceSpan.getMetadata()
                         .putValue(THMetadataProperties.TH_TRANSPORT_REQUEST, reqSCtx.getProviderRequest());
@@ -147,16 +153,18 @@ public class TransportExtensionBundles {
             }, respSCtx -> {
             }));
 
-    public static final ExtensionBundle RPC_ID_BUNDLE =
-            createExtBundle(createCtxBundle((InterceptorExtension<THCExtensionContext>) reqCCtx -> {
+    public static final ExtensionBundle RPC_ID_BUNDLE = createExtBundle(createCtxBundle(
+            (InterceptorExtension<THCExtensionContext>) reqCCtx -> {
                 Span span = reqCCtx.getTraceData().getClientSpan().getSpan();
                 reqCCtx.setRequestHeader(THttpHeader.TRACE_ID.getKey(), span.getTraceId());
                 reqCCtx.setRequestHeader(THttpHeader.SPAN_ID.getKey(), span.getId());
                 reqCCtx.setRequestHeader(THttpHeader.PARENT_ID.getKey(), span.getParentId());
                 injectTraceHeaders(reqCCtx);
-            }, (InterceptorExtension<THCExtensionContext>) respCCtx -> {
-                applyResponseStatus(respCCtx.getTraceData(), respCCtx.getResponseStatus());
-            }), createCtxBundle((InterceptorExtension<THSExtensionContext>) reqSCtx -> {
+            },
+            (InterceptorExtension<THCExtensionContext>) respCCtx -> applyResponseStatus(
+                    respCCtx.getTraceData(),
+                    respCCtx.getResponseStatus())), createCtxBundle(
+            (InterceptorExtension<THSExtensionContext>) reqSCtx -> {
                 extractTraceContext(reqSCtx);
                 HttpServletRequest request = reqSCtx.getProviderRequest();
                 Span span = reqSCtx.getTraceData().getServiceSpan().getSpan();
@@ -167,7 +175,8 @@ public class TransportExtensionBundles {
                                 new SimpleEntry<>(THttpHeader.SPAN_ID, span::setId)
                         );
                 validateAndProcessTraceHeaders(request, THttpHeader::getKey, headerConsumers);
-            }, (InterceptorExtension<THSExtensionContext>) respSCtx -> {
+            },
+            (InterceptorExtension<THSExtensionContext>) respSCtx -> {
                 Span span = respSCtx.getTraceData().getServiceSpan().getSpan();
                 respSCtx.setResponseHeader(THttpHeader.TRACE_ID.getKey(), span.getTraceId());
                 respSCtx.setResponseHeader(THttpHeader.PARENT_ID.getKey(), span.getParentId());
@@ -178,7 +187,8 @@ public class TransportExtensionBundles {
 
     public static final ExtensionBundle TRANSPORT_STATE_MAPPING_BUNDLE = createExtBundle(createCtxBundle(
             (InterceptorExtension<THCExtensionContext>) reqCCtx -> {
-            }, (InterceptorExtension<THCExtensionContext>) respCCtx -> {
+            },
+            (InterceptorExtension<THCExtensionContext>) respCCtx -> {
                 int status = respCCtx.getResponseStatus();
                 Metadata metadata = respCCtx.getTraceData().getClientSpan().getMetadata();
                 metadata.putValue(THMetadataProperties.TH_RESPONSE_STATUS, status);
@@ -199,28 +209,31 @@ public class TransportExtensionBundles {
                     metadata.putValue(MetadataProperties.RESPONSE_SKIP_READING_FLAG, true);
                 }
             }), createCtxBundle(reqSCtx -> {
-    }, (InterceptorExtension<THSExtensionContext>) respSCtx -> {
-        ContextSpan serviceSpan = respSCtx.getTraceData().getServiceSpan();
-        if (serviceSpan.getMetadata().containsKey(THMetadataProperties.TH_TRANSPORT_RESPONSE_SET_FLAG)) {
-            return;
-        }
-        logIfError(serviceSpan);
-        HttpServletResponse response = respSCtx.getProviderResponse();
-        if (response.isCommitted()) {
-            log.error("Can't perform response mapping: Transport response is already committed");
-        } else {
-            THResponseInfo responseInfo = THProviderErrorMapper.getResponseInfo(serviceSpan);
-            response.setStatus(responseInfo.getStatus());
-            Optional.ofNullable(responseInfo.getErrClass()).ifPresent(val -> {
-                response.setHeader(THttpHeader.ERROR_CLASS.getKey(), val);
-            });
-            Optional.ofNullable(responseInfo.getErrReason()).ifPresent(val -> {
-                response.setHeader(THttpHeader.ERROR_REASON.getKey(), val);
-            });
-            serviceSpan.getMetadata().putValue(THMetadataProperties.TH_TRANSPORT_RESPONSE_SET_FLAG, true);
-            applyResponseStatus(respSCtx.getTraceData(), responseInfo.getStatus());
-        }
-    }));
+            },
+            (InterceptorExtension<THSExtensionContext>) respSCtx -> {
+                ContextSpan serviceSpan = respSCtx.getTraceData().getServiceSpan();
+                if (serviceSpan.getMetadata()
+                        .containsKey(THMetadataProperties.TH_TRANSPORT_RESPONSE_SET_FLAG)) {
+                    return;
+                }
+                logIfError(serviceSpan);
+                HttpServletResponse response = respSCtx.getProviderResponse();
+                if (response.isCommitted()) {
+                    log.error("Can't perform response mapping: Transport response is already committed");
+                } else {
+                    THResponseInfo responseInfo = THProviderErrorMapper.getResponseInfo(serviceSpan);
+                    response.setStatus(responseInfo.getStatus());
+                    Optional.ofNullable(responseInfo.getErrClass()).ifPresent(val -> {
+                        response.setHeader(THttpHeader.ERROR_CLASS.getKey(), val);
+                    });
+                    Optional.ofNullable(responseInfo.getErrReason()).ifPresent(val -> {
+                        response.setHeader(THttpHeader.ERROR_REASON.getKey(), val);
+                    });
+                    serviceSpan.getMetadata()
+                            .putValue(THMetadataProperties.TH_TRANSPORT_RESPONSE_SET_FLAG, true);
+                    applyResponseStatus(respSCtx.getTraceData(), responseInfo.getStatus());
+                }
+            }));
 
     private static final List<ExtensionBundle> clientList = Collections.unmodifiableList(
             Arrays.asList(RPC_ID_BUNDLE, CALL_ENDPOINT_BUNDLE, TRANSPORT_STATE_MAPPING_BUNDLE,
