@@ -151,7 +151,6 @@ public class TraceContext {
      */
     public void init() {
         TraceData traceData = getCurrentTraceData();
-        TraceData originalTraceData = traceData;
         boolean clientInit = isClientInit(traceData);
         if (clientInit) {
             traceData = initClientContext(traceData);
