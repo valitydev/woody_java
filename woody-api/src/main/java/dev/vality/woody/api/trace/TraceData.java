@@ -27,10 +27,7 @@ public class TraceData {
         this.clientSpan = new ClientSpan();
         this.serviceSpan = new ServiceSpan();
         setPendingParentContext(Context.root());
-        startNewOtelSpan(OTEL_CLIENT, SpanKind.CLIENT, Context.root());
-        openOtelScope();
-        this.ownsOtelSpan = false;
-        this.preserveOtelSpan = false;
+        startPlaceholderSpan();
     }
 
     public TraceData(TraceData oldTraceData) {
@@ -98,28 +95,7 @@ public class TraceData {
         return inboundTraceState;
     }
 
-    public boolean hasValidOtelSpan() {
-        return ownsOtelSpan && otelSpan != null && otelSpan.getSpanContext().isValid();
-    }
-
-    public void adoptOtelSpan(Span span, Context context, boolean ownsSpan) {
-        closeActiveScope();
-        if (ownsOtelSpan && otelSpan != null) {
-            otelSpan.end();
-        }
-        if (span == null) {
-            this.otelSpan = Span.getInvalid();
-            this.otelContext = Context.root();
-            this.ownsOtelSpan = false;
-            return;
-        }
-        this.otelSpan = span;
-        this.otelContext = context != null ? context : Context.root().with(span);
-        this.ownsOtelSpan = ownsSpan && span.getSpanContext().isValid();
-        this.preserveOtelSpan = !this.ownsOtelSpan;
-    }
-
-    public Span startNewOtelSpan(String spanName, SpanKind spanKind, Context parentContext) {
+    public void startNewOtelSpan(String spanName, SpanKind spanKind, Context parentContext) {
         closeActiveScope();
         if (otelSpan != null && otelSpan.getSpanContext().isValid()) {
             otelSpan.end();
@@ -134,21 +110,11 @@ public class TraceData {
         this.otelContext = context.with(span);
         this.ownsOtelSpan = true;
         this.preserveOtelSpan = false;
-        return span;
     }
 
-    public void setOtelSpan(Span span) {
-        adoptOtelSpan(span, span != null ? Context.root().with(span) : Context.root(), true);
-    }
-
-    public Scope openOtelScope() {
+    public void openOtelScope() {
         closeActiveScope();
         this.activeScope = otelContext.makeCurrent();
-        return activeScope;
-    }
-
-    public Scope attachOtelContext() {
-        return otelContext.makeCurrent();
     }
 
     public void finishOtelSpan() {
@@ -247,6 +213,14 @@ public class TraceData {
     }
 
     public void clearPreserveOtelSpan() {
+        this.preserveOtelSpan = false;
+    }
+
+    private void startPlaceholderSpan() {
+        this.otelSpan = Span.getInvalid();
+        this.otelContext = Context.root();
+        this.ownsOtelSpan = false;
+        this.activeScope = null;
         this.preserveOtelSpan = false;
     }
 }
