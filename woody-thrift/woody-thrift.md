@@ -79,4 +79,10 @@ Servlet service = serviceBuilder.build(ThriftServiceSrv.Iface.class, handler);
 `service` - это ничто иное, как javax.servlet.Servlet, который нужно добавить в servlet контейнер.
 `handler` - реализация `ThriftServiceSrv.Iface`, которая вызывается для обработки запросов к сервису.
 
+### Интеграционные тесты
+
+Для проверки сквозной OpenTelemetry-трассировки, восстановления контекста,
+обработки ошибок и работы без обязательных метаданных используйте
+интеграционный набор `TraceLifecycleIntegrationTest` в модуле `woody-thrift`.
+
 

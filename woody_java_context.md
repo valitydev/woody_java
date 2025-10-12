@@ -67,7 +67,10 @@
 
 - `woody-api/src/test`: ID generators, tracing logic, proxy behavior.
 - `woody-thrift/src/test`: Jetty quickstart servers + EasyMock cover HTTP
-  integration, metadata propagation, error mapping.
+  integration, metadata propagation, error mapping, а также свежие
+  интеграционные сценарии `TraceLifecycleIntegrationTest`, проверяющие
+  сквозную OpenTelemetry-трассировку (новый/восстановленный контекст,
+  обработку ошибок, отсутствие обязательных метаданных).
 
 ## Key Concepts for Agents
 
