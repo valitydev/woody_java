@@ -1,4 +1,4 @@
-## Agents Reference
+# Agents Reference
 
 ## Project Overview
 
