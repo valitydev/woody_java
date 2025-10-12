@@ -1,4 +1,4 @@
-# Agents Guide
+Agents Guide
 
 This document helps automation agents work effectively on the **Woody** service.
 
