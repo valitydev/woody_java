@@ -18,6 +18,7 @@ import io.opentelemetry.context.Context;
 import io.opentelemetry.context.propagation.TextMapGetter;
 import io.opentelemetry.context.propagation.TextMapPropagator;
 import io.opentelemetry.context.propagation.TextMapSetter;
+import io.opentelemetry.semconv.HttpAttributes;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
@@ -38,31 +39,6 @@ import static java.util.AbstractMap.SimpleEntry;
 
 public class TransportExtensionBundles {
     private static final Logger log = LoggerFactory.getLogger(TransportExtensionBundles.class);
-
-    private static final TextMapGetter<HttpServletRequest> REQUEST_HEADER_GETTER = new TextMapGetter<>() {
-        @Override
-        public Iterable<String> keys(HttpServletRequest carrier) {
-            if (carrier == null) {
-                return Collections.emptyList();
-            }
-            var headerNames = carrier.getHeaderNames();
-            return headerNames == null ? Collections.emptyList() : Collections.list(headerNames);
-        }
-
-        @Override
-        public String get(HttpServletRequest carrier, String key) {
-            if (carrier == null || key == null) {
-                return null;
-            }
-            return carrier.getHeader(key);
-        }
-    };
-
-    private static final TextMapSetter<THCExtensionContext> CLIENT_REQUEST_SETTER = (carrier, key, value) -> {
-        if (carrier != null && key != null && value != null) {
-            carrier.setRequestHeader(key, value);
-        }
-    };
 
     public static final ExtensionBundle TRANSPORT_CONFIG_BUNDLE =
             createServiceExtBundle(createCtxBundle((InterceptorExtension<THSExtensionContext>) reqSCtx -> {
@@ -277,7 +253,7 @@ public class TransportExtensionBundles {
         if (span == null || !span.getSpanContext().isValid()) {
             return;
         }
-        span.setAttribute("http.status_code", (long) status);
+        span.setAttribute(HttpAttributes.HTTP_RESPONSE_STATUS_CODE, status);
         span.setStatus(status >= 500 ? StatusCode.ERROR : StatusCode.OK);
     }
 
@@ -311,4 +287,29 @@ public class TransportExtensionBundles {
                 Collectors.toMap(Function.identity(), headerName -> Collections.list(request.getHeaders(headerName))));
         log.debug("Request headers: {}", headersMap);
     }
+
+    private static final TextMapGetter<HttpServletRequest> REQUEST_HEADER_GETTER = new TextMapGetter<>() {
+        @Override
+        public Iterable<String> keys(HttpServletRequest carrier) {
+            if (carrier == null) {
+                return Collections.emptyList();
+            }
+            Enumeration<String> headerNames = carrier.getHeaderNames();
+            return headerNames == null ? Collections.emptyList() : Collections.list(headerNames);
+        }
+
+        @Override
+        public String get(HttpServletRequest carrier, String key) {
+            if (carrier == null || key == null) {
+                return null;
+            }
+            return carrier.getHeader(key);
+        }
+    };
+
+    private static final TextMapSetter<THCExtensionContext> CLIENT_REQUEST_SETTER = (carrier, key, value) -> {
+        if (carrier != null && key != null && value != null) {
+            carrier.setRequestHeader(key, value);
+        }
+    };
 }

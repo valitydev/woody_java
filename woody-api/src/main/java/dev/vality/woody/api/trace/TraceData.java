@@ -18,6 +18,7 @@ public class TraceData {
     private Context otelContext;
     private Scope activeScope;
     private boolean ownsOtelSpan;
+    private boolean preserveOtelSpan;
     private Context pendingParentContext;
     private String inboundTraceParent;
     private String inboundTraceState;
@@ -29,6 +30,7 @@ public class TraceData {
         startNewOtelSpan(OTEL_CLIENT, SpanKind.CLIENT, Context.root());
         openOtelScope();
         this.ownsOtelSpan = false;
+        this.preserveOtelSpan = false;
     }
 
     public TraceData(TraceData oldTraceData) {
@@ -47,6 +49,7 @@ public class TraceData {
         this.pendingParentContext = oldTraceData.pendingParentContext;
         this.inboundTraceParent = oldTraceData.inboundTraceParent;
         this.inboundTraceState = oldTraceData.inboundTraceState;
+        this.preserveOtelSpan = true;
     }
 
     public TraceData(TraceData oldTraceData, boolean copyCustomServiceMetadata, String resource) {
@@ -113,6 +116,7 @@ public class TraceData {
         this.otelSpan = span;
         this.otelContext = context != null ? context : Context.root().with(span);
         this.ownsOtelSpan = ownsSpan && span.getSpanContext().isValid();
+        this.preserveOtelSpan = !this.ownsOtelSpan;
     }
 
     public Span startNewOtelSpan(String spanName, SpanKind spanKind, Context parentContext) {
@@ -129,6 +133,7 @@ public class TraceData {
         this.otelSpan = span;
         this.otelContext = context.with(span);
         this.ownsOtelSpan = true;
+        this.preserveOtelSpan = false;
         return span;
     }
 
@@ -154,6 +159,7 @@ public class TraceData {
         otelSpan = Span.getInvalid();
         otelContext = Context.root();
         ownsOtelSpan = false;
+        preserveOtelSpan = false;
         inboundTraceParent = null;
         inboundTraceState = null;
     }
@@ -205,8 +211,8 @@ public class TraceData {
      * <p>
      * This allows to eliminate the necessity for call processing code to be explicitly configured with expected
      * call state. This can be figured out directly from the context in runtime.
-     * The only exclusion is {@link TraceContext} itself. It uses already filled trace id field for server state
-     * initialization
+     * The only exclusion is {@link dev.vality.woody.api.trace.context.TraceContext} itself. It uses already filled
+     * trace id field for server state initialization
      *
      * @return true - if call is running as root client or child client call for server request handling;
      *         false - if call is running in server request handing
@@ -234,5 +240,13 @@ public class TraceData {
 
     public TraceData cloneObject() {
         return new TraceData(this);
+    }
+
+    public boolean shouldPreserveOtelSpan() {
+        return preserveOtelSpan && otelSpan != null && otelSpan.getSpanContext().isValid();
+    }
+
+    public void clearPreserveOtelSpan() {
+        this.preserveOtelSpan = false;
     }
 }

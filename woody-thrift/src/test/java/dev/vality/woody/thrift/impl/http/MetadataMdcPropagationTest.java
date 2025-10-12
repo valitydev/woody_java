@@ -31,6 +31,7 @@ public class MetadataMdcPropagationTest extends AbstractTest {
     private static final String X_REQUEST_DEADLINE = "2025-01-01T12:30:00Z";
     private static final String TRACE_ID = "4e0e9f8d8d8044f9b65a3b0f5cdfc2d1";
     private static final String SPAN_ID = "1a2b3c4d5e6f7081";
+    private static final String TRACE_STATE = "rojo=00f067aa0ba902b7,congo=t61rcWkgMzE";
 
     private final AtomicReference<String> upstreamMetadataId = new AtomicReference<>();
     private final AtomicReference<String> upstreamMetadataDeadline = new AtomicReference<>();
@@ -42,6 +43,12 @@ public class MetadataMdcPropagationTest extends AbstractTest {
     private final AtomicReference<String> downstreamMdcDeadline = new AtomicReference<>();
     private final AtomicReference<String> upstreamOtelTraceId = new AtomicReference<>();
     private final AtomicReference<String> downstreamOtelTraceId = new AtomicReference<>();
+    private final AtomicReference<String> upstreamTraceState = new AtomicReference<>();
+    private final AtomicReference<String> downstreamTraceState = new AtomicReference<>();
+    private final AtomicReference<String> upstreamTraceParent = new AtomicReference<>();
+    private final AtomicReference<String> downstreamTraceParent = new AtomicReference<>();
+    private final AtomicReference<String> responseTraceParent = new AtomicReference<>();
+    private final AtomicReference<String> responseTraceState = new AtomicReference<>();
 
     private OwnerServiceSrv.Iface downstreamClient;
 
@@ -71,6 +78,8 @@ public class MetadataMdcPropagationTest extends AbstractTest {
                 downstreamMdcDeadline.set(MDC.get("rpc.server.metadata.user-identity.x-request-deadline"));
                 downstreamOtelTraceId.set(
                         TraceContext.getCurrentTraceData().getOtelSpan().getSpanContext().getTraceId());
+                downstreamTraceState.set(TraceContext.getCurrentTraceData().getInboundTraceState());
+                downstreamTraceParent.set(TraceContext.getCurrentTraceData().getInboundTraceParent());
                 return new Owner(id, "downstream");
             }
         };
@@ -88,6 +97,8 @@ public class MetadataMdcPropagationTest extends AbstractTest {
                 upstreamMdcDeadline.set(MDC.get("rpc.server.metadata.user-identity.x-request-deadline"));
                 upstreamOtelTraceId.set(
                         TraceContext.getCurrentTraceData().getOtelSpan().getSpanContext().getTraceId());
+                upstreamTraceState.set(TraceContext.getCurrentTraceData().getInboundTraceState());
+                upstreamTraceParent.set(TraceContext.getCurrentTraceData().getInboundTraceParent());
 
                 Owner result = downstreamClient.getOwner(id);
 
@@ -117,6 +128,7 @@ public class MetadataMdcPropagationTest extends AbstractTest {
 
         try (CloseableHttpClient httpClient = HttpClients.custom()
                 .addRequestInterceptorLast(this::injectHeaders)
+                .addResponseInterceptorLast(this::captureResponseHeaders)
                 .build()) {
             OwnerServiceSrv.Iface entryClient = createThriftRPCClient(OwnerServiceSrv.Iface.class,
                     new TimestampIdGenerator(), null, null, getUrlString("/upstream"), networkTimeout, httpClient);
@@ -140,6 +152,18 @@ public class MetadataMdcPropagationTest extends AbstractTest {
         assertEquals(upstreamTraceId, downstreamTraceId);
         assertEquals(32, upstreamTraceId.length());
         assertNotEquals("00000000000000000000000000000000", upstreamTraceId);
+        assertEquals(TRACE_STATE, upstreamTraceState.get());
+        assertEquals(TRACE_STATE, downstreamTraceState.get());
+        assertNotNull("Upstream traceparent must be captured", upstreamTraceParent.get());
+        assertNotNull("Downstream traceparent must be captured", downstreamTraceParent.get());
+        assertNotNull("traceparent in HTTP response must be present", responseTraceParent.get());
+        assertTrue("Upstream traceparent should contain the original trace ID",
+                upstreamTraceParent.get().contains(TRACE_ID));
+        assertTrue("Downstream traceparent should contain the original trace ID",
+                downstreamTraceParent.get().contains(TRACE_ID));
+        assertTrue("Response traceparent should contain the original trace ID",
+                responseTraceParent.get().contains(TRACE_ID));
+        assertEquals(TRACE_STATE, responseTraceState.get());
     }
 
     private void injectHeaders(HttpRequest request, EntityDetails entity, HttpContext context)
@@ -150,12 +174,32 @@ public class MetadataMdcPropagationTest extends AbstractTest {
         if (context != null) {
             context.hashCode();
         }
-        request.addHeader("woody.meta.user-identity.x-request-id", X_REQUEST_ID);
-        request.addHeader("woody.meta.user-identity.x-request-deadline", X_REQUEST_DEADLINE);
-        request.addHeader("woody.trace-id", TRACE_ID);
-        request.addHeader("woody.span-id", SPAN_ID);
-        request.addHeader("woody.parent-id", TraceContext.NO_PARENT_ID);
-        request.addHeader("traceparent", String.format("00-%s-%s-01", TRACE_ID, SPAN_ID));
+        request.setHeader("woody.meta.user-identity.x-request-id", X_REQUEST_ID);
+        request.setHeader("woody.meta.user-identity.x-request-deadline", X_REQUEST_DEADLINE);
+        request.setHeader("woody.trace-id", TRACE_ID);
+        request.setHeader("woody.span-id", SPAN_ID);
+        request.setHeader("woody.parent-id", TraceContext.NO_PARENT_ID);
+        request.setHeader("traceparent", String.format("00-%s-%s-01", TRACE_ID, SPAN_ID));
+        request.setHeader("tracestate", TRACE_STATE);
+    }
+
+    private void captureResponseHeaders(org.apache.hc.core5.http.HttpResponse response,
+                                        EntityDetails entityDetails,
+                                        HttpContext context) throws HttpException, IOException {
+        if (entityDetails != null) {
+            entityDetails.getContentType();
+        }
+        if (context != null) {
+            context.hashCode();
+        }
+        var traceParentHeader = response.getFirstHeader("traceparent");
+        if (traceParentHeader != null) {
+            responseTraceParent.set(traceParentHeader.getValue());
+        }
+        var traceStateHeader = response.getFirstHeader("tracestate");
+        if (traceStateHeader != null) {
+            responseTraceState.set(traceStateHeader.getValue());
+        }
     }
 
     private void clearCapturedValues() {
@@ -169,5 +213,11 @@ public class MetadataMdcPropagationTest extends AbstractTest {
         downstreamMdcDeadline.set(null);
         upstreamOtelTraceId.set(null);
         downstreamOtelTraceId.set(null);
+        upstreamTraceState.set(null);
+        downstreamTraceState.set(null);
+        upstreamTraceParent.set(null);
+        downstreamTraceParent.set(null);
+        responseTraceParent.set(null);
+        responseTraceState.set(null);
     }
 }
