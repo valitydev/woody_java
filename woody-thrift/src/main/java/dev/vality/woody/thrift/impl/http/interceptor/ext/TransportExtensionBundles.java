@@ -201,6 +201,31 @@ public class TransportExtensionBundles {
             Arrays.asList(TRANSPORT_CONFIG_BUNDLE, RPC_ID_BUNDLE, CALL_ENDPOINT_BUNDLE, TRANSPORT_STATE_MAPPING_BUNDLE,
                     TRANSPORT_INJECTION_BUNDLE, DEADLINE_BUNDLE));
 
+    private static final TextMapGetter<HttpServletRequest> REQUEST_HEADER_GETTER = new TextMapGetter<>() {
+        @Override
+        public Iterable<String> keys(HttpServletRequest carrier) {
+            if (carrier == null) {
+                return Collections.emptyList();
+            }
+            Enumeration<String> headerNames = carrier.getHeaderNames();
+            return headerNames == null ? Collections.emptyList() : Collections.list(headerNames);
+        }
+
+        @Override
+        public String get(HttpServletRequest carrier, String key) {
+            if (carrier == null || key == null) {
+                return null;
+            }
+            return carrier.getHeader(key);
+        }
+    };
+
+    private static final TextMapSetter<THCExtensionContext> CLIENT_REQUEST_SETTER = (carrier, key, value) -> {
+        if (carrier != null && key != null && value != null) {
+            carrier.setRequestHeader(key, value);
+        }
+    };
+
     public static List<ExtensionBundle> getClientExtensions() {
         return clientList;
     }
@@ -288,28 +313,4 @@ public class TransportExtensionBundles {
         log.debug("Request headers: {}", headersMap);
     }
 
-    private static final TextMapGetter<HttpServletRequest> REQUEST_HEADER_GETTER = new TextMapGetter<>() {
-        @Override
-        public Iterable<String> keys(HttpServletRequest carrier) {
-            if (carrier == null) {
-                return Collections.emptyList();
-            }
-            Enumeration<String> headerNames = carrier.getHeaderNames();
-            return headerNames == null ? Collections.emptyList() : Collections.list(headerNames);
-        }
-
-        @Override
-        public String get(HttpServletRequest carrier, String key) {
-            if (carrier == null || key == null) {
-                return null;
-            }
-            return carrier.getHeader(key);
-        }
-    };
-
-    private static final TextMapSetter<THCExtensionContext> CLIENT_REQUEST_SETTER = (carrier, key, value) -> {
-        if (carrier != null && key != null && value != null) {
-            carrier.setRequestHeader(key, value);
-        }
-    };
 }

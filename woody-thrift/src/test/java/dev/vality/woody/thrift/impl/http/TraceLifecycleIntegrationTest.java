@@ -563,13 +563,13 @@ public class TraceLifecycleIntegrationTest extends AbstractTest {
         }
 
         void assertServerStatus(StatusCode... expected) {
-            var allowed = java.util.Arrays.stream(expected).collect(Collectors.toSet());
+            var allowed = Arrays.stream(expected).collect(Collectors.toSet());
             serverSpans.forEach(span -> assertTrue("Unexpected server status " + span.getStatus(),
                     allowed.contains(span.getStatus().getStatusCode())));
         }
 
         void assertClientStatus(StatusCode... expected) {
-            var allowed = java.util.Arrays.stream(expected).collect(Collectors.toSet());
+            var allowed = Arrays.stream(expected).collect(Collectors.toSet());
             clientSpans.forEach(span -> assertTrue("Unexpected client status " + span.getStatus(),
                     allowed.contains(span.getStatus().getStatusCode())));
         }

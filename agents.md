@@ -1,4 +1,4 @@
-# Woody Java – Agents Reference
+## Agents Reference
 
 ## Project Overview
 
@@ -57,7 +57,7 @@
   concurrency helpers (`MdcUtilsExtendedTest`, `TestWFlow`,
   `TestWExecutorService`, `ContextInterceptorTest`).
 - `woody-thrift/src/test`: Jetty quickstart + EasyMock covering HTTP
-  integration, metadata propagation, error mapping and OTEL spans: 
+  integration, metadata propagation, error mapping and OTEL spans:
   - `TraceLifecycleIntegrationTest` – end-to-end OpenTelemetry propagation,
     restored headers, error handling, missing metadata.
   - `MetadataMdcPropagationTest` – SLF4J MDC propagation between client and
