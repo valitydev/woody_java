@@ -4,6 +4,7 @@ public enum THttpHeader {
     TRACE_ID("woody.trace-id", false),
     SPAN_ID("woody.span-id", false),
     TRACE_PARENT("traceparent", true),
+    TRACE_STATE("tracestate", true),
     PARENT_ID("woody.parent-id", false),
     DEADLINE("woody.deadline", false),
     ERROR_CLASS("woody.error-class", false),

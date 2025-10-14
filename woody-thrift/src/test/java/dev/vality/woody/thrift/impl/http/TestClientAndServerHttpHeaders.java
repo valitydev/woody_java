@@ -187,7 +187,7 @@ public class TestClientAndServerHttpHeaders extends AbstractTest {
     public void testTraceDataOtel() throws TException {
         addServlet(testServlet, servletContextPath);
         CloseableHttpClient httpClient =
-                HttpClients.custom().addRequestInterceptorFirst((httpRequest, entityDetails, httpContext) ->
+                HttpClients.custom().addRequestInterceptorLast((httpRequest, entityDetails, httpContext) ->
                                 httpRequest.setHeader(
                                         THttpHeader.TRACE_PARENT.getKey(),
                                         "00-80e1afed08e019fc1110464cfa66635c-7a085853722dc6d2-01"
@@ -211,11 +211,11 @@ public class TestClientAndServerHttpHeaders extends AbstractTest {
     public void testWhenTraceDataOtelIsEmpty() throws TException {
         addServlet(testServlet, servletContextPath);
         CloseableHttpClient httpClient =
-                HttpClients.custom().addRequestInterceptorFirst((httpRequest, entityDetails, httpContext) ->
-                                assertNull(httpRequest.getHeader(THttpHeader.TRACE_PARENT.getKey()))
+                HttpClients.custom().addRequestInterceptorLast((httpRequest, entityDetails, httpContext) ->
+                                assertNotNull(httpRequest.getHeader(THttpHeader.TRACE_PARENT.getKey()))
                         )
                         .addResponseInterceptorLast((httpResponse, entityDetails, httpContext) ->
-                                assertNull(httpResponse.getHeader(THttpHeader.TRACE_PARENT.getKey()))
+                                assertNotNull(httpResponse.getHeader(THttpHeader.TRACE_PARENT.getKey()))
                         )
                         .build();
 
@@ -229,7 +229,7 @@ public class TestClientAndServerHttpHeaders extends AbstractTest {
     public void testWhenTraceDataOtelIsInvalid() throws TException {
         addServlet(testServlet, servletContextPath);
         CloseableHttpClient httpClient =
-                HttpClients.custom().addRequestInterceptorFirst((httpRequest, entityDetails, httpContext) ->
+                HttpClients.custom().addRequestInterceptorLast((httpRequest, entityDetails, httpContext) ->
                                 httpRequest.setHeader(
                                         THttpHeader.TRACE_PARENT.getKey(),
                                         "invalid"

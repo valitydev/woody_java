@@ -17,6 +17,9 @@
 - Thread-local tracing via `TraceContext`/`TraceData` managing client/service
   spans, auto ID generation, duration tracking, SLF4J MDC sync, OTEL span
   lifecycle.
+- `MDCUtils` публикует trace/span идентификаторы Woody и OpenTelemetry,
+  дедлайны и RPC-метаданные (отключаемо через системное свойство
+  `woody.mdc.extended`).
 - Concurrency helpers (`WFlow`, `WCallable`, `WRunnable`, `WExecutorService`)
   clone/propagate trace context across threads, including service/client forks.
 - Proxy/interceptor pipeline:
@@ -48,6 +51,8 @@
   `TraceParentUtils` handles W3C traceparent parsing/serialization.
 - Supplemental packages: `error` (exception ↔ response mapping), `event` (HTTP
   logging), `transport` (servlet/client wiring).
+- Обновлённый `THProviderErrorMapper` синхронизирует статус, источники ошибок,
+  метаданные и обеспечивает трассировку при транспортных исключениях.
 
 ### libthrift
 
@@ -57,8 +62,8 @@
 
 ## Build & Tooling
 
-- Root `pom.xml` (parent `dev.vality:library-parent-pom:2.0.1`) aggregates
-  modules.
+- Root `pom.xml` наследуется от `dev.vality:library-parent-pom:3.1.0` и
+  управляет версией через `${revision}`.
 - `woody-thrift` offers `gen_thrift_classes` profile running `thrift-maven-
   plugin` (`thrift` executable required).
 - Target Java version 11; uses Checkstyle suppressions and Renovate config.
@@ -67,7 +72,12 @@
 
 - `woody-api/src/test`: ID generators, tracing logic, proxy behavior.
 - `woody-thrift/src/test`: Jetty quickstart servers + EasyMock cover HTTP
-  integration, metadata propagation, error mapping.
+  integration, metadata propagation, error mapping, а также свежие
+  интеграционные сценарии `TraceLifecycleIntegrationTest`, проверяющие
+  сквозную OpenTelemetry-трассировку (новый/восстановленный контекст,
+  обработку ошибок, отсутствие обязательных метаданных).
+- Дополнительно `THProviderErrorMapperTest` и `MetadataMdcPropagationTest`
+  контролируют обработку ошибок и перенос MDC/OTel данных.
 
 ## Key Concepts for Agents
 
@@ -108,3 +118,5 @@
   (`WErrorType.BUSINESS_ERROR` leaves transport metadata intact).
 - For new metadata, implement `MetadataExtensionKit` and include via builder
   `withMetaExtensions`.
+- Для фоновых задач используйте `WFlow.createServiceFork(...)` — он создаёт
+  новый service-span и корректно инициализирует OpenTelemetry контекст.

@@ -290,7 +290,7 @@ public class THProviderErrorMapper implements WErrorMapper {
         if (err instanceof THRequestInterceptionException) {
             return fromInterceptionException(metadata, (THRequestInterceptionException) err);
         }
-        return attributes(TErrorType.UNKNOWN, UNKNOWN_ERROR_MESSAGE, WErrorSource.INTERNAL);
+        return attributes(TErrorType.UNKNOWN, UNKNOWN_ERROR_MESSAGE, WErrorSource.EXTERNAL);
     }
 
     private ErrorAttributes fromApplicationException(Metadata metadata, TApplicationException appError) {
@@ -305,7 +305,7 @@ public class THProviderErrorMapper implements WErrorMapper {
             case TApplicationException.INTERNAL_ERROR:
             default:
                 return attributes(TErrorType.UNKNOWN,
-                        UNKNOWN_PROVIDER_ERROR_REASON_FUNC.apply(appError.getMessage()), WErrorSource.INTERNAL);
+                        UNKNOWN_PROVIDER_ERROR_REASON_FUNC.apply(appError.getMessage()), WErrorSource.EXTERNAL);
         }
     }
 
