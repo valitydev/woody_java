@@ -28,7 +28,7 @@ public class MdcUtilsExtendedTest {
 
     @After
     public void tearDown() {
-        MDCUtils.setExtendedFieldsEnabled(true);
+        MDCUtils.enableExtendedFields();
         MDCUtils.removeTraceData();
         TraceContext.setCurrentTraceData(originalTraceData);
     }
@@ -69,7 +69,7 @@ public class MdcUtilsExtendedTest {
         TraceData traceData = buildTraceData();
         TraceContext.setCurrentTraceData(traceData);
 
-        MDCUtils.setExtendedFieldsEnabled(false);
+        MDCUtils.disableExtendedFields();
         MDCUtils.putTraceData(traceData, traceData.getClientSpan());
 
         assertNull(MDC.get("rpc.client.service"));

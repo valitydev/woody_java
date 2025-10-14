@@ -31,13 +31,7 @@ public class MDCUtils {
             Boolean.parseBoolean(System.getProperty(EXTENDED_MDC_PROPERTY, "true"));
 
     public static void putTraceData(TraceData traceData, ContextSpan contextSpan) {
-        if (traceData == null || contextSpan == null) {
-            removeTraceData();
-            return;
-        }
-
-        Span span = contextSpan.getSpan();
-        if (span == null) {
+        if (traceData == null || contextSpan == null || contextSpan.getSpan() == null) {
             removeTraceData();
             return;
         }
@@ -45,7 +39,7 @@ public class MDCUtils {
         io.opentelemetry.api.trace.Span otelSpan = traceData.getOtelSpan();
         io.opentelemetry.api.trace.SpanContext spanContext = otelSpan != null ? otelSpan.getSpanContext() : null;
 
-        populateSpanIdentifiers(span);
+        populateSpanIdentifiers(contextSpan.getSpan());
         populateOtelIdentifiers(spanContext);
 
         clearExtendedEntries(false);
@@ -98,11 +92,13 @@ public class MDCUtils {
         updateDeadlineEntries(traceData, contextSpan);
     }
 
-    public static void setExtendedFieldsEnabled(boolean enabled) {
-        extendedFieldsEnabled = enabled;
-        if (!enabled) {
-            clearExtendedEntries(false);
-        }
+    public static void enableExtendedFields() {
+        extendedFieldsEnabled = true;
+    }
+
+    public static void disableExtendedFields() {
+        extendedFieldsEnabled = false;
+        clearExtendedEntries(false);
     }
 
     public static boolean isExtendedFieldsEnabled() {
@@ -262,9 +258,11 @@ public class MDCUtils {
         for (String key : keys) {
             MDC.remove(key);
         }
-        keys.clear();
+
         if (removeThreadLocal) {
             EXTENDED_MDC_KEYS.remove();
+        } else {
+            keys.clear();
         }
     }
 }
