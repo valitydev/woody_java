@@ -1,4 +1,5 @@
 # Woody
+[![Maven Central](https://img.shields.io/maven-central/v/dev.vality.woody/woody.svg)](https://central.sonatype.com/artifact/dev.vality.woody/woody)
 
 Java реализация [Библиотеки RPC вызовов][rpc-lib] для общения между
 микросервисами.
