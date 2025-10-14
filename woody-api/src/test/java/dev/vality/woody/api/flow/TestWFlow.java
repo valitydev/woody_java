@@ -36,4 +36,40 @@ public class TestWFlow {
             assertNotEquals(activeSpan.getTraceId(), activeSpan.getId());
         }).run();
     }
+
+    @Test
+    public void testClientSpanCreatedForNestedFlow() {
+        new WFlow().createServiceFork(() -> {
+            assertFalse(TraceContext.getCurrentTraceData().isClient());
+            assertFalse(TraceContext.getCurrentTraceData().getClientSpan().isFilled());
+
+            WFlow.create((Runnable) () -> {
+                assertTrue(TraceContext.getCurrentTraceData().isClient());
+                assertTrue(TraceContext.getCurrentTraceData().getClientSpan().isFilled());
+                assertTrue(TraceContext.getCurrentTraceData().getClientSpan().getSpan().isStarted());
+            }).run();
+
+            assertFalse(TraceContext.getCurrentTraceData().isClient());
+            assertFalse(TraceContext.getCurrentTraceData().getClientSpan().isFilled());
+        }).run();
+    }
+
+    @Test
+    public void testContextRestoredAfterException() {
+        new WFlow().createServiceFork(() -> {
+            Span serviceSpanBefore = TraceContext.getCurrentTraceData().getServiceSpan().getSpan().cloneObject();
+            try {
+                WFlow.create((Runnable) () -> {
+                    throw new IllegalStateException("boom");
+                }).run();
+                fail("Expected exception");
+            } catch (IllegalStateException expected) {
+                // expected
+            }
+            Span serviceSpanAfter = TraceContext.getCurrentTraceData().getServiceSpan().getSpan();
+            assertEquals(serviceSpanBefore.getTraceId(), serviceSpanAfter.getTraceId());
+            assertEquals(serviceSpanBefore.getId(), serviceSpanAfter.getId());
+            assertEquals(serviceSpanBefore.getParentId(), serviceSpanAfter.getParentId());
+        }).run();
+    }
 }

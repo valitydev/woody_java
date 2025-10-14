@@ -5,6 +5,7 @@ import dev.vality.woody.api.event.ServiceEventType;
 import dev.vality.woody.api.interceptor.CommonInterceptor;
 import dev.vality.woody.api.trace.MetadataProperties;
 import dev.vality.woody.api.trace.TraceData;
+import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.StatusCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,9 +56,28 @@ public class TransportEventInterceptor implements CommonInterceptor {
     @Override
     public boolean interceptError(TraceData traceData, Throwable t, boolean isClient) {
         LOG.trace("Intercept error transportEvent");
-        traceData.getOtelSpan()
-                .setStatus(StatusCode.ERROR)
-                .addEvent("ERROR");
+        Span span = traceData.getOtelSpan();
+        Object lastEvent = traceData.getActiveSpan().getMetadata().getValue(MetadataProperties.EVENT_TYPE);
+        if (isClient && !ClientEventType.CLIENT_RECEIVE.equals(lastEvent)) {
+            traceData.getActiveSpan().getMetadata().putValue(MetadataProperties.EVENT_TYPE,
+                    ClientEventType.CLIENT_RECEIVE);
+            if (span.getSpanContext().isValid()) {
+                span.addEvent(ClientEventType.CLIENT_RECEIVE.name());
+            }
+            respListener.run();
+        } else if (!isClient && !ServiceEventType.SERVICE_RESULT.equals(lastEvent)) {
+            traceData.getActiveSpan().getMetadata().putValue(MetadataProperties.EVENT_TYPE,
+                    ServiceEventType.SERVICE_RESULT);
+            if (span.getSpanContext().isValid()) {
+                span.addEvent(ServiceEventType.SERVICE_RESULT.name());
+            }
+            respListener.run();
+        }
+        if (span.getSpanContext().isValid()) {
+            span.recordException(t);
+            span.setStatus(StatusCode.ERROR);
+            span.addEvent("ERROR");
+        }
         errListener.run();
         return (CommonInterceptor.super.interceptError(traceData, t, isClient));
     }

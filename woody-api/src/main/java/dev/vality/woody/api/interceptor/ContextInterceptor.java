@@ -25,8 +25,7 @@ public class ContextInterceptor implements CommonInterceptor {
     @Override
     public boolean interceptRequest(TraceData traceData, Object providerContext, Object... contextParams) {
         LOG.trace("Intercept request context");
-        boolean spanFilled = TraceContext.getCurrentTraceData() != null
-                && TraceContext.getCurrentTraceData().getServiceSpan().isFilled();
+        boolean spanFilled = traceData != null && traceData.getServiceSpan().isFilled();
         if (spanFilled) {
             traceContext.init();
         } else {
@@ -50,7 +49,7 @@ public class ContextInterceptor implements CommonInterceptor {
                     traceContext.destroy(ContextUtils.hasCallErrors(traceData.getActiveSpan()));
                 } else {
                     TraceContext.reset();
-                    MDCUtils.removeSpanData();
+                    MDCUtils.removeTraceData();
                 }
             } finally {
                 contextInitialized.remove();

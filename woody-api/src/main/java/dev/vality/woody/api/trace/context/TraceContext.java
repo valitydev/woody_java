@@ -4,6 +4,8 @@ import dev.vality.woody.api.MDCUtils;
 import dev.vality.woody.api.generator.IdGenerator;
 import dev.vality.woody.api.trace.Span;
 import dev.vality.woody.api.trace.TraceData;
+import io.opentelemetry.api.trace.SpanKind;
+import io.opentelemetry.context.Context;
 
 import java.util.Optional;
 
@@ -149,13 +151,15 @@ public class TraceContext {
      */
     public void init() {
         TraceData traceData = getCurrentTraceData();
-        if (isClientInit(traceData)) {
+        boolean clientInit = isClientInit(traceData);
+        if (clientInit) {
             traceData = initClientContext(traceData);
         } else {
             traceData = initServiceContext(traceData);
         }
         setCurrentTraceData(traceData);
-        MDCUtils.putSpanData(traceData.getActiveSpan().getSpan(), traceData.getOtelSpan());
+        initializeOtelSpan(traceData, clientInit);
+        MDCUtils.putTraceData(traceData, traceData.getActiveSpan());
 
         postInit.run();
     }
@@ -167,11 +171,13 @@ public class TraceContext {
     public void destroy(boolean onError) {
         TraceData traceData = getCurrentTraceData();
         if (traceData == null) {
-            MDCUtils.removeSpanData();
+            MDCUtils.removeTraceData();
             return;
         }
         boolean isClient = isClientDestroy(traceData);
         setDuration(traceData, isClient);
+        TraceData restored;
+        boolean clearContext = false;
         try {
             if (onError) {
                 preErrDestroy.run();
@@ -179,36 +185,55 @@ public class TraceContext {
                 preDestroy.run();
             }
         } finally {
-            TraceData restored;
+            traceData.finishOtelSpan();
             if (isClient) {
                 restored = destroyClientContext(traceData);
-                if (restored == null) {
-                    setCurrentTraceData(null);
-                    MDCUtils.removeSpanData();
-                    traceData.getOtelSpan().end();
-                    return;
-                }
+                clearContext = restored == null;
             } else {
                 restored = destroyServiceContext(traceData);
             }
-            setCurrentTraceData(restored);
-
-            if (restored.getServiceSpan().isFilled()) {
-                MDCUtils.putSpanData(restored.getServiceSpan().getSpan(), restored.getOtelSpan());
+            if (clearContext) {
+                setCurrentTraceData(null);
+                MDCUtils.removeTraceData();
             } else {
-                MDCUtils.removeSpanData();
-            }
-            traceData.getOtelSpan().end();
-        }
-    }
+                setCurrentTraceData(restored);
 
-    public void setDuration() {
-        setDuration(getCurrentTraceData(), isClient);
+                if (restored.getServiceSpan().isFilled()) {
+                    MDCUtils.putTraceData(restored, restored.getServiceSpan());
+                } else {
+                    MDCUtils.removeTraceData();
+                }
+            }
+        }
     }
 
     private void setDuration(TraceData traceData, boolean isClient) {
         Span span = (isClient ? traceData.getClientSpan().getSpan() : traceData.getServiceSpan().getSpan());
         span.setDuration(System.currentTimeMillis() - span.getTimestamp());
+    }
+
+    private void initializeOtelSpan(TraceData traceData, boolean clientInit) {
+        if (traceData.shouldPreserveOtelSpan()) {
+            traceData.setPendingParentContext(Context.root());
+            traceData.openOtelScope();
+            traceData.clearPreserveOtelSpan();
+            return;
+        }
+
+        if (clientInit) {
+            traceData.startNewOtelSpan(TraceData.OTEL_CLIENT, SpanKind.CLIENT, Context.current());
+            traceData.setPendingParentContext(Context.root());
+            traceData.openOtelScope();
+            return;
+        }
+
+        Context parentContext = traceData.consumePendingParentContext();
+        if (parentContext == null) {
+            parentContext = Context.current();
+        }
+        traceData.startNewOtelSpan(TraceData.OTEL_SERVER, SpanKind.SERVER, parentContext);
+        traceData.setPendingParentContext(Context.root());
+        traceData.openOtelScope();
     }
 
     private TraceData initClientContext(TraceData traceData) {
@@ -243,11 +268,23 @@ public class TraceContext {
     }
 
     private boolean isClientInitAuto(TraceData traceData) {
-        Span serverSpan = traceData.getServiceSpan().getSpan();
+        if (traceData.getClientSpan().isFilled() && traceData.getServiceSpan().isFilled()) {
+            Span clientSpan = traceData.getClientSpan().getSpan();
+            clientSpan.setTraceId(null);
+            clientSpan.setParentId(null);
+            clientSpan.setId(null);
+            clientSpan.setTimestamp(0);
+            clientSpan.setDuration(0);
+            java.time.Instant deadline = clientSpan.getDeadline();
+            if (deadline != null) {
+                clientSpan.setDeadline(deadline);
+            }
+        }
 
         assert !(traceData.getClientSpan().isStarted() && traceData.getServiceSpan().isStarted());
         assert !(traceData.getClientSpan().isFilled() && traceData.getServiceSpan().isFilled());
 
+        Span serverSpan = traceData.getServiceSpan().getSpan();
         return !serverSpan.isFilled() || serverSpan.isStarted();
     }
 
