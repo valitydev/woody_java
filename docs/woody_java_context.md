@@ -1,5 +1,3 @@
-Woody Java – Reference Context
-
 # Woody Java – Reference Context
 
 ## Project Overview
