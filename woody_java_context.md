@@ -1,3 +1,5 @@
+Woody Java – Reference Context
+
 # Woody Java – Reference Context
 
 ## Project Overview
@@ -95,6 +97,7 @@
 - Create forked service task: `WFlow.createServiceFork(runnable)` or callables
   with custom ID generators.
 - Client build pattern:
+
   ```java
   ThriftServiceSrv.Iface client = new THClientBuilder()
       .withAddress(URI.create("https://example"))
@@ -102,7 +105,9 @@
       .withEventListener(listener)
       .build(ThriftServiceSrv.Iface.class);
   ```
+
 - Service servlet:
+
   ```java
   Servlet servlet = new THServiceBuilder()
       .withEventListener(listener)
