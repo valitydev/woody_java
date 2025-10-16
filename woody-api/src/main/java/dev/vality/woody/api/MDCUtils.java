@@ -39,33 +39,34 @@ public class MDCUtils {
         io.opentelemetry.api.trace.Span otelSpan = traceData.getOtelSpan();
         io.opentelemetry.api.trace.SpanContext spanContext = otelSpan != null ? otelSpan.getSpanContext() : null;
 
-        populateSpanIdentifiers(contextSpan.getSpan());
-        populateOtelIdentifiers(spanContext);
+        populateSpanIdentifiers(contextSpan.getSpan(), otelSpan);
+        populateOtelIdentifiers(spanContext, otelSpan);
 
-        clearExtendedEntries(false);
+        clearExtendedEntries(false, otelSpan);
         if (isExtendedFieldsEnabled()) {
-            populateExtendedFields(traceData);
+            populateExtendedFields(traceData, otelSpan);
         }
 
-        updateDeadlineEntries(traceData, contextSpan);
+        updateDeadlineEntries(traceData, contextSpan, otelSpan);
     }
 
-    private static void populateSpanIdentifiers(Span span) {
-        putMdcValue(SPAN_ID, span.getId());
-        putMdcValue(TRACE_ID, span.getTraceId());
-        putMdcValue(PARENT_ID, span.getParentId());
+    private static void populateSpanIdentifiers(Span span, io.opentelemetry.api.trace.Span otelSpan) {
+        putTraceValue(otelSpan, SPAN_ID, span.getId());
+        putTraceValue(otelSpan, TRACE_ID, span.getTraceId());
+        putTraceValue(otelSpan, PARENT_ID, span.getParentId());
     }
 
-    private static void populateOtelIdentifiers(io.opentelemetry.api.trace.SpanContext spanContext) {
+    private static void populateOtelIdentifiers(io.opentelemetry.api.trace.SpanContext spanContext,
+                                                io.opentelemetry.api.trace.Span otelSpan) {
         if (spanContext == null) {
-            putMdcValue(OTEL_TRACE_ID, null);
-            putMdcValue(OTEL_SPAN_ID, null);
-            putMdcValue(OTEL_TRACE_FLAGS, null);
+            putTraceValue(otelSpan, OTEL_TRACE_ID, null);
+            putTraceValue(otelSpan, OTEL_SPAN_ID, null);
+            putTraceValue(otelSpan, OTEL_TRACE_FLAGS, null);
             return;
         }
-        putMdcValue(OTEL_TRACE_ID, spanContext.getTraceId());
-        putMdcValue(OTEL_SPAN_ID, spanContext.getSpanId());
-        putMdcValue(OTEL_TRACE_FLAGS,
+        putTraceValue(otelSpan, OTEL_TRACE_ID, spanContext.getTraceId());
+        putTraceValue(otelSpan, OTEL_SPAN_ID, spanContext.getSpanId());
+        putTraceValue(otelSpan, OTEL_TRACE_FLAGS,
                 spanContext.getTraceFlags() != null ? spanContext.getTraceFlags().asHex() : null);
     }
 
@@ -76,7 +77,7 @@ public class MDCUtils {
         MDC.remove(OTEL_SPAN_ID);
         MDC.remove(OTEL_TRACE_FLAGS);
         MDC.remove(DEADLINE);
-        clearExtendedEntries(true);
+        clearExtendedEntries(true, null);
     }
 
     public static void putDeadline(TraceData traceData, ContextSpan contextSpan, Instant deadline) {
@@ -85,11 +86,13 @@ public class MDCUtils {
             return;
         }
 
-        updateDeadlineEntries(traceData, contextSpan);
+        io.opentelemetry.api.trace.Span otelSpan = traceData != null ? traceData.getOtelSpan() : null;
+        updateDeadlineEntries(traceData, contextSpan, otelSpan);
     }
 
     public static void removeDeadline(TraceData traceData, ContextSpan contextSpan) {
-        updateDeadlineEntries(traceData, contextSpan);
+        io.opentelemetry.api.trace.Span otelSpan = traceData != null ? traceData.getOtelSpan() : null;
+        updateDeadlineEntries(traceData, contextSpan, otelSpan);
     }
 
     public static void enableExtendedFields() {
@@ -98,38 +101,40 @@ public class MDCUtils {
 
     public static void disableExtendedFields() {
         extendedFieldsEnabled = false;
-        clearExtendedEntries(false);
+        clearExtendedEntries(false, null);
     }
 
     public static boolean isExtendedFieldsEnabled() {
         return extendedFieldsEnabled;
     }
 
-    private static void populateExtendedFields(TraceData traceData) {
-        addSpanDetails(traceData.getClientSpan(), TRACE_RPC_CLIENT_PREFIX);
-        addSpanDetails(traceData.getServiceSpan(), TRACE_RPC_SERVER_PREFIX);
+    private static void populateExtendedFields(TraceData traceData, io.opentelemetry.api.trace.Span otelSpan) {
+        addSpanDetails(traceData.getClientSpan(), TRACE_RPC_CLIENT_PREFIX, otelSpan);
+        addSpanDetails(traceData.getServiceSpan(), TRACE_RPC_SERVER_PREFIX, otelSpan);
     }
 
-    private static void addSpanDetails(ContextSpan contextSpan, String prefix) {
+    private static void addSpanDetails(ContextSpan contextSpan, String prefix,
+                                       io.opentelemetry.api.trace.Span otelSpan) {
         if (contextSpan == null || !contextSpan.isFilled()) {
             return;
         }
 
-        addExtendedEntry(prefix + "service", resolveServiceName(contextSpan));
-        addExtendedEntry(prefix + "function", resolveFunctionName(contextSpan));
-        addExtendedEntry(prefix + "type", resolveCallType(contextSpan));
-        addExtendedEntry(prefix + "event", resolveEvent(contextSpan));
-        addExtendedEntry(prefix + "url", resolveEndpoint(contextSpan));
+        addExtendedEntry(otelSpan, prefix + "service", resolveServiceName(contextSpan));
+        addExtendedEntry(otelSpan, prefix + "function", resolveFunctionName(contextSpan));
+        addExtendedEntry(otelSpan, prefix + "type", resolveCallType(contextSpan));
+        addExtendedEntry(otelSpan, prefix + "event", resolveEvent(contextSpan));
+        addExtendedEntry(otelSpan, prefix + "url", resolveEndpoint(contextSpan));
 
         long duration = contextSpan.getSpan().getDuration();
         if (duration > 0) {
-            addExtendedEntry(prefix + "execution_duration_ms", Long.toString(duration));
+            addExtendedEntry(otelSpan, prefix + "execution_duration_ms", Long.toString(duration));
         }
 
-        addCustomMetadataEntries(contextSpan, prefix + TRACE_RPC_METADATA_SUFFIX);
+        addCustomMetadataEntries(contextSpan, prefix + TRACE_RPC_METADATA_SUFFIX, otelSpan);
     }
 
-    private static void addCustomMetadataEntries(ContextSpan contextSpan, String prefix) {
+    private static void addCustomMetadataEntries(ContextSpan contextSpan, String prefix,
+                                                 io.opentelemetry.api.trace.Span otelSpan) {
         Metadata metadata = contextSpan.getCustomMetadata();
         if (metadata == null) {
             return;
@@ -137,7 +142,7 @@ public class MDCUtils {
         for (String key : metadata.getKeys()) {
             Object value = metadata.getValue(key);
             if (value != null) {
-                addExtendedEntry(prefix + key, Objects.toString(value));
+                addExtendedEntry(otelSpan, prefix + key, Objects.toString(value));
             }
         }
     }
@@ -205,11 +210,11 @@ public class MDCUtils {
         return value == null ? null : value.name().toLowerCase(Locale.ROOT).replace('_', ' ');
     }
 
-    private static void addExtendedEntry(String key, String value) {
+    private static void addExtendedEntry(io.opentelemetry.api.trace.Span otelSpan, String key, String value) {
         if (key == null || value == null || value.isEmpty()) {
             return;
         }
-        MDC.put(key, value);
+        putTraceValue(otelSpan, key, value);
         EXTENDED_MDC_KEYS.get().add(key);
     }
 
@@ -217,46 +222,63 @@ public class MDCUtils {
         MDC.put(key, value != null ? value : "");
     }
 
-    private static void removeExtendedEntry(String key) {
+    private static void removeExtendedEntry(io.opentelemetry.api.trace.Span otelSpan, String key) {
         MDC.remove(key);
         EXTENDED_MDC_KEYS.get().remove(key);
+        if (otelSpan != null) {
+            otelSpan.setAttribute(key, null);
+        }
     }
 
-    private static void updateDeadlineEntries(TraceData traceData, ContextSpan contextSpan) {
+    private static void updateDeadlineEntries(TraceData traceData, ContextSpan contextSpan,
+                                              io.opentelemetry.api.trace.Span otelSpan) {
         Instant activeDeadline = contextSpan != null ? ContextUtils.getDeadline(contextSpan) : null;
         if (activeDeadline != null) {
-            MDC.put(DEADLINE, activeDeadline.toString());
+            putTraceValue(otelSpan, DEADLINE, activeDeadline.toString());
         } else {
             MDC.remove(DEADLINE);
+            if (otelSpan != null) {
+                otelSpan.setAttribute(DEADLINE, null);
+            }
         }
 
-        removeExtendedEntry(TRACE_RPC_CLIENT_PREFIX + "deadline");
-        removeExtendedEntry(TRACE_RPC_SERVER_PREFIX + "deadline");
+        removeExtendedEntry(otelSpan, TRACE_RPC_CLIENT_PREFIX + "deadline");
+        removeExtendedEntry(otelSpan, TRACE_RPC_SERVER_PREFIX + "deadline");
 
         if (!isExtendedFieldsEnabled()) {
             return;
         }
 
         if (traceData != null) {
-            addDeadlineEntry(traceData.getClientSpan(), TRACE_RPC_CLIENT_PREFIX);
-            addDeadlineEntry(traceData.getServiceSpan(), TRACE_RPC_SERVER_PREFIX);
+            addDeadlineEntry(traceData.getClientSpan(), TRACE_RPC_CLIENT_PREFIX, otelSpan);
+            addDeadlineEntry(traceData.getServiceSpan(), TRACE_RPC_SERVER_PREFIX, otelSpan);
         }
     }
 
-    private static void addDeadlineEntry(ContextSpan span, String prefix) {
+    private static void addDeadlineEntry(ContextSpan span, String prefix, io.opentelemetry.api.trace.Span otelSpan) {
         if (span == null) {
             return;
         }
         Instant deadline = ContextUtils.getDeadline(span);
         if (deadline != null) {
-            addExtendedEntry(prefix + "deadline", deadline.toString());
+            addExtendedEntry(otelSpan, prefix + "deadline", deadline.toString());
         }
     }
 
-    private static void clearExtendedEntries(boolean removeThreadLocal) {
+    private static void putTraceValue(io.opentelemetry.api.trace.Span otelSpan, String key, String value) {
+        putMdcValue(key, value);
+        if (otelSpan != null) {
+            otelSpan.setAttribute(key, value != null ? value : "");
+        }
+    }
+
+    private static void clearExtendedEntries(boolean removeThreadLocal, io.opentelemetry.api.trace.Span otelSpan) {
         Set<String> keys = EXTENDED_MDC_KEYS.get();
         for (String key : keys) {
             MDC.remove(key);
+            if (otelSpan != null) {
+                otelSpan.setAttribute(key, null);
+            }
         }
 
         if (removeThreadLocal) {
