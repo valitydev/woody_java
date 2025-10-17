@@ -7,6 +7,7 @@ import org.slf4j.MDC;
 
 import java.time.Instant;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
@@ -42,9 +43,22 @@ public class MDCUtils {
         populateSpanIdentifiers(contextSpan.getSpan(), otelSpan);
         populateOtelIdentifiers(spanContext, otelSpan);
 
-        clearExtendedEntries(false, otelSpan);
+        boolean updatingClientSpan = traceData.getClientSpan() == contextSpan;
+        boolean updatingServiceSpan = traceData.getServiceSpan() == contextSpan;
+
         if (isExtendedFieldsEnabled()) {
+            if (updatingClientSpan) {
+                clearExtendedEntriesWithPrefix(TRACE_RPC_CLIENT_PREFIX, otelSpan);
+            }
+            if (updatingServiceSpan) {
+                clearExtendedEntriesWithPrefix(TRACE_RPC_SERVER_PREFIX, otelSpan);
+            }
+            if (!updatingClientSpan && !updatingServiceSpan) {
+                clearExtendedEntries(false, otelSpan);
+            }
             populateExtendedFields(traceData, otelSpan);
+        } else {
+            clearExtendedEntries(false, otelSpan);
         }
 
         updateDeadlineEntries(traceData, contextSpan, otelSpan);
@@ -222,7 +236,7 @@ public class MDCUtils {
         MDC.put(key, value != null ? value : "");
     }
 
-    private static void removeExtendedEntry(io.opentelemetry.api.trace.Span otelSpan, String key) {
+    public static void removeExtendedEntry(io.opentelemetry.api.trace.Span otelSpan, String key) {
         MDC.remove(key);
         EXTENDED_MDC_KEYS.get().remove(key);
         if (otelSpan != null) {
@@ -242,14 +256,30 @@ public class MDCUtils {
             }
         }
 
-        removeExtendedEntry(otelSpan, TRACE_RPC_CLIENT_PREFIX + "deadline");
-        removeExtendedEntry(otelSpan, TRACE_RPC_SERVER_PREFIX + "deadline");
+        boolean updatingClientSpan = traceData != null && traceData.getClientSpan() == contextSpan;
+        boolean updatingServiceSpan = traceData != null && traceData.getServiceSpan() == contextSpan;
 
         if (!isExtendedFieldsEnabled()) {
+            if (updatingClientSpan || (!updatingClientSpan && !updatingServiceSpan)) {
+                removeExtendedEntry(otelSpan, TRACE_RPC_CLIENT_PREFIX + "deadline");
+            }
+            if (updatingServiceSpan || (!updatingClientSpan && !updatingServiceSpan)) {
+                removeExtendedEntry(otelSpan, TRACE_RPC_SERVER_PREFIX + "deadline");
+            }
             return;
         }
 
         if (traceData != null) {
+            if (updatingClientSpan) {
+                removeExtendedEntry(otelSpan, TRACE_RPC_CLIENT_PREFIX + "deadline");
+            }
+            if (updatingServiceSpan) {
+                removeExtendedEntry(otelSpan, TRACE_RPC_SERVER_PREFIX + "deadline");
+            }
+            if (!updatingClientSpan && !updatingServiceSpan) {
+                removeExtendedEntry(otelSpan, TRACE_RPC_CLIENT_PREFIX + "deadline");
+                removeExtendedEntry(otelSpan, TRACE_RPC_SERVER_PREFIX + "deadline");
+            }
             addDeadlineEntry(traceData.getClientSpan(), TRACE_RPC_CLIENT_PREFIX, otelSpan);
             addDeadlineEntry(traceData.getServiceSpan(), TRACE_RPC_SERVER_PREFIX, otelSpan);
         }
@@ -285,6 +315,22 @@ public class MDCUtils {
             EXTENDED_MDC_KEYS.remove();
         } else {
             keys.clear();
+        }
+    }
+
+    private static void clearExtendedEntriesWithPrefix(String prefix,
+                                                       io.opentelemetry.api.trace.Span otelSpan) {
+        Set<String> keys = EXTENDED_MDC_KEYS.get();
+        Iterator<String> iterator = keys.iterator();
+        while (iterator.hasNext()) {
+            String key = iterator.next();
+            if (key.startsWith(prefix)) {
+                MDC.remove(key);
+                if (otelSpan != null) {
+                    otelSpan.setAttribute(key, null);
+                }
+                iterator.remove();
+            }
         }
     }
 }

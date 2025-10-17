@@ -1,5 +1,8 @@
 package dev.vality.woody.thrift.impl.http;
 
+import dev.vality.woody.api.MDCUtils;
+import dev.vality.woody.api.event.ClientEventListener;
+import dev.vality.woody.api.event.ClientEventType;
 import dev.vality.woody.api.event.ServiceEventListener;
 import dev.vality.woody.api.generator.TimestampIdGenerator;
 import dev.vality.woody.api.trace.ContextUtils;
@@ -7,6 +10,7 @@ import dev.vality.woody.api.trace.context.TraceContext;
 import dev.vality.woody.api.trace.context.metadata.MetadataExtensionKit;
 import dev.vality.woody.rpc.Owner;
 import dev.vality.woody.rpc.OwnerServiceSrv;
+import dev.vality.woody.thrift.impl.http.event.THClientEvent;
 import jakarta.servlet.Servlet;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
@@ -41,6 +45,9 @@ public class MetadataMdcPropagationTest extends AbstractTest {
     private final AtomicReference<String> downstreamMetadataDeadline = new AtomicReference<>();
     private final AtomicReference<String> downstreamMdcId = new AtomicReference<>();
     private final AtomicReference<String> downstreamMdcDeadline = new AtomicReference<>();
+    private final AtomicReference<String> downstreamRpcServerService = new AtomicReference<>();
+    private final AtomicReference<String> downstreamRpcServerFunction = new AtomicReference<>();
+    private final AtomicReference<String> downstreamRpcServerUrl = new AtomicReference<>();
     private final AtomicReference<String> upstreamOtelTraceId = new AtomicReference<>();
     private final AtomicReference<String> downstreamOtelTraceId = new AtomicReference<>();
     private final AtomicReference<String> upstreamTraceState = new AtomicReference<>();
@@ -49,6 +56,13 @@ public class MetadataMdcPropagationTest extends AbstractTest {
     private final AtomicReference<String> downstreamTraceParent = new AtomicReference<>();
     private final AtomicReference<String> responseTraceParent = new AtomicReference<>();
     private final AtomicReference<String> responseTraceState = new AtomicReference<>();
+    private final AtomicReference<String> upstreamRpcServerService = new AtomicReference<>();
+    private final AtomicReference<String> upstreamRpcServerFunction = new AtomicReference<>();
+    private final AtomicReference<String> upstreamRpcServerUrl = new AtomicReference<>();
+    private final AtomicReference<String> upstreamRpcClientService = new AtomicReference<>();
+    private final AtomicReference<String> upstreamRpcClientFunction = new AtomicReference<>();
+    private final AtomicReference<String> upstreamRpcClientUrl = new AtomicReference<>();
+    private final AtomicReference<String> upstreamClientPrefixAfterCall = new AtomicReference<>();
 
     private OwnerServiceSrv.Iface downstreamClient;
 
@@ -80,6 +94,9 @@ public class MetadataMdcPropagationTest extends AbstractTest {
                         TraceContext.getCurrentTraceData().getOtelSpan().getSpanContext().getTraceId());
                 downstreamTraceState.set(TraceContext.getCurrentTraceData().getInboundTraceState());
                 downstreamTraceParent.set(TraceContext.getCurrentTraceData().getInboundTraceParent());
+                downstreamRpcServerService.set(MDC.get("rpc.server.service"));
+                downstreamRpcServerFunction.set(MDC.get("rpc.server.function"));
+                downstreamRpcServerUrl.set(MDC.get("rpc.server.url"));
                 return new Owner(id, "downstream");
             }
         };
@@ -99,9 +116,13 @@ public class MetadataMdcPropagationTest extends AbstractTest {
                         TraceContext.getCurrentTraceData().getOtelSpan().getSpanContext().getTraceId());
                 upstreamTraceState.set(TraceContext.getCurrentTraceData().getInboundTraceState());
                 upstreamTraceParent.set(TraceContext.getCurrentTraceData().getInboundTraceParent());
+                upstreamRpcServerService.set(MDC.get("rpc.server.service"));
+                upstreamRpcServerFunction.set(MDC.get("rpc.server.function"));
+                upstreamRpcServerUrl.set(MDC.get("rpc.server.url"));
 
                 Owner result = downstreamClient.getOwner(id);
 
+                upstreamClientPrefixAfterCall.set(MDC.get("rpc.client.service"));
                 assertNotNull("Active trace context must be available", TraceContext.getCurrentTraceData());
                 return result;
             }
@@ -118,8 +139,19 @@ public class MetadataMdcPropagationTest extends AbstractTest {
         ((org.eclipse.jetty.server.handler.HandlerCollection) server.getHandler()).addHandler(context);
         context.start();
 
-        downstreamClient = createThriftRPCClient(OwnerServiceSrv.Iface.class, new TimestampIdGenerator(), null,
-                getUrlString("/downstream"));
+        ClientEventListener<THClientEvent> clientEventListener = new ClientEventListener<THClientEvent>() {
+            @Override
+            public void notifyEvent(THClientEvent event) {
+                if (ClientEventType.CLIENT_SEND.equals(event.getEventType())) {
+                    upstreamRpcClientService.set(MDC.get(MDCUtils.TRACE_RPC_CLIENT_PREFIX + "service"));
+                    upstreamRpcClientFunction.set(MDC.get(MDCUtils.TRACE_RPC_CLIENT_PREFIX + "function"));
+                    upstreamRpcClientUrl.set(MDC.get(MDCUtils.TRACE_RPC_CLIENT_PREFIX + "url"));
+                }
+            }
+        };
+
+        downstreamClient = createThriftRPCClient(OwnerServiceSrv.Iface.class, new TimestampIdGenerator(),
+                clientEventListener, null, getUrlString("/downstream"));
     }
 
     @Test
@@ -145,6 +177,10 @@ public class MetadataMdcPropagationTest extends AbstractTest {
         assertEquals(X_REQUEST_DEADLINE, downstreamMetadataDeadline.get());
         assertEquals(X_REQUEST_ID, downstreamMdcId.get());
         assertEquals(X_REQUEST_DEADLINE, downstreamMdcDeadline.get());
+        assertEquals("OwnerService", downstreamRpcServerService.get());
+        assertEquals("getOwner", downstreamRpcServerFunction.get());
+        assertTrue("Server URL should contain downstream path",
+                downstreamRpcServerUrl.get() != null && downstreamRpcServerUrl.get().contains("/downstream"));
         String upstreamTraceId = upstreamOtelTraceId.get();
         String downstreamTraceId = downstreamOtelTraceId.get();
         assertNotNull(upstreamTraceId);
@@ -164,6 +200,14 @@ public class MetadataMdcPropagationTest extends AbstractTest {
         assertTrue("Response traceparent should contain the original trace ID",
                 responseTraceParent.get().contains(TRACE_ID));
         assertEquals(TRACE_STATE, responseTraceState.get());
+        assertEquals("OwnerService", upstreamRpcServerService.get());
+        assertEquals("getOwner", upstreamRpcServerFunction.get());
+        assertTrue("Server URL should contain upstream path",
+                upstreamRpcServerUrl.get() != null && upstreamRpcServerUrl.get().contains("/upstream"));
+        assertEquals("OwnerService", upstreamRpcClientService.get());
+        assertEquals("getOwner", upstreamRpcClientFunction.get());
+        assertEquals(getUrlString("/downstream"), upstreamRpcClientUrl.get());
+        assertEquals("OwnerService", upstreamClientPrefixAfterCall.get());
     }
 
     private void injectHeaders(HttpRequest request, EntityDetails entity, HttpContext context)
@@ -211,6 +255,9 @@ public class MetadataMdcPropagationTest extends AbstractTest {
         downstreamMetadataDeadline.set(null);
         downstreamMdcId.set(null);
         downstreamMdcDeadline.set(null);
+        downstreamRpcServerService.set(null);
+        downstreamRpcServerFunction.set(null);
+        downstreamRpcServerUrl.set(null);
         upstreamOtelTraceId.set(null);
         downstreamOtelTraceId.set(null);
         upstreamTraceState.set(null);
@@ -219,5 +266,12 @@ public class MetadataMdcPropagationTest extends AbstractTest {
         downstreamTraceParent.set(null);
         responseTraceParent.set(null);
         responseTraceState.set(null);
+        upstreamRpcServerService.set(null);
+        upstreamRpcServerFunction.set(null);
+        upstreamRpcServerUrl.set(null);
+        upstreamRpcClientService.set(null);
+        upstreamRpcClientFunction.set(null);
+        upstreamRpcClientUrl.set(null);
+        upstreamClientPrefixAfterCall.set(null);
     }
 }
