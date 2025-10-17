@@ -110,6 +110,7 @@ public abstract class AbstractClientBuilder implements ClientBuilder {
         return new ContextTracer(traceContext,
                 new CompositeTracer(
                         TargetCallTracer.forClient(),
+                        new MdcRefreshTracer(),
                         new ErrorMappingTracer(errorMapProcessor, errDefConsumer),
                         new EventTracer(listenerStub, getOnCallEndEventListener(), getErrorListener()),
                         new ErrorGenTracer(errorMapProcessor),

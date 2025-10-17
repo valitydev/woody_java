@@ -53,6 +53,7 @@ public abstract class AbstractServiceBuilder<Srv> implements ServiceBuilder<Srv>
     protected MethodCallTracer createEventTracer() {
         return new CompositeTracer(
                 TargetCallTracer.forServer(),
+                new MdcRefreshTracer(),
                 DeadlineTracer.forService(),
                 new EventTracer(getOnCallStartEventListener(),
                         getOnCallEndEventListener(),

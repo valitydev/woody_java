@@ -11,6 +11,7 @@ import dev.vality.woody.api.generator.IdGenerator;
 import dev.vality.woody.api.interceptor.CommonInterceptor;
 import dev.vality.woody.api.interceptor.CompositeInterceptor;
 import dev.vality.woody.api.interceptor.ContainerCommonInterceptor;
+import dev.vality.woody.api.interceptor.MdcRefreshInterceptor;
 import dev.vality.woody.api.interceptor.ext.ExtensionBundle;
 import dev.vality.woody.api.provider.ProviderEventInterceptor;
 import dev.vality.woody.api.proxy.InvocationTargetProvider;
@@ -24,7 +25,6 @@ import dev.vality.woody.thrift.impl.http.event.THClientEvent;
 import dev.vality.woody.thrift.impl.http.interceptor.THMessageInterceptor;
 import dev.vality.woody.thrift.impl.http.interceptor.THTransportInterceptor;
 import dev.vality.woody.thrift.impl.http.interceptor.ext.MetadataExtensionBundle;
-import io.opentelemetry.sdk.resources.Resource;
 import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
@@ -245,6 +245,7 @@ public class THClientBuilder extends AbstractClientBuilder {
         return new CompositeInterceptor(
                 new ContainerCommonInterceptor(new THTransportInterceptor(extensionBundles, true, true),
                         new THTransportInterceptor(extensionBundles, true, false)),
+                new MdcRefreshInterceptor(),
                 new TransportEventInterceptor(getOnSendEventListener(), getOnReceiveEventListener(), null));
     }
 

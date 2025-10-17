@@ -21,9 +21,11 @@ import io.opentelemetry.context.propagation.TextMapSetter;
 import io.opentelemetry.semconv.HttpAttributes;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
@@ -84,9 +86,8 @@ public class TransportExtensionBundles {
     public static final ExtensionBundle CALL_ENDPOINT_BUNDLE =
             createExtBundle(createCtxBundle((InterceptorExtension<THCExtensionContext>) reqCCtx -> {
                 ContextSpan contextSpan = reqCCtx.getTraceData().getClientSpan();
-                URL url = reqCCtx.getRequestCallEndpoint();
-                contextSpan.getMetadata().putValue(MetadataProperties.CALL_ENDPOINT,
-                        new UrlStringEndpoint(url == null ? null : url.toString()));
+                String endpoint = resolveClientEndpoint(reqCCtx);
+                contextSpan.getMetadata().putValue(MetadataProperties.CALL_ENDPOINT, new UrlStringEndpoint(endpoint));
             }, respCCtx -> {
             }), createCtxBundle((InterceptorExtension<THSExtensionContext>) reqSCtx -> {
                 HttpServletRequest request = reqSCtx.getProviderRequest();
@@ -99,6 +100,23 @@ public class TransportExtensionBundles {
                         .putValue(MetadataProperties.CALL_ENDPOINT, new UrlStringEndpoint(sb.toString()));
             }, reqSCtx -> {
             }));
+
+    private static String resolveClientEndpoint(THCExtensionContext reqCCtx) {
+        URL url = reqCCtx.getRequestCallEndpoint();
+        if (url != null) {
+            return url.toString();
+        }
+        Object providerContext = reqCCtx.getProviderContext();
+        if (providerContext instanceof HttpUriRequestBase) {
+            HttpUriRequestBase request = (HttpUriRequestBase) providerContext;
+            try {
+                return request.getUri() != null ? request.getUri().toString() : null;
+            } catch (URISyntaxException e) {
+                throw new RuntimeException("Failed to resolve client endpoint URI", e);
+            }
+        }
+        return null;
+    }
 
     public static final ExtensionBundle TRANSPORT_INJECTION_BUNDLE =
             createExtBundle(createCtxBundle((InterceptorExtension<THCExtensionContext>) reqCCtx -> {

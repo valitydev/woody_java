@@ -1,6 +1,5 @@
 package dev.vality.woody.api.proxy.tracer;
 
-import dev.vality.woody.api.MDCUtils;
 import dev.vality.woody.api.event.ClientEventType;
 import dev.vality.woody.api.event.ServiceEventType;
 import dev.vality.woody.api.proxy.InstanceMethodCaller;
@@ -64,11 +63,6 @@ public class TargetCallTracer implements MethodCallTracer {
         metadata.putValue(MetadataProperties.INSTANCE_METHOD_CALLER, caller);
         metadata.putValue(MetadataProperties.EVENT_TYPE,
                 isClient ? ClientEventType.CALL_SERVICE : ServiceEventType.CALL_HANDLER);
-        TraceData currentTraceData = TraceContext.getCurrentTraceData();
-        ContextSpan activeSpan = currentTraceData != null ? currentTraceData.getActiveSpan() : null;
-        if (currentTraceData != null && activeSpan != null) {
-            MDCUtils.putTraceData(currentTraceData, activeSpan);
-        }
     }
 
     private void setAfterCall(Metadata metadata, Object[] args, InstanceMethodCaller caller, Object result,
