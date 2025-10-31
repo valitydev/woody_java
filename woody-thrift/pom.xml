@@ -80,7 +80,7 @@
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-quickstart</artifactId>
-            <version>11.0.16</version>
+            <version>11.0.26</version>
             <scope>test</scope>
         </dependency>
         <dependency>
