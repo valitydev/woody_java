@@ -1,5 +1,6 @@
 package dev.vality.woody.api.interceptor;
 
+import dev.vality.woody.api.MDCUtils;
 import dev.vality.woody.api.trace.ContextUtils;
 import dev.vality.woody.api.trace.TraceData;
 import dev.vality.woody.api.trace.context.TraceContext;
@@ -14,6 +15,7 @@ public class ContextInterceptor implements CommonInterceptor {
 
     private final TraceContext traceContext;
     private final CommonInterceptor interceptor;
+    private final ThreadLocal<Boolean> contextInitialized = ThreadLocal.withInitial(() -> Boolean.FALSE);
 
     public ContextInterceptor(TraceContext traceContext, CommonInterceptor interceptor) {
         this.traceContext = Objects.requireNonNull(traceContext, "TraceContext can't be null");
@@ -23,10 +25,13 @@ public class ContextInterceptor implements CommonInterceptor {
     @Override
     public boolean interceptRequest(TraceData traceData, Object providerContext, Object... contextParams) {
         LOG.trace("Intercept request context");
-        if (!TraceContext.getCurrentTraceData().getServiceSpan().isFilled()) {
-            throw new IllegalStateException("TraceContext service span must be filled");
+        boolean spanFilled = traceData != null && traceData.getServiceSpan().isFilled();
+        if (spanFilled) {
+            traceContext.init();
+        } else {
+            LOG.trace("Skipping trace context init due to empty service span");
         }
-        traceContext.init();
+        contextInitialized.set(spanFilled);
         return interceptor.interceptRequest(traceData, providerContext, contextParams);
     }
 
@@ -36,7 +41,19 @@ public class ContextInterceptor implements CommonInterceptor {
         try {
             return interceptor.interceptResponse(traceData, providerContext, contextParams);
         } finally {
-            traceContext.destroy(ContextUtils.hasCallErrors(traceData.getActiveSpan()));
+            Boolean initialized = contextInitialized.get();
+            try {
+                if (Boolean.TRUE.equals(initialized)
+                        && traceData != null
+                        && traceData.getServiceSpan().isFilled()) {
+                    traceContext.destroy(ContextUtils.hasCallErrors(traceData.getActiveSpan()));
+                } else {
+                    TraceContext.reset();
+                    MDCUtils.removeTraceData();
+                }
+            } finally {
+                contextInitialized.remove();
+            }
         }
     }
 }

@@ -7,6 +7,7 @@ import dev.vality.woody.api.trace.ContextSpan;
 import dev.vality.woody.api.trace.ContextUtils;
 import dev.vality.woody.api.trace.Metadata;
 import dev.vality.woody.api.trace.MetadataProperties;
+import dev.vality.woody.api.trace.TraceData;
 import dev.vality.woody.api.trace.context.TraceContext;
 
 public class TargetCallTracer implements MethodCallTracer {

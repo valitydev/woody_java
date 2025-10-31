@@ -36,7 +36,8 @@ public class DeadlineTracer extends EmptyTracer {
 
     @Override
     public void beforeCall(Object[] args, InstanceMethodCaller caller) throws Exception {
-        ContextSpan contextSpan = getContextSpan();
+        TraceData traceData = TraceContext.getCurrentTraceData();
+        ContextSpan contextSpan = traceData.getActiveSpan();
         Instant deadline = ContextUtils.getDeadline(contextSpan);
         if (deadline != null) {
             validateDeadline(deadline);
@@ -44,22 +45,18 @@ public class DeadlineTracer extends EmptyTracer {
             if (isClient && networkTimeout > 0) {
                 deadline = Instant.now().plusMillis(networkTimeout);
                 ContextUtils.setDeadline(contextSpan, deadline);
-                MDCUtils.putDeadline(deadline);
+                MDCUtils.putDeadline(traceData, contextSpan, deadline);
             }
         }
     }
 
     @Override
     public void afterCall(Object[] args, InstanceMethodCaller caller, Object result) throws Exception {
-        ContextSpan contextSpan = getContextSpan();
+        TraceData traceData = TraceContext.getCurrentTraceData();
+        ContextSpan contextSpan = traceData.getActiveSpan();
         if (ContextUtils.getDeadline(contextSpan) == null) {
-            MDCUtils.removeDeadline();
+            MDCUtils.removeDeadline(traceData, contextSpan);
         }
-    }
-
-    private ContextSpan getContextSpan() {
-        TraceData currentTraceData = TraceContext.getCurrentTraceData();
-        return isClient ? currentTraceData.getClientSpan() : currentTraceData.getServiceSpan();
     }
 
     private void validateDeadline(Instant deadline) {

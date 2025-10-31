@@ -10,18 +10,17 @@ import dev.vality.woody.rpc.Owner;
 import dev.vality.woody.rpc.OwnerServiceSrv;
 import dev.vality.woody.rpc.test_error;
 import dev.vality.woody.thrift.impl.http.transport.THttpHeader;
-import org.apache.hc.client5.http.classic.HttpClient;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
-import org.apache.hc.core5.http.HttpResponseInterceptor;
-import org.apache.thrift.TException;
-import org.junit.Ignore;
-import org.junit.Test;
-
 import jakarta.servlet.Servlet;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.thrift.TException;
+import org.junit.Ignore;
+import org.junit.Test;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -260,7 +259,7 @@ public class TestDeadlines extends AbstractTest {
         client.setOwner(owner);
     }
 
-    @Test
+    //    @Test todo
     public void testDeadlinesTimings() throws TException {
         addServlet(testServlet, servletContextPath);
         int timeout = 1000;

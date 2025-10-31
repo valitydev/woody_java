@@ -79,4 +79,19 @@ Servlet service = serviceBuilder.build(ThriftServiceSrv.Iface.class, handler);
 `service` - это ничто иное, как javax.servlet.Servlet, который нужно добавить в servlet контейнер.
 `handler` - реализация `ThriftServiceSrv.Iface`, которая вызывается для обработки запросов к сервису.
 
+### Интеграционные тесты
+
+Для проверки сквозной OpenTelemetry-трассировки, восстановления контекста,
+обработки ошибок и работы без обязательных метаданных используйте
+интеграционный набор `TraceLifecycleIntegrationTest` в модуле `woody-thrift`.
+
+### Обработка ошибок и метаданных
+
+- Маппер `THProviderErrorMapper` сопоставляет HTTP/Thrift ошибки с
+  `WErrorDefinition`, заполняет `THMetadataProperties` (тип/подтип) и учитывает
+  перехваченные ошибки транспортных интерсепторов.
+- `MetadataMdcPropagationTest` и `THProviderErrorMapperTest` служат примерами
+  того, как проверять перенос MDC-метаданных и корректность кодификации
+  транспортных исключений.
+
 

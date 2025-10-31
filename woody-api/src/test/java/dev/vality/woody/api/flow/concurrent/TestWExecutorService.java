@@ -31,8 +31,9 @@ public class TestWExecutorService {
             try {
                 TraceData currentData = TraceContext.getCurrentTraceData();
                 Assert.assertNotSame(traceData, currentData);
-                Assert.assertEquals(traceData.getActiveSpan().getSpan().getId(),
+                Assert.assertNotEquals(traceData.getActiveSpan().getSpan().getId(),
                         currentData.getActiveSpan().getSpan().getId());
+                Assert.assertTrue(currentData.getActiveSpan().getSpan().isStarted());
                 Assert.assertSame(traceData.getActiveSpan().getMetadata().getValue(Boolean.TRUE.toString()),
                         currentData.getActiveSpan().getMetadata().getValue(Boolean.TRUE.toString()));
                 Assert.assertNotSame(traceData, currentData);
@@ -57,8 +58,9 @@ public class TestWExecutorService {
             try {
                 TraceData currentData = TraceContext.getCurrentTraceData();
                 Assert.assertNotSame(traceData, currentData);
-                Assert.assertEquals(traceData.getActiveSpan().getSpan().getId(),
+                Assert.assertNotEquals(traceData.getActiveSpan().getSpan().getId(),
                         currentData.getActiveSpan().getSpan().getId());
+                Assert.assertTrue(currentData.getActiveSpan().getSpan().isStarted());
                 Assert.assertSame(traceData.getActiveSpan().getMetadata().getValue(Boolean.TRUE.toString()),
                         currentData.getActiveSpan().getMetadata().getValue(Boolean.TRUE.toString()));
                 Assert.assertNotSame(traceData, currentData);

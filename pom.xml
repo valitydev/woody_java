@@ -2,17 +2,18 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
     <parent>
         <groupId>dev.vality</groupId>
         <artifactId>library-parent-pom</artifactId>
-        <version>2.0.1</version>
+        <version>3.1.0</version>
     </parent>
 
-    <modelVersion>4.0.0</modelVersion>
     <packaging>pom</packaging>
     <groupId>dev.vality.woody</groupId>
     <artifactId>woody</artifactId>
-    <version>2.0.9</version>
+    <version>2.1.0</version>
 
     <name>Woody Java</name>
     <description>Java implementation for Woody spec</description>
@@ -27,6 +28,8 @@
 
     <developers>
         <developer>
+            <id>vality</id>
+            <name>Vality Developers</name>
             <email>devs@vality.dev</email>
             <organization>Vality</organization>
             <organizationUrl>https://vality.dev</organizationUrl>
@@ -43,6 +46,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
+        <opentelemetry.version>1.49.0</opentelemetry.version>
+        <opentelemetry-semconv.version>1.37.0</opentelemetry-semconv.version>
     </properties>
 
     <modules>
@@ -62,6 +67,26 @@
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
                 <version>1.7.36</version>
+            </dependency>
+            <dependency>
+                <groupId>io.opentelemetry.semconv</groupId>
+                <artifactId>opentelemetry-semconv</artifactId>
+                <version>${opentelemetry-semconv.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.opentelemetry</groupId>
+                <artifactId>opentelemetry-api</artifactId>
+                <version>${opentelemetry.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.opentelemetry</groupId>
+                <artifactId>opentelemetry-sdk</artifactId>
+                <version>${opentelemetry.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.opentelemetry</groupId>
+                <artifactId>opentelemetry-exporter-otlp</artifactId>
+                <version>${opentelemetry.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
