@@ -33,9 +33,6 @@ public class THProviderErrorMapperTest {
 
     @After
     public void tearDown() {
-        if (testTraceData != null) {
-            testTraceData.getOtelSpan().end();
-        }
         TraceContext.setCurrentTraceData(originalTraceData);
     }
 

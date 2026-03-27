@@ -55,15 +55,10 @@ public class WRunnable implements Runnable {
                     clonedTraceData.getClientSpan().getSpan().setDeadline(deadline);
                 }
             }
-            if (clonedTraceData.getServiceSpan().getSpan().isStarted()) {
-                clonedTraceData.clearPreserveOtelSpan();
-            } else {
+            if (!clonedTraceData.getServiceSpan().getSpan().isStarted()) {
                 clonedTraceData.getServiceSpan().getSpan().setTimestamp(0);
                 clonedTraceData.getServiceSpan().getSpan().setDuration(0);
-                clonedTraceData.clearPreserveOtelSpan();
             }
-        } else {
-            clonedTraceData.clearPreserveOtelSpan();
         }
         TraceContext.setCurrentTraceData(clonedTraceData);
 

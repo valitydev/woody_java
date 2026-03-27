@@ -1,33 +1,12 @@
 package dev.vality.woody.api.trace;
 
-import io.opentelemetry.api.GlobalOpenTelemetry;
-import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.api.trace.SpanKind;
-import io.opentelemetry.context.Context;
-import io.opentelemetry.context.Scope;
-
 public class TraceData {
-    public static final String OTEL_SERVER = "server";
-    public static final String OTEL_CLIENT = "client";
-    public static final String WOODY = "woody";
-
     private final ClientSpan clientSpan;
     private final ServiceSpan serviceSpan;
-
-    private Span otelSpan;
-    private Context otelContext;
-    private Scope activeScope;
-    private boolean ownsOtelSpan;
-    private boolean preserveOtelSpan;
-    private Context pendingParentContext;
-    private String inboundTraceParent;
-    private String inboundTraceState;
 
     public TraceData() {
         this.clientSpan = new ClientSpan();
         this.serviceSpan = new ServiceSpan();
-        setPendingParentContext(Context.root());
-        startPlaceholderSpan();
     }
 
     public TraceData(TraceData oldTraceData) {
@@ -39,14 +18,6 @@ public class TraceData {
                 ? new ClientSpan(oldTraceData.clientSpan, oldTraceData.serviceSpan.getCustomMetadata())
                 : oldTraceData.clientSpan.cloneObject();
         this.serviceSpan = oldTraceData.serviceSpan.cloneObject();
-        adoptOtelContext(oldTraceData.getOtelContext());
-        this.otelSpan = oldTraceData.otelSpan;
-        this.ownsOtelSpan = false;
-        this.activeScope = null;
-        this.pendingParentContext = oldTraceData.pendingParentContext;
-        this.inboundTraceParent = oldTraceData.inboundTraceParent;
-        this.inboundTraceState = oldTraceData.inboundTraceState;
-        this.preserveOtelSpan = true;
     }
 
     public TraceData(TraceData oldTraceData, boolean copyCustomServiceMetadata, String resource) {
@@ -59,86 +30,6 @@ public class TraceData {
 
     public ServiceSpan getServiceSpan() {
         return serviceSpan;
-    }
-
-    public Span getOtelSpan() {
-        return otelSpan;
-    }
-
-    public Context getOtelContext() {
-        return otelContext;
-    }
-
-    public void setPendingParentContext(Context context) {
-        this.pendingParentContext = context == null ? Context.root() : context;
-    }
-
-    public Context consumePendingParentContext() {
-        Context context = pendingParentContext;
-        pendingParentContext = Context.root();
-        return context;
-    }
-
-    public void setInboundTraceParent(String traceParent) {
-        this.inboundTraceParent = traceParent;
-    }
-
-    public String getInboundTraceParent() {
-        return inboundTraceParent;
-    }
-
-    public void setInboundTraceState(String traceState) {
-        this.inboundTraceState = traceState;
-    }
-
-    public String getInboundTraceState() {
-        return inboundTraceState;
-    }
-
-    public void startNewOtelSpan(String spanName, SpanKind spanKind, Context parentContext) {
-        closeActiveScope();
-        if (otelSpan != null && otelSpan.getSpanContext().isValid()) {
-            otelSpan.end();
-        }
-        Context context = parentContext != null ? parentContext : Context.root();
-        Span span = GlobalOpenTelemetry.getTracer(WOODY)
-                .spanBuilder(spanName)
-                .setSpanKind(spanKind)
-                .setParent(context)
-                .startSpan();
-        this.otelSpan = span;
-        this.otelContext = context.with(span);
-        this.ownsOtelSpan = true;
-        this.preserveOtelSpan = false;
-    }
-
-    public void openOtelScope() {
-        closeActiveScope();
-        this.activeScope = otelContext.makeCurrent();
-    }
-
-    public void finishOtelSpan() {
-        closeActiveScope();
-        if (ownsOtelSpan && otelSpan != null) {
-            otelSpan.end();
-        }
-        otelSpan = Span.getInvalid();
-        otelContext = Context.root();
-        ownsOtelSpan = false;
-        preserveOtelSpan = false;
-        inboundTraceParent = null;
-        inboundTraceState = null;
-    }
-
-    private void closeActiveScope() {
-        if (activeScope != null) {
-            activeScope.close();
-            activeScope = null;
-        }
-    }
-
-    private void adoptOtelContext(Context context) {
-        this.otelContext = context == null ? Context.root() : context;
     }
 
     /**
@@ -198,29 +89,9 @@ public class TraceData {
     public void reset() {
         clientSpan.reset();
         serviceSpan.reset();
-        finishOtelSpan();
-        setPendingParentContext(Context.root());
-        inboundTraceParent = null;
-        inboundTraceState = null;
     }
 
     public TraceData cloneObject() {
         return new TraceData(this);
-    }
-
-    public boolean shouldPreserveOtelSpan() {
-        return preserveOtelSpan && otelSpan != null && otelSpan.getSpanContext().isValid();
-    }
-
-    public void clearPreserveOtelSpan() {
-        this.preserveOtelSpan = false;
-    }
-
-    private void startPlaceholderSpan() {
-        this.otelSpan = Span.getInvalid();
-        this.otelContext = Context.root();
-        this.ownsOtelSpan = false;
-        this.activeScope = null;
-        this.preserveOtelSpan = false;
     }
 }

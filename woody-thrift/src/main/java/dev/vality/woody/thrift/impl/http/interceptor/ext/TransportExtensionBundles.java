@@ -12,13 +12,6 @@ import dev.vality.woody.thrift.impl.http.interceptor.THRequestInterceptionExcept
 import dev.vality.woody.thrift.impl.http.transport.THttpHeader;
 import dev.vality.woody.thrift.impl.http.transport.TTransportErrorType;
 import dev.vality.woody.thrift.impl.http.transport.UrlStringEndpoint;
-import io.opentelemetry.api.GlobalOpenTelemetry;
-import io.opentelemetry.api.trace.StatusCode;
-import io.opentelemetry.context.Context;
-import io.opentelemetry.context.propagation.TextMapGetter;
-import io.opentelemetry.context.propagation.TextMapPropagator;
-import io.opentelemetry.context.propagation.TextMapSetter;
-import io.opentelemetry.semconv.HttpAttributes;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
@@ -141,11 +134,8 @@ public class TransportExtensionBundles {
                 reqCCtx.setRequestHeader(THttpHeader.TRACE_ID.getKey(), span.getTraceId());
                 reqCCtx.setRequestHeader(THttpHeader.SPAN_ID.getKey(), span.getId());
                 reqCCtx.setRequestHeader(THttpHeader.PARENT_ID.getKey(), span.getParentId());
-                injectTraceHeaders(reqCCtx);
             }, (InterceptorExtension<THCExtensionContext>) respCCtx -> {
-                applyResponseStatus(respCCtx.getTraceData(), respCCtx.getResponseStatus());
             }), createCtxBundle((InterceptorExtension<THSExtensionContext>) reqSCtx -> {
-                extractTraceContext(reqSCtx);
                 HttpServletRequest request = reqSCtx.getProviderRequest();
                 Span span = reqSCtx.getTraceData().getServiceSpan().getSpan();
                 List<Map.Entry<THttpHeader, Consumer<String>>> headerConsumers =
@@ -160,8 +150,6 @@ public class TransportExtensionBundles {
                 respSCtx.setResponseHeader(THttpHeader.TRACE_ID.getKey(), span.getTraceId());
                 respSCtx.setResponseHeader(THttpHeader.PARENT_ID.getKey(), span.getParentId());
                 respSCtx.setResponseHeader(THttpHeader.SPAN_ID.getKey(), span.getId());
-                injectTraceHeaders(respSCtx);
-                applyResponseStatus(respSCtx.getTraceData(), respSCtx.getProviderResponse().getStatus());
             }));
 
     public static final ExtensionBundle TRANSPORT_STATE_MAPPING_BUNDLE = createExtBundle(createCtxBundle(
@@ -207,7 +195,6 @@ public class TransportExtensionBundles {
                         response.setHeader(THttpHeader.ERROR_REASON.getKey(), val);
                     });
                     serviceSpan.getMetadata().putValue(THMetadataProperties.TH_TRANSPORT_RESPONSE_SET_FLAG, true);
-                    applyResponseStatus(respSCtx.getTraceData(), responseInfo.getStatus());
                 }
             }));
 
@@ -219,31 +206,6 @@ public class TransportExtensionBundles {
             Arrays.asList(TRANSPORT_CONFIG_BUNDLE, RPC_ID_BUNDLE, CALL_ENDPOINT_BUNDLE, TRANSPORT_STATE_MAPPING_BUNDLE,
                     TRANSPORT_INJECTION_BUNDLE, DEADLINE_BUNDLE));
 
-    private static final TextMapGetter<HttpServletRequest> REQUEST_HEADER_GETTER = new TextMapGetter<>() {
-        @Override
-        public Iterable<String> keys(HttpServletRequest carrier) {
-            if (carrier == null) {
-                return Collections.emptyList();
-            }
-            Enumeration<String> headerNames = carrier.getHeaderNames();
-            return headerNames == null ? Collections.emptyList() : Collections.list(headerNames);
-        }
-
-        @Override
-        public String get(HttpServletRequest carrier, String key) {
-            if (carrier == null || key == null) {
-                return null;
-            }
-            return carrier.getHeader(key);
-        }
-    };
-
-    private static final TextMapSetter<THCExtensionContext> CLIENT_REQUEST_SETTER = (carrier, key, value) -> {
-        if (carrier != null && key != null && value != null) {
-            carrier.setRequestHeader(key, value);
-        }
-    };
-
     public static List<ExtensionBundle> getClientExtensions() {
         return clientList;
     }
@@ -254,50 +216,6 @@ public class TransportExtensionBundles {
 
     public static List<ExtensionBundle> getExtensions(boolean isClient) {
         return isClient ? getClientExtensions() : getServiceExtensions();
-    }
-
-    private static TextMapPropagator propagator() {
-        return GlobalOpenTelemetry.get().getPropagators().getTextMapPropagator();
-    }
-
-    private static void extractTraceContext(THSExtensionContext context) {
-        HttpServletRequest request = context.getProviderRequest();
-        Context extracted = propagator().extract(Context.root(), request, REQUEST_HEADER_GETTER);
-        if (io.opentelemetry.api.trace.Span.fromContext(extracted).getSpanContext().isValid()) {
-            context.getTraceData().setInboundTraceParent(request.getHeader(THttpHeader.TRACE_PARENT.getKey()));
-            context.getTraceData().setInboundTraceState(request.getHeader(THttpHeader.TRACE_STATE.getKey()));
-        } else {
-            context.getTraceData().setInboundTraceParent(null);
-            context.getTraceData().setInboundTraceState(null);
-        }
-        context.getTraceData().setPendingParentContext(extracted);
-    }
-
-    private static void injectTraceHeaders(THCExtensionContext context) {
-        propagator().inject(context.getTraceData().getOtelContext(), context, CLIENT_REQUEST_SETTER);
-    }
-
-    private static void injectTraceHeaders(THSExtensionContext context) {
-        String traceParent = context.getTraceData().getInboundTraceParent();
-        if (traceParent != null && !traceParent.isEmpty()) {
-            context.setResponseHeader(THttpHeader.TRACE_PARENT.getKey(), traceParent);
-            String traceState = context.getTraceData().getInboundTraceState();
-            if (traceState != null && !traceState.isEmpty()) {
-                context.setResponseHeader(THttpHeader.TRACE_STATE.getKey(), traceState);
-            }
-        }
-    }
-
-    private static void applyResponseStatus(TraceData traceData, int status) {
-        if (status <= 0) {
-            return;
-        }
-        io.opentelemetry.api.trace.Span span = traceData.getOtelSpan();
-        if (span == null || !span.getSpanContext().isValid()) {
-            return;
-        }
-        span.setAttribute(HttpAttributes.HTTP_RESPONSE_STATUS_CODE, status);
-        span.setStatus(status >= 500 ? StatusCode.ERROR : StatusCode.OK);
     }
 
     private static void logIfError(ContextSpan contextSpan) {
