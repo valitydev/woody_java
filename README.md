@@ -25,8 +25,8 @@ Java реализация [Библиотеки RPC вызовов][rpc-lib] д�
 ## Ключевые возможности
 
 - Сквозная трассировка вызовов через `TraceData`, автоматическое измерение
-  длительности и интеграция со SLF4J MDC и OpenTelemetry.
-- Расширенный MDC: автоматически публикует идентификаторы Woody/OTel, дедлайны,
+  длительности и интеграция со SLF4J MDC.
+- Расширенный MDC: автоматически публикует идентификаторы Woody, дедлайны,
   RPC-метаданные и может отключаться через `-Dwoody.mdc.extended=false`.
 - Потокобезопасная обработка фоновых задач с сохранением контекста
   (`WFlow.create`, `createServiceFork`).
@@ -57,14 +57,14 @@ _woody-pom_ и в корневой директории проекта выпо�
   `woody-api`, интеграция `woody-thrift`, а также пропатченный `libthrift`
   (форк Apache Thrift, переиспользующий HttpClient5 и подключающийся как
   модуль).
-- Основной стек: Java 11, SLF4J, Apache Commons Pool 2, OpenTelemetry
-  (API/SDK/OTLP), Jakarta Servlet 5, Jetty и EasyMock в тестах.
+- Основной стек: Java 11, SLF4J, Apache Commons Pool 2, Jakarta Servlet 5,
+  Jetty и EasyMock в тестах.
 
 ## Woody API
 
 - `TraceContext`/`TraceData` управляют client/service span’ами в
   `ThreadLocal`, автоматически создают `trace_id/span_id`, фиксируют
-  длительность, синхронизируют SLF4J MDC и завершают OTEL-спаны.
+  длительность и синхронизируют SLF4J MDC.
 - `WFlow` и `flow.concurrent` оборачивают `Runnable`/`Callable`/
   `ExecutorService`, сохраняя контекст при выполнении в других потоках,
   поддерживают форки с новыми root- и service-span’ами.
@@ -88,7 +88,7 @@ _woody-pom_ и в корневой директории проекта выпо�
 - Thrift over HTTP поверх Woody.
   - Клиенты (`THClientBuilder`, `THSpawnClientBuilder`,
     `THPooledClientBuilder`) создают `TServiceClient`, добавляют
-    транспортные и message перехватчики (метаданные, traceparent, события),
+    транспортные и message перехватчики (метаданные, события),
     управляют ресурсами HttpClient5.
   - Сервисы (`THServiceBuilder`) собирают `TServlet` с обёртками над
     `TProcessor`, прокидывая `TraceContext.forService`, подключая
@@ -98,8 +98,7 @@ _woody-pom_ и в корневой директории проекта выпо�
   - Транспорт и сообщения расширяются через bundles
     (`MetadataExtensionBundle` и др.), создавая `THCExtensionContext`/
     `THSExtensionContext` для клиента и сервиса.
-  - Поддержка W3C traceparent (`TraceParentUtils`), заполнение
-    дедлайнов/ошибок в метаданные, HTTP-логгеры.
+  - Заполнение дедлайнов/ошибок в метаданные, HTTP-логгеры.
   - Дополнительные пакеты: `error` (конвертация исключений и
     HTTP-статусов), `event` (логирование), `transport` (конфигурация HTTP
     servlet’ов и клиентов).
@@ -115,16 +114,9 @@ _woody-pom_ и в корневой директории проекта выпо�
 - `woody-api/src/test` покрывает генераторы идентификаторов, трассировку и
   прокси.
 - `woody-thrift/src/test` (Jetty quickstart + EasyMock) проверяет
-  HTTP-интеграцию, обработку исключений и метаданные, включая
-  интеграционные сценарии `TraceLifecycleIntegrationTest` для проверки
-  сквозной OpenTelemetry-трассировки, восстановления контекста, ошибок и
-  работы с неполными заголовками.
+  HTTP-интеграцию, обработку исключений и метаданные.
 - Профиль `gen_thrift_classes` включает `thrift-maven-plugin` для генерации
   Thrift IDL.
-- Интеграционные тесты `MetadataMdcPropagationTest` и
-  `TraceLifecycleIntegrationTest` контролируют перенос MDC-метаданных,
-  OpenTelemetry-трассировку и восстановление контекста при ошибках.
-
 ## Дополнительные материалы
 
 - [Контекст Woody Java](context.md) — сводный обзор модулей,
@@ -134,8 +126,8 @@ _woody-pom_ и в корневой директории проекта выпо�
 
 Реализация обеспечивает сквозную трассировку, управление временем жизни
 span’ов и доступ к событиям через единую API-обвязку; `woody-thrift` поверх
-неё инкапсулирует создание HTTP-клиентов и сервисов Thrift с `traceparent`,
-логированием и расширяемыми метаданными, опираясь на локально
+неё инкапсулирует создание HTTP-клиентов и сервисов Thrift с логированием и
+расширяемыми метаданными, опираясь на локально
 модифицированный `libthrift`.
 
 [rpc-lib]: http://52.29.202.218/design/ms/platform/rpc-lib/

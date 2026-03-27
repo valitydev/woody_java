@@ -5,8 +5,7 @@
 - Maven multi-module library delivering RPC tracing infrastructure for
   microservices.
 - Java 11 baseline; core dependencies include SLF4J, Apache Commons Pool 2,
-  OpenTelemetry (API/SDK/OTLP exporter), Jakarta Servlet 5, HttpClient5, Jetty
-  (tests), EasyMock.
+  Jakarta Servlet 5, HttpClient5, Jetty (tests), EasyMock.
 - Modules share version `woody` (root POM); `dependencyManagement` keeps `woody-
   api` version-aligned.
 
@@ -15,9 +14,8 @@
 ### woody-api
 
 - Thread-local tracing via `TraceContext`/`TraceData` managing client/service
-  spans, auto ID generation, duration tracking, SLF4J MDC sync, OTEL span
-  lifecycle.
-- `MDCUtils` публикует trace/span идентификаторы Woody и OpenTelemetry,
+  spans, auto ID generation, duration tracking and SLF4J MDC sync.
+- `MDCUtils` публикует trace/span идентификаторы Woody,
   дедлайны и RPC-метаданные (отключаемо через системное свойство
   `woody.mdc.extended`).
 - Concurrency helpers (`WFlow`, `WCallable`, `WRunnable`, `WExecutorService`)
@@ -42,13 +40,12 @@
 - Thrift-over-HTTP implementation layered on woody-api.
 - Client builders (`THClientBuilder`, `THSpawnClientBuilder`,
   `THPooledClientBuilder`) construct `TServiceClient`, inject message/transport
-  interceptors, traceparent propagation, metadata extensions, logging
-  (`THCEventLogListener`); support custom or pooled HttpClient5.
+  interceptors, metadata extensions, logging (`THCEventLogListener`); support
+  custom or pooled HttpClient5.
 - Service builder (`THServiceBuilder`) wraps `TProcessor` into `TServlet`,
   applies transport interceptors, `THErrorMapProcessor`, logging
   (`THSEventLogListener`), and ensures `TraceContext.forService`.
-- Extension bundles produce `THCExtensionContext`/`THSExtensionContext`;
-  `TraceParentUtils` handles W3C traceparent parsing/serialization.
+- Extension bundles produce `THCExtensionContext`/`THSExtensionContext`.
 - Supplemental packages: `error` (exception ↔ response mapping), `event` (HTTP
   logging), `transport` (servlet/client wiring).
 - Обновлённый `THProviderErrorMapper` синхронизирует статус, источники ошибок,
@@ -72,17 +69,13 @@
 
 - `woody-api/src/test`: ID generators, tracing logic, proxy behavior.
 - `woody-thrift/src/test`: Jetty quickstart servers + EasyMock cover HTTP
-  integration, metadata propagation, error mapping, а также свежие
-  интеграционные сценарии `TraceLifecycleIntegrationTest`, проверяющие
-  сквозную OpenTelemetry-трассировку (новый/восстановленный контекст,
-  обработку ошибок, отсутствие обязательных метаданных).
-- Дополнительно `THProviderErrorMapperTest` и `MetadataMdcPropagationTest`
-  контролируют обработку ошибок и перенос MDC/OTel данных.
+  integration, metadata propagation and error mapping.
+- Дополнительно `THProviderErrorMapperTest` контролирует обработку ошибок.
 
 ## Key Concepts for Agents
 
 - Always maintain root/service/client span consistency; `TraceContext`
-  orchestrates init/destroy hooks and ensures MDC/Otel sync.
+  orchestrates init/destroy hooks and ensures MDC sync.
 - Cross-thread execution must wrap tasks with
   `WFlow.create`/`createServiceFork`.
 - Interceptors are composable; metadata extensions rely on extension bundles
@@ -122,4 +115,4 @@
 - For new metadata, implement `MetadataExtensionKit` and include via builder
   `withMetaExtensions`.
 - Для фоновых задач используйте `WFlow.createServiceFork(...)` — он создаёт
-  новый service-span и корректно инициализирует OpenTelemetry контекст.
+  новый service-span и корректно инициализирует контекст.
