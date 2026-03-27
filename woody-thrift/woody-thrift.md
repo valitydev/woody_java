@@ -81,17 +81,14 @@ Servlet service = serviceBuilder.build(ThriftServiceSrv.Iface.class, handler);
 
 ### Интеграционные тесты
 
-Для проверки сквозной OpenTelemetry-трассировки, восстановления контекста,
-обработки ошибок и работы без обязательных метаданных используйте
-интеграционный набор `TraceLifecycleIntegrationTest` в модуле `woody-thrift`.
+Для проверки обработки ошибок и HTTP-интеграции используйте тесты модуля
+`woody-thrift`.
 
 ### Обработка ошибок и метаданных
 
 - Маппер `THProviderErrorMapper` сопоставляет HTTP/Thrift ошибки с
   `WErrorDefinition`, заполняет `THMetadataProperties` (тип/подтип) и учитывает
   перехваченные ошибки транспортных интерсепторов.
-- `MetadataMdcPropagationTest` и `THProviderErrorMapperTest` служат примерами
-  того, как проверять перенос MDC-метаданных и корректность кодификации
-  транспортных исключений.
-
-
+- `THProviderErrorMapperTest` и `TestClientAndServerHttpHeaders` служат
+  примерами того, как проверять перенос MDC-метаданных и корректность
+  кодификации транспортных исключений.

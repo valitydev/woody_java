@@ -26,9 +26,6 @@ public class ContextInterceptorTest {
     @After
     public void tearDown() {
         MDC.clear();
-        if (testTraceData != null) {
-            testTraceData.getOtelSpan().end();
-        }
         TraceContext.setCurrentTraceData(originalTraceData);
     }
 

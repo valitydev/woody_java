@@ -61,7 +61,6 @@ public class MdcUtilsExtendedTest {
         assertEquals("client-request-1", MDC.get("rpc.client.metadata.user-identity.x-request-id"));
         assertEquals("client-deadline-iso", MDC.get("rpc.client.metadata.user-identity.x-request-deadline"));
 
-        traceData.getOtelSpan().end();
     }
 
     @Test
@@ -75,7 +74,6 @@ public class MdcUtilsExtendedTest {
         assertNull(MDC.get("rpc.client.service"));
         assertNull(MDC.get("rpc.client.metadata.user-identity.x-request-id"));
 
-        traceData.getOtelSpan().end();
     }
 
     private TraceData buildTraceData() throws Exception {

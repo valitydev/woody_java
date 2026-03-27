@@ -4,8 +4,6 @@ import dev.vality.woody.api.MDCUtils;
 import dev.vality.woody.api.generator.IdGenerator;
 import dev.vality.woody.api.trace.Span;
 import dev.vality.woody.api.trace.TraceData;
-import io.opentelemetry.api.trace.SpanKind;
-import io.opentelemetry.context.Context;
 
 import java.util.Optional;
 
@@ -158,7 +156,6 @@ public class TraceContext {
             traceData = initServiceContext(traceData);
         }
         setCurrentTraceData(traceData);
-        initializeOtelSpan(traceData, clientInit);
         MDCUtils.putTraceData(traceData, traceData.getActiveSpan());
 
         postInit.run();
@@ -185,7 +182,6 @@ public class TraceContext {
                 preDestroy.run();
             }
         } finally {
-            traceData.finishOtelSpan();
             if (isClient) {
                 restored = destroyClientContext(traceData);
                 clearContext = restored == null;
@@ -210,30 +206,6 @@ public class TraceContext {
     private void setDuration(TraceData traceData, boolean isClient) {
         Span span = (isClient ? traceData.getClientSpan().getSpan() : traceData.getServiceSpan().getSpan());
         span.setDuration(System.currentTimeMillis() - span.getTimestamp());
-    }
-
-    private void initializeOtelSpan(TraceData traceData, boolean clientInit) {
-        if (traceData.shouldPreserveOtelSpan()) {
-            traceData.setPendingParentContext(Context.root());
-            traceData.openOtelScope();
-            traceData.clearPreserveOtelSpan();
-            return;
-        }
-
-        if (clientInit) {
-            traceData.startNewOtelSpan(TraceData.OTEL_CLIENT, SpanKind.CLIENT, Context.current());
-            traceData.setPendingParentContext(Context.root());
-            traceData.openOtelScope();
-            return;
-        }
-
-        Context parentContext = traceData.consumePendingParentContext();
-        if (parentContext == null) {
-            parentContext = Context.current();
-        }
-        traceData.startNewOtelSpan(TraceData.OTEL_SERVER, SpanKind.SERVER, parentContext);
-        traceData.setPendingParentContext(Context.root());
-        traceData.openOtelScope();
     }
 
     private TraceData initClientContext(TraceData traceData) {

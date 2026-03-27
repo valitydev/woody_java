@@ -13,7 +13,7 @@
     <packaging>pom</packaging>
     <groupId>dev.vality.woody</groupId>
     <artifactId>woody</artifactId>
-    <version>2.1.0</version>
+    <version>3.0.0</version>
 
     <name>Woody Java</name>
     <description>Java implementation for Woody spec</description>
@@ -46,8 +46,6 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
-        <opentelemetry.version>1.49.0</opentelemetry.version>
-        <opentelemetry-semconv.version>1.37.0</opentelemetry-semconv.version>
     </properties>
 
     <modules>
@@ -67,26 +65,6 @@
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
                 <version>1.7.36</version>
-            </dependency>
-            <dependency>
-                <groupId>io.opentelemetry.semconv</groupId>
-                <artifactId>opentelemetry-semconv</artifactId>
-                <version>${opentelemetry-semconv.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.opentelemetry</groupId>
-                <artifactId>opentelemetry-api</artifactId>
-                <version>${opentelemetry.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.opentelemetry</groupId>
-                <artifactId>opentelemetry-sdk</artifactId>
-                <version>${opentelemetry.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.opentelemetry</groupId>
-                <artifactId>opentelemetry-exporter-otlp</artifactId>
-                <version>${opentelemetry.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

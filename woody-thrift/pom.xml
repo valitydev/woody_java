@@ -7,7 +7,7 @@
     <parent>
         <artifactId>woody</artifactId>
         <groupId>dev.vality.woody</groupId>
-        <version>2.1.0</version>
+        <version>3.0.0</version>
     </parent>
 
     <artifactId>woody-thrift</artifactId>
@@ -93,10 +93,6 @@
             <groupId>org.apache.httpcomponents.client5</groupId>
             <artifactId>httpclient5</artifactId>
             <version>5.5.1</version>
-        </dependency>
-        <dependency>
-            <groupId>io.opentelemetry.semconv</groupId>
-            <artifactId>opentelemetry-semconv</artifactId>
         </dependency>
         <dependency>
             <groupId>org.easymock</groupId>

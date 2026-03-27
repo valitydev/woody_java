@@ -12,7 +12,6 @@ import dev.vality.woody.api.proxy.SingleTargetProvider;
 import dev.vality.woody.api.trace.ContextSpan;
 import dev.vality.woody.api.proxy.tracer.*;
 import dev.vality.woody.api.trace.context.TraceContext;
-import io.opentelemetry.sdk.resources.Resource;
 
 import java.net.URI;
 import java.util.concurrent.atomic.AtomicBoolean;

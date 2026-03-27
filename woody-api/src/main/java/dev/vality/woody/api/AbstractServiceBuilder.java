@@ -5,7 +5,6 @@ import dev.vality.woody.api.event.ServiceEventListener;
 import dev.vality.woody.api.proxy.ProxyFactory;
 import dev.vality.woody.api.proxy.SingleTargetProvider;
 import dev.vality.woody.api.proxy.tracer.*;
-import io.opentelemetry.sdk.resources.Resource;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
