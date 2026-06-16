@@ -7,7 +7,7 @@
     <parent>
         <artifactId>woody</artifactId>
         <groupId>dev.vality.woody</groupId>
-        <version>3.0.0</version>
+        <version>3.0.1</version>
     </parent>
 
     <artifactId>woody-api</artifactId>

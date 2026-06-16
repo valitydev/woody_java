@@ -36,13 +36,20 @@ public class CompositeInterceptor implements CommonInterceptor {
     @Override
     public boolean interceptResponse(TraceData traceData, Object providerContext, Object... contextParams) {
         boolean successful = true;
+        RuntimeException firstException = null;
         for (int i = 0; i < interceptors.length; ++i) {
-            successful &= interceptors[i].interceptResponse(traceData, providerContext, contextParams);
-            if (!successful && breakOnError) {
-                return false;
+            try {
+                successful &= interceptors[i].interceptResponse(traceData, providerContext, contextParams);
+            } catch (RuntimeException e) {
+                if (firstException == null) {
+                    firstException = e;
+                }
             }
         }
-        return true;
+        if (firstException != null) {
+            throw firstException;
+        }
+        return successful;
     }
 
 
