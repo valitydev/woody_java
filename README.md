@@ -37,6 +37,28 @@ Java реализация [Библиотеки RPC вызовов][rpc-lib] д�
 - Обновлённый маппинг ошибок и транспорта (`THProviderErrorMapper`), покрытый
   изолированными тестами и сценариями с сетевыми исключениями.
 
+## Уровень логирования ошибок
+
+По умолчанию исключения вызова логируются с уровнем `ERROR` и stacktrace.
+Уровень для отдельных исключений задаётся через `ErrorLogPolicy`
+(`Level` — `org.slf4j.event.Level`):
+
+```java
+new THServiceBuilder()
+        .withErrorLogPolicy(ErrorLogPolicy.builder()
+                .level(InvalidRequest.class, Level.WARN)
+                .levelWithoutStacktrace(PartyNotFound.class, Level.WARN)
+                .build())
+        .build(Iface.class, handler);
+```
+
+- Уровень распространяется на подклассы; приоритет у ближайшего класса
+  в иерархии.
+- Остальные исключения логируются с уровнем `ERROR`.
+- Stacktrace пишется на любом уровне; отключается через
+  `levelWithoutStacktrace`.
+- Политика поддерживается сервисным и клиентскими билдерами.
+
 ## Для ознакомления
 
 [Thrift](https://thrift.apache.org/)  

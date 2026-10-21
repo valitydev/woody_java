@@ -2,6 +2,7 @@ package dev.vality.woody.api;
 
 import dev.vality.woody.api.event.ServiceEvent;
 import dev.vality.woody.api.event.ServiceEventListener;
+import dev.vality.woody.api.flow.error.ErrorLogPolicy;
 import dev.vality.woody.api.proxy.ProxyFactory;
 import dev.vality.woody.api.proxy.SingleTargetProvider;
 import dev.vality.woody.api.proxy.tracer.*;
@@ -16,6 +17,8 @@ public abstract class AbstractServiceBuilder<Srv> implements ServiceBuilder<Srv>
 
     private ServiceEventListener eventListener = DEFAULT_EVENT_LISTENER;
 
+    private ErrorLogPolicy errorLogPolicy = ErrorLogPolicy.DEFAULT;
+
 
     private final AtomicBoolean used = new AtomicBoolean(false);
 
@@ -23,6 +26,18 @@ public abstract class AbstractServiceBuilder<Srv> implements ServiceBuilder<Srv>
     public ServiceBuilder withEventListener(ServiceEventListener listener) {
         this.eventListener = listener;
         return this;
+    }
+
+    /**
+     * Sets the level used to log errors thrown by service handler, see {@link ErrorLogPolicy}.
+     */
+    public AbstractServiceBuilder<Srv> withErrorLogPolicy(ErrorLogPolicy errorLogPolicy) {
+        this.errorLogPolicy = errorLogPolicy == null ? ErrorLogPolicy.DEFAULT : errorLogPolicy;
+        return this;
+    }
+
+    public ErrorLogPolicy getErrorLogPolicy() {
+        return errorLogPolicy;
     }
 
     @Override
@@ -45,7 +60,7 @@ public abstract class AbstractServiceBuilder<Srv> implements ServiceBuilder<Srv>
 
     protected <T> T createProxyService(Class<T> iface, T handler) {
 
-        ProxyFactory proxyFactory = new ProxyFactory(createEventTracer(), allowObjectProxyOverriding);
+        ProxyFactory proxyFactory = new ProxyFactory(createEventTracer(), allowObjectProxyOverriding, errorLogPolicy);
         return proxyFactory.getInstance(iface, new SingleTargetProvider<T>(iface, handler));
     }
 

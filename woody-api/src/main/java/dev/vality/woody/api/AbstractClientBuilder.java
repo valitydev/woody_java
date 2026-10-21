@@ -2,6 +2,7 @@ package dev.vality.woody.api;
 
 import dev.vality.woody.api.event.ClientEvent;
 import dev.vality.woody.api.event.ClientEventListener;
+import dev.vality.woody.api.flow.error.ErrorLogPolicy;
 import dev.vality.woody.api.flow.error.ErrorMapProcessor;
 import dev.vality.woody.api.flow.error.WErrorDefinition;
 import dev.vality.woody.api.generator.IdGenerator;
@@ -25,6 +26,7 @@ public abstract class AbstractClientBuilder implements ClientBuilder {
     private IdGenerator idGenerator;
     private ClientEventListener eventListener = DEFAULT_EVENT_LISTENER;
     private boolean allowObjectProxyOverriding = false;
+    private ErrorLogPolicy errorLogPolicy = ErrorLogPolicy.DEFAULT;
     private final AtomicBoolean used = new AtomicBoolean(false);
 
     public ClientBuilder withNetworkTimeout(int timeout) {
@@ -48,6 +50,18 @@ public abstract class AbstractClientBuilder implements ClientBuilder {
     public ClientBuilder withIdGenerator(IdGenerator generator) {
         this.idGenerator = generator;
         return this;
+    }
+
+    /**
+     * Sets the level used to log errors returned by remote service, see {@link ErrorLogPolicy}.
+     */
+    public ClientBuilder withErrorLogPolicy(ErrorLogPolicy errorLogPolicy) {
+        this.errorLogPolicy = errorLogPolicy == null ? ErrorLogPolicy.DEFAULT : errorLogPolicy;
+        return this;
+    }
+
+    public ErrorLogPolicy getErrorLogPolicy() {
+        return errorLogPolicy;
     }
 
     public int getNetworkTimeout() {
@@ -97,7 +111,8 @@ public abstract class AbstractClientBuilder implements ClientBuilder {
     }
 
     protected <T> T createProxyClient(Class<T> iface, InvocationTargetProvider<T> targetProvider) {
-        ProxyFactory proxyFactory =  new ProxyFactory(createCallTracer(iface, () -> {}), allowObjectProxyOverriding);
+        ProxyFactory proxyFactory =  new ProxyFactory(createCallTracer(iface, () -> {}), allowObjectProxyOverriding,
+                errorLogPolicy);
 
         return proxyFactory.getInstance(iface, targetProvider);
     }

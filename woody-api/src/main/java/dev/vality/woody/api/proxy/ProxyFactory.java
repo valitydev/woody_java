@@ -1,5 +1,6 @@
 package dev.vality.woody.api.proxy;
 
+import dev.vality.woody.api.flow.error.ErrorLogPolicy;
 import dev.vality.woody.api.proxy.tracer.MethodCallTracer;
 
 import java.lang.reflect.Method;
@@ -11,15 +12,26 @@ public class ProxyFactory {
     private final MethodCallerFactory callerFactory;
     private final MethodCallTracer callTracer;
     private final boolean allowObjectOverriding;
+    private final ErrorLogPolicy errorLogPolicy;
 
     public ProxyFactory(MethodCallTracer callTracer, boolean allowObjectOverriding) {
         this(new ReflectionMethodCallerFactory(), callTracer, allowObjectOverriding);
     }
 
+    public ProxyFactory(MethodCallTracer callTracer, boolean allowObjectOverriding, ErrorLogPolicy errorLogPolicy) {
+        this(new ReflectionMethodCallerFactory(), callTracer, allowObjectOverriding, errorLogPolicy);
+    }
+
     public ProxyFactory(MethodCallerFactory callerFactory, MethodCallTracer callTracer, boolean allowObjectOverriding) {
+        this(callerFactory, callTracer, allowObjectOverriding, ErrorLogPolicy.DEFAULT);
+    }
+
+    public ProxyFactory(MethodCallerFactory callerFactory, MethodCallTracer callTracer, boolean allowObjectOverriding,
+                        ErrorLogPolicy errorLogPolicy) {
         this.callerFactory = callerFactory;
         this.callTracer = callTracer;
         this.allowObjectOverriding = allowObjectOverriding;
+        this.errorLogPolicy = errorLogPolicy == null ? ErrorLogPolicy.DEFAULT : errorLogPolicy;
     }
 
     public <T> T getInstance(Class<T> iface, InvocationTargetProvider<T> targetProvider) {
@@ -46,7 +58,7 @@ public class ProxyFactory {
 
         return (T) Proxy.newProxyInstance(iface.getClassLoader(), new Class[] {iface},
                 new ProxyInvocationHandler(iface, targetProvider, callerFactory,
-                        MethodCallInterceptors.trackedCallInterceptor(callTracer)));
+                        MethodCallInterceptors.trackedCallInterceptor(callTracer, errorLogPolicy)));
 
     }
 }

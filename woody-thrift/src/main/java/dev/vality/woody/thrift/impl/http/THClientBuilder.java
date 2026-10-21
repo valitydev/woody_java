@@ -4,6 +4,7 @@ import dev.vality.woody.api.AbstractClientBuilder;
 import dev.vality.woody.api.event.ClientEventListener;
 import dev.vality.woody.api.event.CompositeClientEventListener;
 import dev.vality.woody.api.flow.WFlow;
+import dev.vality.woody.api.flow.error.ErrorLogPolicy;
 import dev.vality.woody.api.flow.error.ErrorMapProcessor;
 import dev.vality.woody.api.flow.error.WErrorDefinition;
 import dev.vality.woody.api.flow.error.WErrorMapper;
@@ -90,6 +91,11 @@ public class THClientBuilder extends AbstractClientBuilder {
     public THClientBuilder withErrorMapper(WErrorMapper errorMapper) {
         this.errorMapper = errorMapper;
         return this;
+    }
+
+    @Override
+    public THClientBuilder withErrorLogPolicy(ErrorLogPolicy errorLogPolicy) {
+        return (THClientBuilder) super.withErrorLogPolicy(errorLogPolicy);
     }
 
     public THClientBuilder withHttpClient(HttpClient httpClient) {

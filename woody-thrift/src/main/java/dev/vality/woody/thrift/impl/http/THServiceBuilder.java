@@ -3,6 +3,7 @@ package dev.vality.woody.thrift.impl.http;
 import dev.vality.woody.api.AbstractServiceBuilder;
 import dev.vality.woody.api.event.CompositeServiceEventListener;
 import dev.vality.woody.api.event.ServiceEventListener;
+import dev.vality.woody.api.flow.error.ErrorLogPolicy;
 import dev.vality.woody.api.flow.error.WErrorDefinition;
 import dev.vality.woody.api.flow.error.WErrorMapper;
 import dev.vality.woody.api.flow.error.WErrorType;
@@ -38,6 +39,11 @@ public class THServiceBuilder extends AbstractServiceBuilder<Servlet> {
     @Override
     public THServiceBuilder withEventListener(ServiceEventListener listener) {
         return (THServiceBuilder) super.withEventListener(listener);
+    }
+
+    @Override
+    public THServiceBuilder withErrorLogPolicy(ErrorLogPolicy errorLogPolicy) {
+        return (THServiceBuilder) super.withErrorLogPolicy(errorLogPolicy);
     }
 
     public THServiceBuilder withMetaExtensions(List<MetadataExtensionKit> extensionKits) {
