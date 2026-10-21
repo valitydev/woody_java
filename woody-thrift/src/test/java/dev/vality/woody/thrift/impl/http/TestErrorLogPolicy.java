@@ -38,6 +38,7 @@ public class TestErrorLogPolicy extends AbstractTest {
 
         @Override
         public void close() {
+            // Intentionally left empty: in-memory appender holds no resources
         }
 
         @Override
