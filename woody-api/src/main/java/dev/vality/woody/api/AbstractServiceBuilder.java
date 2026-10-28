@@ -31,8 +31,8 @@ public abstract class AbstractServiceBuilder<Srv> implements ServiceBuilder<Srv>
     /**
      * Sets the level used to log errors thrown by service handler, see {@link ErrorLogPolicy}.
      */
-    public AbstractServiceBuilder<Srv> withErrorLogPolicy(ErrorLogPolicy errorLogPolicy) {
-        this.errorLogPolicy = errorLogPolicy == null ? ErrorLogPolicy.DEFAULT : errorLogPolicy;
+    public AbstractServiceBuilder<Srv> withErrorLogPolicy(ErrorLogPolicy newErrorLogPolicy) {
+        this.errorLogPolicy = newErrorLogPolicy == null ? ErrorLogPolicy.DEFAULT : newErrorLogPolicy;
         return this;
     }
 

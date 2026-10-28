@@ -1,6 +1,7 @@
 package dev.vality.woody.api.proxy;
 
 import dev.vality.woody.api.flow.error.ErrorLogPolicy;
+import dev.vality.woody.api.flow.error.ErrorLogRule;
 import dev.vality.woody.api.proxy.tracer.MethodCallTracer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +38,7 @@ public class MethodCallInterceptors {
     }
 
     private static void logCallError(ErrorLogPolicy policy, Throwable t) {
-        ErrorLogPolicy.Rule rule = policy.resolve(t);
+        ErrorLogRule rule = policy.resolve(t);
         if (rule.isStacktrace()) {
             log(rule.getLevel(), "Call Error", t);
         } else {

@@ -21,7 +21,7 @@ public class ErrorLogPolicyTest {
 
     @Test
     public void defaultPolicyLogsEverythingAsErrorWithStacktrace() {
-        ErrorLogPolicy.Rule rule = ErrorLogPolicy.DEFAULT.resolve(new PartyNotFound());
+        ErrorLogRule rule = ErrorLogPolicy.DEFAULT.resolve(new PartyNotFound());
         assertEquals(Level.ERROR, rule.getLevel());
         assertTrue(rule.isStacktrace());
         assertSame(ErrorLogPolicy.DEFAULT, ErrorLogPolicy.builder().build());

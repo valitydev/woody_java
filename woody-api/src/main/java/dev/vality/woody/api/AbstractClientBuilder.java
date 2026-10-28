@@ -55,8 +55,8 @@ public abstract class AbstractClientBuilder implements ClientBuilder {
     /**
      * Sets the level used to log errors returned by remote service, see {@link ErrorLogPolicy}.
      */
-    public ClientBuilder withErrorLogPolicy(ErrorLogPolicy errorLogPolicy) {
-        this.errorLogPolicy = errorLogPolicy == null ? ErrorLogPolicy.DEFAULT : errorLogPolicy;
+    public ClientBuilder withErrorLogPolicy(ErrorLogPolicy newErrorLogPolicy) {
+        this.errorLogPolicy = newErrorLogPolicy == null ? ErrorLogPolicy.DEFAULT : newErrorLogPolicy;
         return this;
     }
 

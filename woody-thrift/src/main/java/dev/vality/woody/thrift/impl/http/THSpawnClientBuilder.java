@@ -32,8 +32,8 @@ public class THSpawnClientBuilder extends THClientBuilder {
     }
 
     @Override
-    public THSpawnClientBuilder withErrorLogPolicy(ErrorLogPolicy errorLogPolicy) {
-        return (THSpawnClientBuilder) super.withErrorLogPolicy(errorLogPolicy);
+    public THSpawnClientBuilder withErrorLogPolicy(ErrorLogPolicy newErrorLogPolicy) {
+        return (THSpawnClientBuilder) super.withErrorLogPolicy(newErrorLogPolicy);
     }
 
     @Override

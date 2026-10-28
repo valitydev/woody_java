@@ -25,11 +25,11 @@ public final class ErrorLogPolicy {
 
     public static final ErrorLogPolicy DEFAULT = new ErrorLogPolicy(Map.of());
 
-    private static final Rule DEFAULT_RULE = new Rule(Level.ERROR, true);
+    private static final ErrorLogRule DEFAULT_RULE = new ErrorLogRule(Level.ERROR, true);
 
-    private final Map<Class<? extends Throwable>, Rule> rules;
+    private final Map<Class<? extends Throwable>, ErrorLogRule> rules;
 
-    private ErrorLogPolicy(Map<Class<? extends Throwable>, Rule> rules) {
+    private ErrorLogPolicy(Map<Class<? extends Throwable>, ErrorLogRule> rules) {
         this.rules = Map.copyOf(rules);
     }
 
@@ -40,9 +40,9 @@ public final class ErrorLogPolicy {
     /**
      * @return logging rule for the error, never {@code null}
      */
-    public Rule resolve(Throwable error) {
+    public ErrorLogRule resolve(Throwable error) {
         for (Class<?> type = error.getClass(); type != null; type = type.getSuperclass()) {
-            Rule rule = rules.get(type);
+            ErrorLogRule rule = rules.get(type);
             if (rule != null) {
                 return rule;
             }
@@ -50,26 +50,8 @@ public final class ErrorLogPolicy {
         return DEFAULT_RULE;
     }
 
-    public static final class Rule {
-        private final Level level;
-        private final boolean stacktrace;
-
-        private Rule(Level level, boolean stacktrace) {
-            this.level = level;
-            this.stacktrace = stacktrace;
-        }
-
-        public Level getLevel() {
-            return level;
-        }
-
-        public boolean isStacktrace() {
-            return stacktrace;
-        }
-    }
-
     public static final class Builder {
-        private final Map<Class<? extends Throwable>, Rule> rules = new HashMap<>();
+        private final Map<Class<? extends Throwable>, ErrorLogRule> rules = new HashMap<>();
 
         private Builder() {
         }
@@ -90,7 +72,7 @@ public final class ErrorLogPolicy {
 
         private Builder rule(Class<? extends Throwable> errorType, Level level, boolean stacktrace) {
             rules.put(Objects.requireNonNull(errorType, "errorType"),
-                    new Rule(Objects.requireNonNull(level, "level"), stacktrace));
+                    new ErrorLogRule(Objects.requireNonNull(level, "level"), stacktrace));
             return this;
         }
 

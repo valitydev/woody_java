@@ -39,8 +39,8 @@ public class THPooledClientBuilder extends THClientBuilder {
     }
 
     @Override
-    public THPooledClientBuilder withErrorLogPolicy(ErrorLogPolicy errorLogPolicy) {
-        return (THPooledClientBuilder) super.withErrorLogPolicy(errorLogPolicy);
+    public THPooledClientBuilder withErrorLogPolicy(ErrorLogPolicy newErrorLogPolicy) {
+        return (THPooledClientBuilder) super.withErrorLogPolicy(newErrorLogPolicy);
     }
 
     @Override

@@ -42,8 +42,8 @@ public class THServiceBuilder extends AbstractServiceBuilder<Servlet> {
     }
 
     @Override
-    public THServiceBuilder withErrorLogPolicy(ErrorLogPolicy errorLogPolicy) {
-        return (THServiceBuilder) super.withErrorLogPolicy(errorLogPolicy);
+    public THServiceBuilder withErrorLogPolicy(ErrorLogPolicy newErrorLogPolicy) {
+        return (THServiceBuilder) super.withErrorLogPolicy(newErrorLogPolicy);
     }
 
     public THServiceBuilder withMetaExtensions(List<MetadataExtensionKit> extensionKits) {

@@ -94,8 +94,8 @@ public class THClientBuilder extends AbstractClientBuilder {
     }
 
     @Override
-    public THClientBuilder withErrorLogPolicy(ErrorLogPolicy errorLogPolicy) {
-        return (THClientBuilder) super.withErrorLogPolicy(errorLogPolicy);
+    public THClientBuilder withErrorLogPolicy(ErrorLogPolicy newErrorLogPolicy) {
+        return (THClientBuilder) super.withErrorLogPolicy(newErrorLogPolicy);
     }
 
     public THClientBuilder withHttpClient(HttpClient httpClient) {
