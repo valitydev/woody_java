@@ -2,6 +2,7 @@ package dev.vality.woody.thrift.impl.http;
 
 import dev.vality.woody.api.WoodyInstantiationException;
 import dev.vality.woody.api.event.ClientEventListener;
+import dev.vality.woody.api.flow.error.ErrorLogPolicy;
 import dev.vality.woody.api.flow.error.WErrorMapper;
 import dev.vality.woody.api.generator.IdGenerator;
 import dev.vality.woody.api.proxy.CPool2TargetProvider;
@@ -35,6 +36,11 @@ public class THPooledClientBuilder extends THClientBuilder {
     @Override
     public THPooledClientBuilder withErrorMapper(WErrorMapper errorMapper) {
         return (THPooledClientBuilder) super.withErrorMapper(errorMapper);
+    }
+
+    @Override
+    public THPooledClientBuilder withErrorLogPolicy(ErrorLogPolicy newErrorLogPolicy) {
+        return (THPooledClientBuilder) super.withErrorLogPolicy(newErrorLogPolicy);
     }
 
     @Override
