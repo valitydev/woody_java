@@ -4,7 +4,7 @@
 
 - Maven multi-module library delivering RPC tracing infrastructure for
   microservices.
-- Java 11 baseline; core dependencies include SLF4J, Apache Commons Pool 2,
+- Java 25 baseline; core dependencies include SLF4J, Apache Commons Pool 2,
   Jakarta Servlet 5, HttpClient5, Jetty (tests), EasyMock.
 - Modules share version `woody` (root POM); `dependencyManagement` keeps `woody-
   api` version-aligned.
@@ -63,7 +63,7 @@
   управляет версией через `${revision}`.
 - `woody-thrift` offers `gen_thrift_classes` profile running `thrift-maven-
   plugin` (`thrift` executable required).
-- Target Java version 11; uses Checkstyle suppressions and Renovate config.
+- Target Java version 25; uses Checkstyle suppressions and Renovate config.
 
 ## Testing
 

@@ -79,7 +79,7 @@ _woody-pom_ и в корневой директории проекта выпо�
   `woody-api`, интеграция `woody-thrift`, а также пропатченный `libthrift`
   (форк Apache Thrift, переиспользующий HttpClient5 и подключающийся как
   модуль).
-- Основной стек: Java 11, SLF4J, Apache Commons Pool 2, Jakarta Servlet 5,
+- Основной стек: Java 25, SLF4J, Apache Commons Pool 2, Jakarta Servlet 5,
   Jetty и EasyMock в тестах.
 
 ## Woody API
